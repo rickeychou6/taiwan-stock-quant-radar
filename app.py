@@ -2084,6 +2084,8 @@ def main() -> None:
         .stTabs [data-baseweb="tab-list"] {
             gap: 8px;
             border-bottom: 1px solid #e5e7eb;
+            overflow-x: auto;
+            flex-wrap: nowrap;
         }
         .stTabs [data-baseweb="tab"] {
             background: #f8fafc;
@@ -2092,6 +2094,7 @@ def main() -> None:
             border-bottom: 0;
             border-radius: 8px 8px 0 0;
             padding: 10px 18px;
+            white-space: nowrap;
         }
         .stTabs [aria-selected="true"] {
             background: #ffffff;
@@ -2109,20 +2112,96 @@ def main() -> None:
         }
         button[kind="primary"], .stButton button, .stFormSubmitButton button {
             border-radius: 8px;
-            border: 1px solid #0f172a;
-            background: #0f172a;
+            border: 1px solid #2563eb;
+            background: #2563eb;
             color: #ffffff;
             font-weight: 700;
+            min-height: 44px;
+            box-shadow: 0 6px 14px rgba(37, 99, 235, 0.18);
+        }
+        button[kind="primary"]:hover, .stButton button:hover, .stFormSubmitButton button:hover {
+            border-color: #1d4ed8;
+            background: #1d4ed8;
+            color: #ffffff;
         }
         .stTextInput input, div[data-baseweb="select"] {
             background: #ffffff;
             border-color: #cbd5e1;
             color: #111827;
+            font-size: 16px;
         }
         div[data-testid="stDataFrame"] {
             border: 1px solid #e5e7eb;
             border-radius: 8px;
             overflow: hidden;
+        }
+        @media (max-width: 768px) {
+            .block-container {
+                padding: 0.75rem 0.65rem 2rem;
+                max-width: 100%;
+            }
+            h1 {
+                font-size: 1.45rem;
+                line-height: 1.25;
+                padding-bottom: .5rem;
+            }
+            h2 {
+                font-size: 1.15rem;
+                line-height: 1.3;
+            }
+            h3 {
+                font-size: 1.02rem;
+            }
+            div[data-testid="column"] {
+                width: 100% !important;
+                flex: 1 1 100% !important;
+                min-width: 0 !important;
+            }
+            div[data-testid="stHorizontalBlock"] {
+                gap: .55rem;
+            }
+            div[data-testid="stMetric"] {
+                padding: 11px 12px;
+                margin-bottom: .35rem;
+            }
+            div[data-testid="stMetricLabel"] p {
+                font-size: .78rem;
+                line-height: 1.25;
+            }
+            div[data-testid="stMetricValue"] {
+                font-size: 1.05rem;
+                line-height: 1.25;
+                overflow-wrap: anywhere;
+            }
+            div[data-testid="stMetricDelta"] {
+                font-size: .78rem;
+            }
+            .stTabs [data-baseweb="tab-list"] {
+                gap: 6px;
+                padding-bottom: 2px;
+            }
+            .stTabs [data-baseweb="tab"] {
+                padding: 8px 11px;
+                font-size: .86rem;
+                border-radius: 7px 7px 0 0;
+            }
+            button[kind="primary"], .stButton button, .stFormSubmitButton button {
+                width: 100%;
+                min-height: 46px;
+                font-size: .95rem;
+            }
+            div[data-testid="stCaptionContainer"] p,
+            div[data-testid="stMarkdownContainer"] p {
+                font-size: .88rem;
+                line-height: 1.55;
+            }
+            div[data-testid="stPlotlyChart"] {
+                overflow-x: auto;
+            }
+            div[data-testid="stDataFrame"] {
+                max-width: calc(100vw - 1.3rem);
+                overflow-x: auto;
+            }
         }
         </style>
         """,
