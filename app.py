@@ -37,6 +37,75 @@ REALTIME_CACHE_TTL = 15
 MARKET_CACHE_TTL = 30
 INSTITUTIONAL_CACHE_TTL = 300
 
+STOCK_FUTURES_CODES = {
+    "1101",
+    "1216",
+    "1301",
+    "1303",
+    "1326",
+    "1402",
+    "1476",
+    "1590",
+    "2002",
+    "2049",
+    "2201",
+    "2207",
+    "2301",
+    "2303",
+    "2308",
+    "2317",
+    "2324",
+    "2327",
+    "2330",
+    "2344",
+    "2345",
+    "2352",
+    "2353",
+    "2354",
+    "2356",
+    "2357",
+    "2376",
+    "2377",
+    "2379",
+    "2382",
+    "2383",
+    "2395",
+    "2408",
+    "2412",
+    "2449",
+    "2454",
+    "2603",
+    "2609",
+    "2615",
+    "2618",
+    "2633",
+    "2801",
+    "2880",
+    "2881",
+    "2882",
+    "2883",
+    "2884",
+    "2885",
+    "2886",
+    "2887",
+    "2890",
+    "2891",
+    "2892",
+    "2912",
+    "3008",
+    "3034",
+    "3045",
+    "3231",
+    "3481",
+    "3711",
+    "4904",
+    "5871",
+    "5876",
+    "5880",
+    "6415",
+    "6669",
+}
+
 WATCHLIST_0050 = [
     "2330.TW",
     "2317.TW",
@@ -522,6 +591,151 @@ def _fetch_tpex_institutional(code: str, symbol: str) -> dict[str, Any]:
     except Exception as exc:
         return _empty_institutional(symbol, f"TPEx 法人資料讀取失敗：{exc}")
     return _empty_institutional(symbol)
+
+
+@st.cache_data(ttl=INSTITUTIONAL_CACHE_TTL, show_spinner=False)
+def fetch_twse_institutional_map(date_text: str, _version: str = CACHE_VERSION) -> dict[str, dict[str, Any]]:
+    try:
+        response = requests.get(
+            TWSE_INSTITUTIONAL_URL,
+            params={"date": date_text, "selectType": "ALL", "response": "json"},
+            headers={"User-Agent": USER_AGENT},
+            timeout=10,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        if payload.get("stat") != "OK":
+            return {}
+        records: dict[str, dict[str, Any]] = {}
+        date = pd.to_datetime(date_text, format="%Y%m%d", errors="coerce")
+        date_label = date.strftime("%Y-%m-%d") if pd.notna(date) else date_text
+        for row in payload.get("data", []):
+            code = str(row[0]).strip()
+            if not code.isdigit():
+                continue
+            foreign = _parse_int(row[4]) + _parse_int(row[7])
+            trust = _parse_int(row[10])
+            dealer = _parse_int(row[11])
+            total = _parse_int(row[18]) if len(row) > 18 else foreign + trust + dealer
+            records[code] = {
+                "date": date_label,
+                "name": str(row[1]).strip(),
+                "foreign": foreign,
+                "trust": trust,
+                "dealer": dealer,
+                "total": total,
+            }
+        return records
+    except Exception:
+        return {}
+
+
+@st.cache_data(ttl=INSTITUTIONAL_CACHE_TTL, show_spinner=False)
+def fetch_tpex_institutional_map(date_text: str, _version: str = CACHE_VERSION) -> dict[str, dict[str, Any]]:
+    try:
+        date = pd.to_datetime(date_text, format="%Y%m%d", errors="coerce")
+        if pd.isna(date):
+            return {}
+        response = requests.get(
+            TPEX_INSTITUTIONAL_URL,
+            params={
+                "date": date.strftime("%Y/%m/%d"),
+                "type": "Daily",
+                "response": "json",
+            },
+            headers={"User-Agent": USER_AGENT},
+            timeout=10,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        tables = payload.get("tables") or []
+        if not tables:
+            return {}
+        table = tables[0]
+        roc_date = str(table.get("date") or "")
+        date_label = _roc_date_to_ad(roc_date) or date.strftime("%Y-%m-%d")
+        records: dict[str, dict[str, Any]] = {}
+        for row in table.get("data", []):
+            code = str(row[0]).strip()
+            if not code.isdigit():
+                continue
+            foreign = _parse_int(row[10])
+            trust = _parse_int(row[13])
+            dealer = _parse_int(row[22])
+            total = _parse_int(row[23]) if len(row) > 23 else foreign + trust + dealer
+            records[code] = {
+                "date": date_label,
+                "name": str(row[1]).strip(),
+                "foreign": foreign,
+                "trust": trust,
+                "dealer": dealer,
+                "total": total,
+            }
+        return records
+    except Exception:
+        return {}
+
+
+@st.cache_data(ttl=INSTITUTIONAL_CACHE_TTL, show_spinner=False)
+def fetch_institutional_history(
+    symbol: str,
+    lookback_days: int = 12,
+    refresh_token: int = 0,
+    _version: str = CACHE_VERSION,
+) -> list[dict[str, Any]]:
+    code = symbol.upper().split(".", 1)[0]
+    suffix = symbol.upper().split(".", 1)[1] if "." in symbol else "TW"
+    rows: list[dict[str, Any]] = []
+
+    for date in _recent_dates(lookback_days):
+        date_text = date.strftime("%Y%m%d")
+        if suffix == "TWO":
+            daily = fetch_tpex_institutional_map(date_text)
+        else:
+            daily = fetch_twse_institutional_map(date_text)
+            if code not in daily:
+                daily = fetch_tpex_institutional_map(date_text)
+        record = daily.get(code)
+        if record:
+            rows.append(record)
+    return rows
+
+
+def _streak_text(value: int) -> str:
+    if value > 0:
+        return f"連買 {value} 天"
+    if value < 0:
+        return f"連賣 {abs(value)} 天"
+    return "未連續"
+
+
+def _signed_streak(records: list[dict[str, Any]], key: str) -> int:
+    values = [int(row.get(key, 0)) for row in records if row.get(key) is not None]
+    if not values or values[0] == 0:
+        return 0
+    sign = 1 if values[0] > 0 else -1
+    count = 0
+    for value in values:
+        if value == 0 or (value > 0) != (sign > 0):
+            break
+        count += 1
+    return sign * count
+
+
+def institutional_streak_summary(records: list[dict[str, Any]]) -> dict[str, Any]:
+    latest = records[0] if records else {}
+    summary = {
+        "date": latest.get("date", "-"),
+        "total": _signed_streak(records, "total"),
+        "foreign": _signed_streak(records, "foreign"),
+        "trust": _signed_streak(records, "trust"),
+        "dealer": _signed_streak(records, "dealer"),
+    }
+    summary["total_text"] = _streak_text(summary["total"])
+    summary["foreign_text"] = _streak_text(summary["foreign"])
+    summary["trust_text"] = _streak_text(summary["trust"])
+    summary["dealer_text"] = _streak_text(summary["dealer"])
+    return summary
 
 
 def _roc_date_to_ad(value: str) -> str:
@@ -1113,6 +1327,67 @@ def trade_price_levels(strategy_df: pd.DataFrame) -> dict[str, str]:
     }
 
 
+def combined_box_bollinger_decision(
+    strategy_df: pd.DataFrame,
+    institutional_streak: dict[str, Any],
+) -> dict[str, Any]:
+    latest = strategy_df.iloc[-1]
+    close = _num(latest.get("Close"))
+    box_high = _num(latest.get("Box_High"))
+    box_low = _num(latest.get("Box_Low"))
+    bb_upper = _num(latest.get("BB_Upper"))
+    bb_mid = _num(latest.get("BB_Mid"))
+    stop_line = _num(latest.get("Stop_Line"))
+    volume_ratio = _num(latest.get("Volume_Ratio"))
+    atr = _num(latest.get("ATR"))
+    total_streak = int(institutional_streak.get("total", 0))
+    trust_streak = int(institutional_streak.get("trust", 0))
+
+    buy_candidates = [value for value in [box_high, bb_upper] if pd.notna(value)]
+    sell_candidates = [value for value in [stop_line, box_low, bb_mid] if pd.notna(value)]
+    buy_line = max(buy_candidates) if buy_candidates else np.nan
+    sell_line = max(sell_candidates) if sell_candidates else np.nan
+    if pd.isna(sell_line) and pd.notna(close) and pd.notna(atr):
+        sell_line = close - 2.5 * atr
+
+    box = box_status(latest)
+    bb = bollinger_status(latest)
+    box_ready = box["status"] in {"箱型整理中", "窄箱突破"}
+    bb_ready = bb["status"] in {"貼近上軌", "突破上軌", "中軌上方"}
+    institutional_ready = total_streak >= 2 or trust_streak >= 2
+    institutional_risk = total_streak <= -2 or trust_streak <= -2
+    volume_ready = pd.notna(volume_ratio) and volume_ratio >= 1.1
+
+    if pd.notna(close) and pd.notna(sell_line) and close < sell_line:
+        action = "賣出"
+        reason = "收盤跌破綜合賣點線，先防守資金"
+    elif institutional_risk and bb["status"] in {"中軌下方", "跌破下軌"}:
+        action = "賣出/避開"
+        reason = "法人連賣且布林偏弱，先排除"
+    elif pd.notna(close) and pd.notna(buy_line) and close > buy_line and box_ready and bb_ready and institutional_ready:
+        action = "買進"
+        reason = "收盤突破箱型/布林買入線，且法人連買確認"
+    elif box_ready and bb_ready and institutional_ready:
+        action = "觀察買點"
+        reason = "型態、布林與法人偏多，等收盤突破買入線"
+    elif box_ready and bb_ready and volume_ready:
+        action = "觀察買點"
+        reason = "技術面接近買點，但法人連買尚未確認"
+    else:
+        action = "觀望"
+        reason = "箱型、布林與法人條件尚未共振"
+
+    return {
+        "action": action,
+        "reason": reason,
+        "buy_line": _price_text(buy_line),
+        "sell_line": _price_text(sell_line),
+        "box_status": box["status"],
+        "bollinger_status": bb["status"],
+        "institutional_streak": institutional_streak.get("total_text", "未連續"),
+    }
+
+
 def trade_chart_lines(strategy_df: pd.DataFrame) -> list[dict[str, Any]]:
     latest = strategy_df.iloc[-1]
     close = _num(latest.get("Close"))
@@ -1531,7 +1806,10 @@ def render_plain_trade_plan(
         st.metric("歷史7日勝率", plan["win_7d"])
 
 
-def render_institutional_panel(institutional: dict[str, Any]) -> None:
+def render_institutional_panel(
+    institutional: dict[str, Any],
+    streak: dict[str, Any] | None = None,
+) -> None:
     st.subheader("三大法人買賣狀態")
     col1, col2, col3, col4, col5 = st.columns(5)
     with col1:
@@ -1545,6 +1823,17 @@ def render_institutional_panel(institutional: dict[str, Any]) -> None:
     with col5:
         st.metric("合計買賣超", _shares_to_lots_text(int(institutional["total"])))
     st.caption(f"資料日：{institutional['date']}。{institutional['message']}。")
+    if streak:
+        st.caption(f"連續天數統計資料日：{streak['date']}，以最近官方交易日往前連續計算。")
+        s_col1, s_col2, s_col3, s_col4 = st.columns(4)
+        with s_col1:
+            st.metric("合計連續買賣", streak["total_text"])
+        with s_col2:
+            st.metric("外資連續買賣", streak["foreign_text"])
+        with s_col3:
+            st.metric("投信連續買賣", streak["trust_text"])
+        with s_col4:
+            st.metric("自營商連續買賣", streak["dealer_text"])
 
 
 def render_box_panel(
@@ -1901,6 +2190,8 @@ def render_single_stock_tab(market: dict[str, Any], refresh_token: int = 0) -> N
         strategy_df = analyze_symbol(match.symbol, market["is_bull"], refresh_token=refresh_token)
         realtime_quote = fetch_realtime_quote(match.symbol, refresh_token=refresh_token)
         institutional = fetch_institutional_flow(match.symbol, refresh_token=refresh_token)
+        institutional_history = fetch_institutional_history(match.symbol, refresh_token=refresh_token)
+        institutional_streak = institutional_streak_summary(institutional_history)
         stock_name = match.name if match.name != match.symbol else get_symbol_name(match.symbol)
         latest = strategy_df.iloc[-1]
     except Exception as exc:
@@ -1925,7 +2216,7 @@ def render_single_stock_tab(market: dict[str, Any], refresh_token: int = 0) -> N
         final_signal(strategy_df),
         phase,
     )
-    render_institutional_panel(institutional)
+    render_institutional_panel(institutional, institutional_streak)
     render_box_panel(strategy_df, market, institutional)
 
     signal = str(latest["Signal"])
@@ -2030,6 +2321,87 @@ def render_scanner_tab(market: dict[str, Any], refresh_token: int = 0) -> None:
         ),
         use_container_width=True,
         height=520,
+    )
+
+
+def non_futures_universe(limit: int) -> list[tuple[str, str]]:
+    directory = load_stock_directory()
+    candidates: list[tuple[str, str]] = []
+    for code, data in sorted(directory.items(), key=lambda item: item[0]):
+        if code in STOCK_FUTURES_CODES:
+            continue
+        symbol = data.get("symbol", "")
+        name = data.get("name", symbol)
+        if symbol.endswith((".TW", ".TWO")):
+            candidates.append((symbol, name))
+    return candidates[:limit]
+
+
+def render_non_futures_tab(market: dict[str, Any], refresh_token: int = 0) -> None:
+    st.caption(
+        "排除常見有個股期貨交易的標的後，掃描一般股票；"
+        "以法人連續買賣超天數、箱型整理與布林通道共同判斷買點/賣點。"
+    )
+    cfg1, cfg2 = st.columns(2)
+    with cfg1:
+        scan_limit = st.slider("掃描檔數", min_value=20, max_value=200, value=80, step=20)
+    with cfg2:
+        only_actionable = st.checkbox("只顯示非觀望", value=True)
+
+    universe = non_futures_universe(scan_limit)
+    st.caption(f"本次候選：排除個股期貨後取前 {len(universe)} 檔。")
+    if not st.button("啟動非期貨個股法人箱型布林掃描", use_container_width=True):
+        return
+
+    progress = st.progress(0)
+    status = st.empty()
+    rows: list[dict[str, Any]] = []
+
+    for idx, (symbol, name) in enumerate(universe, start=1):
+        status.write(f"掃描中：{symbol} {name} ({idx}/{len(universe)})")
+        try:
+            strategy_df = analyze_symbol(symbol, market["is_bull"], refresh_token=refresh_token)
+            latest = strategy_df.iloc[-1]
+            institutional = fetch_institutional_flow(symbol, refresh_token=refresh_token)
+            history = fetch_institutional_history(symbol, refresh_token=refresh_token)
+            streak = institutional_streak_summary(history)
+            decision = combined_box_bollinger_decision(strategy_df, streak)
+            if only_actionable and decision["action"] == "觀望":
+                progress.progress(idx / len(universe))
+                continue
+            rows.append(
+                {
+                    "代碼": symbol,
+                    "名稱": name,
+                    "資料日": latest.name.strftime("%Y-%m-%d"),
+                    "收盤價": float(latest["Close"]),
+                    "判斷": decision["action"],
+                    "買入點": decision["buy_line"],
+                    "賣出點": decision["sell_line"],
+                    "箱型狀態": decision["box_status"],
+                    "布林狀態": decision["bollinger_status"],
+                    "法人合計": _shares_to_lots_text(int(institutional["total"])),
+                    "合計連續": streak["total_text"],
+                    "外資連續": streak["foreign_text"],
+                    "投信連續": streak["trust_text"],
+                    "自營商連續": streak["dealer_text"],
+                    "理由": decision["reason"],
+                }
+            )
+        except Exception as exc:
+            st.warning(f"{symbol} 掃描略過：{exc}")
+        progress.progress(idx / len(universe))
+
+    status.write("掃描完成")
+    if not rows:
+        st.info("本次掃描沒有符合條件的非期貨個股。可提高掃描檔數或取消「只顯示非觀望」。")
+        return
+
+    result = pd.DataFrame(rows)
+    st.dataframe(
+        result.style.format({"收盤價": "{:.2f}"}, na_rep="-"),
+        use_container_width=True,
+        height=560,
     )
 
 
@@ -2236,11 +2608,15 @@ def main() -> None:
         st.error(f"大盤資料載入失敗：{exc}")
         st.stop()
 
-    tab_single, tab_scan = st.tabs(["單股智慧雷達儀表板", "台灣前 50 大權值股每日掃描"])
+    tab_single, tab_scan, tab_non_futures = st.tabs(
+        ["單股智慧雷達儀表板", "台灣前 50 大權值股每日掃描", "非期貨個股法人箱型布林掃描"]
+    )
     with tab_single:
         render_single_stock_tab(market_regime, refresh_token=refresh_token)
     with tab_scan:
         render_scanner_tab(market_regime, refresh_token=refresh_token)
+    with tab_non_futures:
+        render_non_futures_tab(market_regime, refresh_token=refresh_token)
 
 
 if __name__ == "__main__":
