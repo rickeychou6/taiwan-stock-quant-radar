@@ -31,7 +31,7 @@ USER_AGENT = (
 )
 MARKET_SYMBOL = "^TWII"
 LOOKBACK_PERIOD = "3y"
-CACHE_VERSION = "bollinger-v2"
+CACHE_VERSION = "candlestick-v3"
 HISTORY_CACHE_TTL = 1800
 REALTIME_CACHE_TTL = 15
 MARKET_CACHE_TTL = 30
@@ -892,7 +892,7 @@ def get_symbol_name(symbol: str) -> str:
 
 
 @st.cache_data(ttl=1800, show_spinner=False)
-def add_indicators(df: pd.DataFrame, _version: str = CACHE_VERSION) -> pd.DataFrame:
+def add_indicators(df: pd.DataFrame, version: str = CACHE_VERSION) -> pd.DataFrame:
     data = df.copy()
     close = data["Close"]
     high = data["High"]
@@ -918,6 +918,14 @@ def add_indicators(df: pd.DataFrame, _version: str = CACHE_VERSION) -> pd.DataFr
     data["Volume_Price_20"] = (typical_price * volume).rolling(20, min_periods=20).sum() / volume_20
     intraday_range = (high - low).replace(0, np.nan)
     data["Close_Position"] = ((close - low) / intraday_range * 100).clip(0, 100)
+    body_high = pd.concat([data["Open"], close], axis=1).max(axis=1)
+    body_low = pd.concat([data["Open"], close], axis=1).min(axis=1)
+    data["Upper_Shadow"] = (high - body_high).clip(lower=0)
+    data["Lower_Shadow"] = (body_low - low).clip(lower=0)
+    data["Body_Size"] = (close - data["Open"]).abs()
+    data["Upper_Shadow_Ratio"] = (data["Upper_Shadow"] / intraday_range).clip(0, 1)
+    data["Lower_Shadow_Ratio"] = (data["Lower_Shadow"] / intraday_range).clip(0, 1)
+    data["Body_Ratio"] = (data["Body_Size"] / intraday_range).clip(0, 1)
     data["Return_3D"] = close.pct_change(3) * 100
     data["Return_5D"] = close.pct_change(5) * 100
     data["Return_10D"] = close.pct_change(10) * 100
@@ -955,6 +963,7 @@ def add_indicators(df: pd.DataFrame, _version: str = CACHE_VERSION) -> pd.DataFr
     data["Box_Low"] = low.shift(1).rolling(20, min_periods=20).min()
     data["Box_Width_Pct"] = ((data["Box_High"] - data["Box_Low"]) / data["Box_Low"]) * 100
     data["Prev_High_60"] = high.shift(1).rolling(60, min_periods=60).max()
+    data["Prev_Low_60"] = low.shift(1).rolling(60, min_periods=60).min()
     return data
 
 
@@ -1013,7 +1022,7 @@ def _top_divergence_warning(data: pd.DataFrame, i: int, entry_price: float) -> b
 
 
 @st.cache_data(ttl=1800, show_spinner=False)
-def run_strategy(df: pd.DataFrame, market_is_bull: bool, _version: str = CACHE_VERSION) -> pd.DataFrame:
+def run_strategy(df: pd.DataFrame, market_is_bull: bool, version: str = CACHE_VERSION) -> pd.DataFrame:
     data = add_indicators(df).copy()
     data["Signal"] = "觀望"
     data["Position"] = False
@@ -1112,56 +1121,21 @@ def plain_trade_plan(
     strategy_df: pd.DataFrame,
     market: dict[str, Any],
     institutional: dict[str, Any] | None = None,
-) -> dict[str, str]:
+) -> dict[str, Any]:
     latest = strategy_df.iloc[-1]
-    action = action_recommendation(strategy_df)
-    signal = str(latest["Signal"])
-    box = box_status(latest)
-    bb = bollinger_status(latest)
-    levels = trade_price_levels(strategy_df)
-    radar = short_term_radar(strategy_df, market.get("return_5d", 0.0), institutional)
+    final = final_operation_advice(strategy_df, market, institutional)
+    levels = final["levels"]
     bt_stats, _ = backtest_short_windows(strategy_df)
 
     close = _price_text(latest.get("Close"))
-    close_value = _num(latest.get("Close"))
-    breakout_value = _num(levels.get("breakout_value"))
     support_buy = levels["support_buy"]
     breakout_buy = levels["breakout_buy"]
     stop_price = levels["stop_price"]
     target_price = levels["target_price"]
-    score = int(radar["score"])
     win_7d = bt_stats["win_7d"]
-
-    if "買進" in signal:
-        decision = "突破買點已確認"
-        instruction = f"已觸發突破訊號，可分批布局；跌破 {stop_price} 應出場，短線目標看 {target_price}。"
-    elif "出場" in signal:
-        decision = "現在是賣出訊號"
-        instruction = f"已跌破防守線，先賣出或至少減碼；下次等支撐區 {support_buy} 止穩或突破 {breakout_buy} 再評估。"
-    elif "MACD頂背離" in signal:
-        decision = "現在偏向賣出/減碼"
-        instruction = f"有動能轉弱警訊，若已有獲利先分批減碼；跌破 {stop_price} 全面防守。"
-    elif action.startswith("續抱"):
-        decision = "目前續抱"
-        instruction = f"已有持股可續抱，不跌破 {stop_price} 不急賣；上方先看 {target_price}。"
-    elif box["status"] == "箱型整理中":
-        decision = "尚未突破"
-        instruction = f"低接可觀察 {support_buy} 是否止穩；追價要等收盤站上 {breakout_buy} 且量能放大。"
-    elif bb["status"] == "突破上軌":
-        decision = "強勢但不適合盲追"
-        instruction = f"已突破布林上軌，短線強但容易震盪。等回測不破或隔日續強；跌破 {stop_price} 應出場。"
-    elif bb["status"] in {"中軌下方", "跌破下軌"}:
-        decision = "現在觀望"
-        instruction = f"布林位置偏弱，先觀察支撐區 {support_buy}；未站回中軌前不追價。"
-    elif pd.notna(close_value) and pd.notna(breakout_value) and close_value > breakout_value:
-        decision = "已突破，等待回測確認"
-        instruction = f"現價已高於突破買點 {breakout_buy}，勿盲目追高；等回測不破或隔日續強再分批。"
-    elif score >= 75 and market["is_bull"]:
-        decision = "尚未突破"
-        instruction = f"短線條件不差；低接看 {support_buy}，追價等收盤突破 {breakout_buy} 並確認量能。"
-    else:
-        decision = "現在觀望"
-        instruction = f"低接先等支撐區 {support_buy} 止穩；追價必須等突破買點 {breakout_buy} 確認。"
+    reasons = final["reasons"]
+    decision = final["advice"]
+    instruction = "；".join(reasons)
 
     return {
         "decision": decision,
@@ -1171,12 +1145,20 @@ def plain_trade_plan(
         "breakout_buy": breakout_buy,
         "breakout_status": levels["breakout_status"],
         "stop": stop_price,
+        "first_sell": levels["first_sell_zone"],
+        "second_sell": levels["second_sell_zone"],
+        "trailing_stop": levels["trailing_stop"],
+        "trailing_note": levels["trailing_note"],
         "target": target_price,
         "risk_reward": levels["reward_risk"],
         "risk": levels["risk"],
         "reward": levels["reward"],
-        "score": f"{score}/100",
+        "score": f"{final['confidence']}/100",
         "win_7d": win_7d,
+        "stage": final["phase"]["stage"],
+        "reasons": reasons,
+        "shadow_summary": f"下引線承接{final['shadows']['lower_strength']}、上引線賣壓{final['shadows']['upper_strength']}",
+        "pattern": f"{final['pattern']['pattern']} · {final['pattern']['bias']}",
     }
 
 
@@ -1290,6 +1272,117 @@ def _num(value: Any, default: float = np.nan) -> float:
     return default if pd.isna(value) else float(value)
 
 
+def candlestick_analysis(strategy_df: pd.DataFrame) -> dict[str, Any]:
+    latest = strategy_df.iloc[-1]
+    recent = strategy_df.tail(3)
+    close = _num(latest.get("Close"))
+    upper_ratio = _num(latest.get("Upper_Shadow_Ratio"), 0.0)
+    lower_ratio = _num(latest.get("Lower_Shadow_Ratio"), 0.0)
+    volume_ratio = _num(latest.get("Volume_Ratio"), 0.0)
+    box_high = _num(latest.get("Box_High"))
+    box_low = _num(latest.get("Box_Low"))
+    bb_upper = _num(latest.get("BB_Upper"))
+    bb_lower = _num(latest.get("BB_Lower"))
+
+    near_pressure = any(
+        pd.notna(value) and value > 0 and close >= value * 0.98
+        for value in [box_high, bb_upper]
+    )
+    near_support = any(
+        pd.notna(value) and value > 0 and close <= value * 1.03
+        for value in [box_low, bb_lower]
+    )
+    repeated_upper = int((recent["Upper_Shadow_Ratio"] >= 0.35).sum()) >= 2
+    repeated_lower = int((recent["Lower_Shadow_Ratio"] >= 0.35).sum()) >= 2
+
+    upper_score = min(
+        100,
+        int(upper_ratio * 100)
+        + (20 if near_pressure else 0)
+        + (15 if volume_ratio >= 1.5 else 0)
+        + (15 if repeated_upper else 0),
+    )
+    lower_score = min(
+        100,
+        int(lower_ratio * 100)
+        + (20 if near_support else 0)
+        + (15 if volume_ratio >= 1.2 else 0)
+        + (15 if repeated_lower else 0),
+    )
+
+    def strength(score: int) -> str:
+        if score >= 85:
+            return "極強"
+        if score >= 65:
+            return "強"
+        if score >= 40:
+            return "中"
+        return "弱"
+
+    upper_note = "上引線不明顯，壓力訊號有限。"
+    if upper_score >= 65:
+        upper_note = "接近壓力區且出現長上引線，追價前需確認賣壓已消化。"
+    elif upper_score >= 40:
+        upper_note = "出現部分上方賣壓，宜觀察下一根 K 線是否轉弱。"
+    lower_note = "下引線不明顯，尚未看到強承接訊號。"
+    if lower_score >= 65:
+        lower_note = "支撐區出現長下引線，低檔承接力道明顯。"
+    elif lower_score >= 40:
+        lower_note = "盤中低點有承接，可作為支撐區的輔助依據。"
+
+    return {
+        "upper_strength": strength(upper_score),
+        "upper_score": upper_score,
+        "upper_note": upper_note,
+        "lower_strength": strength(lower_score),
+        "lower_score": lower_score,
+        "lower_note": lower_note,
+        "long_upper": upper_score >= 65,
+        "long_lower": lower_score >= 65,
+    }
+
+
+def candlestick_pattern(strategy_df: pd.DataFrame) -> dict[str, str]:
+    if len(strategy_df) < 3:
+        return {"pattern": "無明顯型態", "bias": "中性", "detail": "K 線資料不足。"}
+
+    row = strategy_df.iloc[-1]
+    prev = strategy_df.iloc[-2]
+    prev2 = strategy_df.iloc[-3]
+    o, h, low, c = (_num(row.get(key)) for key in ["Open", "High", "Low", "Close"])
+    po, pc = _num(prev.get("Open")), _num(prev.get("Close"))
+    p2o, p2c = _num(prev2.get("Open")), _num(prev2.get("Close"))
+    body = abs(c - o)
+    candle_range = max(h - low, 1e-9)
+    upper = h - max(o, c)
+    lower = min(o, c) - low
+    prev_body = abs(pc - po)
+    body_ratio = body / candle_range
+
+    bullish_engulfing = c > o and pc < po and o <= pc and c >= po and body >= prev_body
+    bearish_engulfing = c < o and pc > po and o >= pc and c <= po and body >= prev_body
+    morning_star = p2c < p2o and abs(pc - po) <= abs(p2c - p2o) * 0.5 and c > o and c >= (p2o + p2c) / 2
+    evening_star = p2c > p2o and abs(pc - po) <= abs(p2c - p2o) * 0.5 and c < o and c <= (p2o + p2c) / 2
+
+    if morning_star:
+        return {"pattern": "晨星 Morning Star", "bias": "偏多", "detail": "空方力道收斂後出現反轉紅 K，低檔轉強機率提高。"}
+    if evening_star:
+        return {"pattern": "黃昏星 Evening Star", "bias": "偏空", "detail": "高檔動能停頓後轉弱，應留意回檔與停利。"}
+    if bullish_engulfing:
+        return {"pattern": "多方吞噬 Bullish Engulfing", "bias": "偏多", "detail": "紅 K 實體吞噬前一日黑 K，買盤轉強。"}
+    if bearish_engulfing:
+        return {"pattern": "空方吞噬 Bearish Engulfing", "bias": "偏空", "detail": "黑 K 實體吞噬前一日紅 K，賣壓轉強。"}
+    if body_ratio <= 0.1:
+        return {"pattern": "十字線 Doji", "bias": "中性", "detail": "多空暫時平衡，需等待下一根 K 線確認方向。"}
+    if lower >= body * 2 and upper <= max(body, candle_range * 0.15):
+        return {"pattern": "錘子線 Hammer", "bias": "偏多", "detail": "長下引線顯示低檔承接，若位於支撐區更具參考性。"}
+    if upper >= body * 2 and lower <= max(body, candle_range * 0.15):
+        if c < o:
+            return {"pattern": "射擊之星 Shooting Star", "bias": "偏空", "detail": "長上引線顯示壓力沉重，高檔宜降低追價。"}
+        return {"pattern": "倒錘子線 Inverted Hammer", "bias": "觀察", "detail": "上方試價後拉回，位於低檔時需隔日轉強確認。"}
+    return {"pattern": "無明顯型態", "bias": "中性", "detail": "目前未形成八種主要反轉 K 線型態。"}
+
+
 def trade_price_levels(strategy_df: pd.DataFrame) -> dict[str, Any]:
     latest = strategy_df.iloc[-1]
     signal = str(latest["Signal"])
@@ -1298,14 +1391,20 @@ def trade_price_levels(strategy_df: pd.DataFrame) -> dict[str, Any]:
     box_high = _num(latest.get("Box_High"))
     box_low = _num(latest.get("Box_Low"))
     ma20 = _num(latest.get("20MA"))
+    ma60 = _num(latest.get("60MA"))
     bb_upper = _num(latest.get("BB_Upper"))
     bb_mid = _num(latest.get("BB_Mid"))
     bb_lower = _num(latest.get("BB_Lower"))
     volume_price = _num(latest.get("Volume_Price_20"))
     previous_high = _num(latest.get("Prev_High_60"))
+    previous_low = _num(latest.get("Prev_Low_60"))
     stop_line = _num(latest.get("Stop_Line"))
+    recent_long_lower = strategy_df.loc[
+        strategy_df["Lower_Shadow_Ratio"].fillna(0) >= 0.35, "Low"
+    ].tail(5)
+    wick_support = _num(recent_long_lower.iloc[-1]) if not recent_long_lower.empty else np.nan
 
-    support_candidates = [box_low, ma20, bb_mid, bb_lower, volume_price]
+    support_candidates = [box_low, ma20, ma60, bb_mid, bb_lower, volume_price, previous_low, wick_support]
     support_candidates = sorted(
         {float(value) for value in support_candidates if pd.notna(value) and value > 0 and value <= close * 1.02},
         reverse=True,
@@ -1330,7 +1429,11 @@ def trade_price_levels(strategy_df: pd.DataFrame) -> dict[str, Any]:
     )
     nearby_pressure = [value for value in pressure_candidates if value >= close * 0.98 and value <= close * 1.08]
     breakout_price = max(nearby_pressure) if nearby_pressure else (min(pressure_candidates) if pressure_candidates else close)
-    breakout_status = "已突破" if pd.notna(close) and pd.notna(breakout_price) and close > breakout_price else "尚未突破"
+    volume_ratio = _num(latest.get("Volume_Ratio"), 0.0)
+    if pd.notna(close) and pd.notna(breakout_price) and close > breakout_price:
+        breakout_status = "已突破" if volume_ratio >= 1.2 else "突破量能不足，需觀察"
+    else:
+        breakout_status = "尚未突破"
 
     stop_price = stop_line
     stop_note = "跌破停損價應出場"
@@ -1341,10 +1444,30 @@ def trade_price_levels(strategy_df: pd.DataFrame) -> dict[str, Any]:
     elif "MACD頂背離" in signal:
         stop_note = "頂背離預警；跌破停損價應出場"
 
-    risk = breakout_price - stop_price if pd.notna(breakout_price) and pd.notna(stop_price) else np.nan
-    target_price = breakout_price + 1.6 * risk if pd.notna(risk) and risk > 0 else np.nan
-    reward = target_price - breakout_price if pd.notna(target_price) and pd.notna(breakout_price) else np.nan
+    support_mid = (support_low + support_high) / 2 if pd.notna(support_low) and pd.notna(support_high) else np.nan
+    near_support = pd.notna(support_high) and pd.notna(atr) and close <= support_high + atr * 0.6
+    entry_basis = support_mid if near_support and pd.notna(support_mid) else breakout_price
+    entry_basis_name = "支撐買點中間值" if near_support else "突破買點"
+    risk = entry_basis - stop_price if pd.notna(entry_basis) and pd.notna(stop_price) else np.nan
+
+    first_anchor = max(
+        [value for value in [breakout_price, bb_upper, entry_basis + risk * 1.5] if pd.notna(value)],
+        default=np.nan,
+    )
+    zone_pad = atr * 0.25 if pd.notna(atr) else first_anchor * 0.008
+    first_sell_low = first_anchor - zone_pad if pd.notna(first_anchor) else np.nan
+    first_sell_high = first_anchor + zone_pad if pd.notna(first_anchor) else np.nan
+    second_anchor = entry_basis + risk * 2.3 if pd.notna(entry_basis) and pd.notna(risk) and risk > 0 else np.nan
+    second_pad = atr * 0.3 if pd.notna(atr) else second_anchor * 0.01
+    second_sell_low = second_anchor - second_pad if pd.notna(second_anchor) else np.nan
+    second_sell_high = second_anchor + second_pad if pd.notna(second_anchor) else np.nan
+    target_price = entry_basis + risk * 3.0 if pd.notna(entry_basis) and pd.notna(risk) and risk > 0 else np.nan
+    reward = first_anchor - entry_basis if pd.notna(first_anchor) and pd.notna(entry_basis) else np.nan
     reward_risk = reward / risk if pd.notna(reward) and pd.notna(risk) and risk > 0 else np.nan
+
+    previous_day_low = _num(strategy_df.iloc[-2].get("Low")) if len(strategy_df) >= 2 else np.nan
+    trailing_candidates = [value for value in [stop_line, ma20, previous_day_low] if pd.notna(value) and value < close]
+    trailing_stop = max(trailing_candidates) if trailing_candidates else stop_price
 
     support_text = (
         f"{support_low:.2f} ~ {support_high:.2f} 元"
@@ -1352,6 +1475,14 @@ def trade_price_levels(strategy_df: pd.DataFrame) -> dict[str, Any]:
         else "-"
     )
     reward_risk_text = f"1 : {reward_risk:.2f}" if pd.notna(reward_risk) else "-"
+    first_sell_text = (
+        f"{first_sell_low:.2f} ~ {first_sell_high:.2f} 元"
+        if pd.notna(first_sell_low) and pd.notna(first_sell_high) else "-"
+    )
+    second_sell_text = (
+        f"{second_sell_low:.2f} ~ {second_sell_high:.2f} 元"
+        if pd.notna(second_sell_low) and pd.notna(second_sell_high) else "-"
+    )
 
     return {
         "support_buy": support_text,
@@ -1362,14 +1493,24 @@ def trade_price_levels(strategy_df: pd.DataFrame) -> dict[str, Any]:
         "stop_price": _price_text(stop_price),
         "stop_note": stop_note,
         "target_price": _price_text(target_price),
+        "first_sell_zone": first_sell_text,
+        "second_sell_zone": second_sell_text,
+        "trailing_stop": _price_text(trailing_stop),
+        "trailing_note": f"跌破移動停利價 {_price_text(trailing_stop)} 或前一日低點時分批減碼",
         "risk": _price_text(risk),
         "reward": _price_text(reward),
         "reward_risk": reward_risk_text,
+        "risk_basis": entry_basis_name,
         "support_low_value": support_low,
         "support_high_value": support_high,
         "breakout_value": breakout_price,
         "stop_value": stop_price,
         "target_value": target_price,
+        "first_sell_low_value": first_sell_low,
+        "first_sell_high_value": first_sell_high,
+        "second_sell_low_value": second_sell_low,
+        "second_sell_high_value": second_sell_high,
+        "trailing_stop_value": trailing_stop,
         "buy_price": _price_text(breakout_price),
         "buy_note": "突破確認價，非低接買點",
         "sell_price": _price_text(stop_price),
@@ -1446,6 +1587,7 @@ def trade_chart_lines(strategy_df: pd.DataFrame) -> list[dict[str, Any]]:
     stop_line = _num(latest.get("Stop_Line"))
     bb_upper = _num(latest.get("BB_Upper"))
     bb_mid = _num(latest.get("BB_Mid"))
+    levels = trade_price_levels(strategy_df)
 
     if pd.isna(stop_line) and pd.notna(close) and pd.notna(atr):
         stop_line = close - 2.5 * atr
@@ -1481,6 +1623,30 @@ def trade_chart_lines(strategy_df: pd.DataFrame) -> list[dict[str, Any]]:
             "color": "#ef4444",
             "dash": "dot",
         },
+        {
+            "name": "支撐買點下緣",
+            "value": _num(levels.get("support_low_value")),
+            "color": "#16a34a",
+            "dash": "dash",
+        },
+        {
+            "name": "支撐買點上緣",
+            "value": _num(levels.get("support_high_value")),
+            "color": "#22c55e",
+            "dash": "solid",
+        },
+        {
+            "name": "第一賣出區中線",
+            "value": (_num(levels.get("first_sell_low_value")) + _num(levels.get("first_sell_high_value"))) / 2,
+            "color": "#f97316",
+            "dash": "dash",
+        },
+        {
+            "name": "第二賣出區中線",
+            "value": (_num(levels.get("second_sell_low_value")) + _num(levels.get("second_sell_high_value"))) / 2,
+            "color": "#dc2626",
+            "dash": "dash",
+        },
     ]
     return [line for line in lines if pd.notna(line["value"])]
 
@@ -1507,6 +1673,9 @@ def trend_phase_analysis(strategy_df: pd.DataFrame) -> dict[str, str]:
     macd_hist = _num(latest.get("MACD_Hist"))
     prev_macd_hist = _num(previous.get("MACD_Hist"))
     close_position = _num(latest.get("Close_Position"))
+    shadows = candlestick_analysis(strategy_df)
+    bb_width = _num(latest.get("BB_Width_Pct"))
+    prev_bb_width = _num(previous.get("BB_Width_Pct"))
 
     uptrend = pd.notna(close) and pd.notna(ma20) and pd.notna(ma60) and close > ma20 and close > ma60
     ma_stack = (
@@ -1534,7 +1703,9 @@ def trend_phase_analysis(strategy_df: pd.DataFrame) -> dict[str, str]:
         pd.notna(bb_position) and bb_position >= 110,
         volume_overheat,
     ]
-    late_warning = uptrend and sum(bool(item) for item in late_conditions) >= 2 and (macd_fading or kd_hot_death)
+    late_warning = uptrend and sum(bool(item) for item in late_conditions) >= 2 and (
+        macd_fading or kd_hot_death or shadows["upper_score"] >= 65
+    )
 
     bearish = (
         pd.notna(close)
@@ -1560,7 +1731,7 @@ def trend_phase_analysis(strategy_df: pd.DataFrame) -> dict[str, str]:
             "risk": "高",
         }
 
-    if ma_stack and return_5d >= 2 and return_10d >= 4 and pd.notna(bb_position) and bb_position >= 70:
+    if ma_stack and return_5d >= 2 and return_10d >= 4 and pd.notna(bb_position) and bb_position >= 70 and shadows["upper_score"] < 85:
         detail = "均線多頭排列，價格沿 5/10 日線推升，屬於短線攻擊段。"
         if macd_fading:
             detail += " 但 MACD 柱縮短，追價要降部位。"
@@ -1571,11 +1742,14 @@ def trend_phase_analysis(strategy_df: pd.DataFrame) -> dict[str, str]:
             "risk": "中",
         }
 
-    if uptrend and (breakout_ready or compact_box or 0 <= return_5d <= 8) and (macd_rising or kd_bull or volume_support):
+    bb_turning_up = pd.notna(bb_width) and pd.notna(prev_bb_width) and bb_width >= prev_bb_width
+    if uptrend and (breakout_ready or compact_box or 0 <= return_5d <= 8) and (
+        macd_rising or kd_bull or volume_support or bb_turning_up or shadows["lower_score"] >= 40
+    ):
         return {
             "stage": "初升段",
             "bias": "突破試單",
-            "detail": "剛站回多頭結構或接近箱頂突破，若量能放大，適合用買點線小部位切入。",
+            "detail": "剛站回多頭結構或接近箱頂突破，若量能放大，可依支撐買點或突破買點小部位切入。",
             "risk": "中低",
         }
 
@@ -1592,6 +1766,103 @@ def trend_phase_analysis(strategy_df: pd.DataFrame) -> dict[str, str]:
         "bias": "區間觀察",
         "detail": "價格、均線、量能與箱型尚未形成明確趨勢，低接看支撐區，追價等突破確認。",
         "risk": "中",
+    }
+
+
+def final_operation_advice(
+    strategy_df: pd.DataFrame,
+    market: dict[str, Any],
+    institutional: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    latest = strategy_df.iloc[-1]
+    previous = strategy_df.iloc[-2] if len(strategy_df) >= 2 else latest
+    levels = trade_price_levels(strategy_df)
+    shadows = candlestick_analysis(strategy_df)
+    pattern = candlestick_pattern(strategy_df)
+    phase = trend_phase_analysis(strategy_df)
+    radar = short_term_radar(strategy_df, market.get("return_5d", 0.0), institutional)
+
+    close = _num(latest.get("Close"))
+    atr = _num(latest.get("ATR"), 0.0)
+    stop = _num(levels.get("stop_value"))
+    support_low = _num(levels.get("support_low_value"))
+    support_high = _num(levels.get("support_high_value"))
+    breakout = _num(levels.get("breakout_value"))
+    first_sell_low = _num(levels.get("first_sell_low_value"))
+    box_low = _num(latest.get("Box_Low"))
+    bb_lower = _num(latest.get("BB_Lower"))
+    ma20 = _num(latest.get("20MA"))
+    ma60 = _num(latest.get("60MA"))
+    prev_ma20 = _num(previous.get("20MA"))
+    bb_mid = _num(latest.get("BB_Mid"))
+    prev_bb_mid = _num(previous.get("BB_Mid"))
+    volume_ratio = _num(latest.get("Volume_Ratio"), 0.0)
+    institutional_score = int(institutional.get("score", 0)) if institutional else 0
+    institutional_risk = institutional_score <= -6
+    rr_text = str(levels.get("reward_risk", "-"))
+    try:
+        rr = float(rr_text.split(":", 1)[1].strip()) if ":" in rr_text else np.nan
+    except (ValueError, IndexError):
+        rr = np.nan
+
+    hard_stop = pd.notna(stop) and close < stop
+    structure_broken = (
+        pd.notna(box_low) and pd.notna(bb_lower) and close < box_low and close < bb_lower
+    ) or (pd.notna(ma60) and close < ma60 and volume_ratio < 1.0)
+    near_support = (
+        pd.notna(support_low)
+        and pd.notna(support_high)
+        and close >= support_low * 0.99
+        and close <= support_high + atr * 0.6
+    )
+    breakout_confirmed = pd.notna(breakout) and close > breakout and volume_ratio >= 1.2
+    near_sell_zone = pd.notna(first_sell_low) and close >= first_sell_low * 0.99
+    ma20_rising = pd.notna(ma20) and pd.notna(prev_ma20) and ma20 > prev_ma20
+    bb_mid_rising = pd.notna(bb_mid) and pd.notna(prev_bb_mid) and bb_mid > prev_bb_mid
+    bullish_pattern = pattern["bias"] == "偏多"
+
+    if hard_stop or structure_broken:
+        advice = "停損"
+        reasons = ["股價已跌破停損或關鍵結構", "箱型、布林或 MA60 防守轉弱", "先保留資金，等待重新站回支撐"]
+        confidence = 90
+    elif near_sell_zone and (shadows["upper_score"] >= 65 or phase["stage"] == "末升段"):
+        advice = "賣出"
+        reasons = ["股價已接近第一賣出區", shadows["upper_note"], f"目前屬於{phase['stage']}，宜分批停利"]
+        confidence = max(70, shadows["upper_score"])
+    elif breakout_confirmed and not shadows["long_upper"] and ma20_rising and not institutional_risk:
+        advice = "加碼"
+        reasons = ["收盤已站穩突破買點", f"成交量為 5 日均量的 {volume_ratio:.2f} 倍", "MA20 上彎且未見強烈長上引線"]
+        confidence = min(95, max(70, int(radar["score"])))
+    elif near_support and (shadows["lower_score"] >= 40 or bullish_pattern) and ma20_rising and bb_mid_rising and pd.notna(rr) and rr >= 1.5 and not institutional_risk:
+        advice = "買進"
+        reasons = ["現價進入支撐買點區", shadows["lower_note"], "MA20 與布林中軌同步上彎", f"風險報酬比 {rr_text} 達標"]
+        confidence = min(92, max(65, int(radar["score"]) + shadows["lower_score"] // 8))
+    else:
+        advice = "觀望"
+        reasons = []
+        if not near_support:
+            reasons.append("現價尚未進入支撐買點區")
+        if not breakout_confirmed:
+            reasons.append(f"突破狀態：{levels['breakout_status']}")
+        if pd.notna(rr) and rr < 1.5:
+            reasons.append("風險報酬比低於 1 : 1.5")
+        if shadows["upper_score"] >= 65:
+            reasons.append(shadows["upper_note"])
+        if institutional_risk:
+            reasons.append("三大法人籌碼明顯偏空，暫不買進或加碼")
+        if not reasons:
+            reasons.append("多空條件尚未形成足夠共振")
+        confidence = min(80, max(45, int(radar["score"])))
+
+    return {
+        "advice": advice,
+        "confidence": int(max(0, min(100, confidence))),
+        "reasons": reasons[:5],
+        "levels": levels,
+        "shadows": shadows,
+        "pattern": pattern,
+        "phase": phase,
+        "radar": radar,
     }
 
 
@@ -1694,8 +1965,6 @@ def short_term_radar(
         elif institutional_score < 0:
             score -= 5
 
-    score = int(max(0, min(100, score)))
-
     levels = trade_price_levels(strategy_df)
     target_price = _num(levels.get("target_value"))
     reward_risk_text = str(levels.get("reward_risk", "-"))
@@ -1708,7 +1977,18 @@ def short_term_radar(
         rr_text = f"{reward_risk:.2f}"
     else:
         rr_text = "-"
+        score -= 15
         notes.append("風險報酬比不足 1.5，不適合硬做")
+
+    shadows = candlestick_analysis(strategy_df)
+    if shadows["lower_score"] >= 65:
+        score += 6
+        notes.append("長下引線承接加分")
+    if shadows["upper_score"] >= 65:
+        score -= 10
+        notes.append("長上引線賣壓扣分")
+
+    score = int(max(0, min(100, score)))
 
     if score >= 75:
         grade = "強"
@@ -1853,32 +2133,55 @@ def render_plain_trade_plan(
     institutional: dict[str, Any] | None = None,
 ) -> None:
     plan = plain_trade_plan(strategy_df, market, institutional)
-    st.subheader("短線操作單")
-    st.info(f"{plan['decision']}：{plan['instruction']}")
+    st.subheader("操作建議")
+    message = f"{plan['decision']}：{plan['instruction']}"
+    if plan["decision"] in {"買進", "加碼"}:
+        st.success(message)
+    elif plan["decision"] in {"賣出", "停損"}:
+        st.error(message)
+    else:
+        st.info(message)
 
     col1, col2, col3 = st.columns(3)
     with col1:
         st.metric("現價", plan["now"])
     with col2:
-        st.metric("支撐買點", plan["support_buy"])
+        st.metric("建議操作", plan["decision"])
     with col3:
-        st.metric("突破買點", plan["breakout_buy"], plan["breakout_status"])
+        st.metric("信心分數", plan["score"])
 
     col4, col5, col6 = st.columns(3)
     with col4:
+        st.metric("建議買進區", plan["support_buy"])
+    with col5:
+        st.metric("突破買點", plan["breakout_buy"], plan["breakout_status"])
+    with col6:
         st.metric("停損價", plan["stop"])
         st.caption("跌破停損價應出場")
-    with col5:
+
+    col7, col8, col9 = st.columns(3)
+    with col7:
+        st.metric("第一賣出區", plan["first_sell"])
+    with col8:
+        st.metric("第二賣出區", plan["second_sell"])
+    with col9:
         st.metric("短線目標價", plan["target"])
-    with col6:
+
+    col10, col11, col12 = st.columns(3)
+    with col10:
         st.metric("風險報酬比", plan["risk_reward"])
         st.caption(f"風險 {plan['risk']} · 報酬 {plan['reward']}")
+    with col11:
+        st.metric("目前階段", plan["stage"])
+    with col12:
+        st.metric("移動停利價", plan["trailing_stop"])
+        st.caption(plan["trailing_note"])
 
-    col7, col8 = st.columns(2)
-    with col7:
-        st.metric("短線分數", plan["score"])
-    with col8:
-        st.metric("歷史7日勝率", plan["win_7d"])
+    st.markdown("**K 線訊號**")
+    st.caption(f"{plan['shadow_summary']} · {plan['pattern']}")
+    st.markdown("**主要理由**")
+    for index, reason in enumerate(plan["reasons"], start=1):
+        st.write(f"{index}. {reason}")
 
 
 def render_institutional_panel(
@@ -1931,7 +2234,27 @@ def render_box_panel(
     bb_lower = _num(latest.get("BB_Lower"))
     bb_width = _num(latest.get("BB_Width_Pct"))
     prev_bb_width = _num(previous.get("BB_Width_Pct"))
-    bb_opening = "擴張" if pd.notna(bb_width) and pd.notna(prev_bb_width) and bb_width > prev_bb_width else "收斂"
+    prev_bb_mid = _num(previous.get("BB_Mid"))
+    if pd.notna(bb_width) and pd.notna(prev_bb_width) and bb_width > prev_bb_width:
+        bb_opening = "擴張向上" if pd.notna(bb_mid) and pd.notna(prev_bb_mid) and bb_mid >= prev_bb_mid else "擴張向下"
+    else:
+        bb_opening = "收斂"
+    close = _num(latest.get("Close"))
+    if pd.notna(close) and pd.notna(box_high) and pd.notna(box_low) and box_high > box_low:
+        box_position_pct = (close - box_low) / (box_high - box_low) * 100
+        if close > box_high:
+            box_position = "已突破箱頂"
+        elif close < box_low:
+            box_position = "已跌破箱底"
+        elif box_position_pct <= 33:
+            box_position = "箱型偏低區"
+        elif box_position_pct >= 67:
+            box_position = "箱型偏高區"
+        else:
+            box_position = "箱型中間區"
+    else:
+        box_position_pct = np.nan
+        box_position = "資料不足"
 
     col1, col2, col3, col4 = st.columns(4)
     with col1:
@@ -1943,6 +2266,16 @@ def render_box_panel(
     with col4:
         st.metric("箱體高度", _price_text(box_height))
     st.caption(status["detail"])
+
+    box_col1, box_col2, box_col3, box_col4 = st.columns(4)
+    with box_col1:
+        st.metric("現價在箱體位置", box_position, f"{box_position_pct:.0f}%" if pd.notna(box_position_pct) else "-")
+    with box_col2:
+        st.metric("接近箱底", "是" if pd.notna(box_position_pct) and box_position_pct <= 25 else "否")
+    with box_col3:
+        st.metric("接近箱頂", "是" if pd.notna(box_position_pct) and box_position_pct >= 75 else "否")
+    with box_col4:
+        st.metric("箱型突破狀態", "跌破" if close < box_low else "突破" if close > box_high else "整理中")
 
     colb1, colb2, colb3, colb4 = st.columns(4)
     with colb1:
@@ -1965,6 +2298,29 @@ def render_box_panel(
     with price_col3:
         st.metric("停損價", levels["stop_price"])
         st.caption(levels["stop_note"])
+
+    sell_col1, sell_col2, sell_col3 = st.columns(3)
+    with sell_col1:
+        st.metric("第一賣出區", levels["first_sell_zone"])
+    with sell_col2:
+        st.metric("第二賣出區", levels["second_sell_zone"])
+    with sell_col3:
+        st.metric("移動停利價", levels["trailing_stop"])
+        st.caption(levels["trailing_note"])
+
+    shadows = candlestick_analysis(strategy_df)
+    pattern = candlestick_pattern(strategy_df)
+    st.subheader("K 線影線與型態")
+    candle_col1, candle_col2, candle_col3 = st.columns(3)
+    with candle_col1:
+        st.metric("上引線賣壓", shadows["upper_strength"], f"{shadows['upper_score']}/100")
+        st.caption(shadows["upper_note"])
+    with candle_col2:
+        st.metric("下引線承接", shadows["lower_strength"], f"{shadows['lower_score']}/100")
+        st.caption(shadows["lower_note"])
+    with candle_col3:
+        st.metric("K 線型態", pattern["pattern"], pattern["bias"])
+        st.caption(pattern["detail"])
 
     chart_lines = trade_chart_lines(strategy_df)
     line_lookup = {line["name"]: _price_text(line["value"]) for line in chart_lines}
@@ -2301,11 +2657,12 @@ def render_single_stock_tab(market: dict[str, Any], refresh_token: int = 0) -> N
     else:
         st.caption(f"最新價來源：Yahoo Finance 日 K 備援。官方即時/延遲報價未套用：{realtime_quote.get('message', '原因不明')}")
     render_plain_trade_plan(strategy_df, market, institutional)
-    phase = trend_phase_analysis(strategy_df)
+    final_advice = final_operation_advice(strategy_df, market, institutional)
+    phase = final_advice["phase"]
     render_kpi_cards(
         market,
         float(latest["Close"]),
-        action_recommendation(strategy_df),
+        final_advice["advice"],
         final_signal(strategy_df),
         phase,
     )
@@ -2714,6 +3071,9 @@ def main() -> None:
         render_scanner_tab(market_regime, refresh_token=refresh_token)
     with tab_non_futures:
         render_non_futures_tab(market_regime, refresh_token=refresh_token)
+
+    st.divider()
+    st.caption("本系統為技術分析輔助工具，不構成投資建議。請自行控制部位與風險。")
 
 
 if __name__ == "__main__":
