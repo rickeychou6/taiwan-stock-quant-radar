@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Any
+import json
 import unicodedata
 
 import numpy as np
@@ -2604,26 +2605,123 @@ def analyze_symbol(symbol: str, market_is_bull: bool, refresh_token: int = 0) ->
 def render_single_stock_tab(market: dict[str, Any], refresh_token: int = 0) -> None:
     if "active_query" not in st.session_state:
         st.session_state.active_query = "2330"
+    if "stock_query_input" not in st.session_state:
+        st.session_state.stock_query_input = st.session_state.active_query
+    if "record_active_query" not in st.session_state:
+        st.session_state.record_active_query = False
+    if "stock_query_history" not in st.session_state:
+        try:
+            saved_history = json.loads(st.query_params.get("history", "[]"))
+            st.session_state.stock_query_history = [
+                {"name": str(item["name"]), "symbol": str(item["symbol"])}
+                for item in saved_history
+                if isinstance(item, dict) and item.get("name") and item.get("symbol")
+            ][:12]
+        except (TypeError, ValueError, json.JSONDecodeError):
+            st.session_state.stock_query_history = []
 
-    selected_stock = st.selectbox(
+    history_placeholder = "選擇最近查詢"
+
+    def sync_history_to_url() -> None:
+        history = st.session_state.stock_query_history[:12]
+        if history:
+            st.query_params["history"] = json.dumps(history, ensure_ascii=False, separators=(",", ":"))
+        elif "history" in st.query_params:
+            del st.query_params["history"]
+
+    def history_label(item: dict[str, str]) -> str:
+        return f"{item['name']} · {item['symbol']}"
+
+    def load_history_selection() -> None:
+        selected = st.session_state.get("stock_history_selector", history_placeholder)
+        selected_item = next(
+            (
+                item
+                for item in st.session_state.stock_query_history
+                if history_label(item) == selected
+            ),
+            None,
+        )
+        if selected_item:
+            st.session_state.active_query = selected_item["symbol"]
+            st.session_state.stock_query_input = selected_item["symbol"]
+            st.session_state.record_active_query = False
+
+    def load_quick_selection() -> None:
+        selected_query = query_from_selector_label(st.session_state.get("stock_quick_selector"))
+        if selected_query:
+            st.session_state.active_query = selected_query
+            st.session_state.stock_query_input = selected_query
+            st.session_state.record_active_query = True
+
+    def delete_history_selection() -> None:
+        selected = st.session_state.get("stock_history_selector", history_placeholder)
+        st.session_state.stock_query_history = [
+            item
+            for item in st.session_state.stock_query_history
+            if history_label(item) != selected
+        ]
+        st.session_state.stock_history_selector = history_placeholder
+        st.session_state.record_active_query = False
+        sync_history_to_url()
+
+    def clear_query_history() -> None:
+        st.session_state.stock_query_history = []
+        st.session_state.stock_history_selector = history_placeholder
+        st.session_state.record_active_query = False
+        sync_history_to_url()
+
+    st.selectbox(
         "股名/股號快速對照",
         options=stock_selector_options(),
         index=0,
         placeholder="可輸入股名搜尋，例如台積電、長榮航、希華",
+        key="stock_quick_selector",
+        on_change=load_quick_selection,
     )
-    selected_query = query_from_selector_label(selected_stock)
-    if selected_query:
-        st.session_state.active_query = selected_query
+
+    history_items = st.session_state.stock_query_history
+    history_options = [history_placeholder] + [history_label(item) for item in history_items]
+    selected_history = st.session_state.get("stock_history_selector", history_placeholder)
+    history_col1, history_col2, history_col3 = st.columns([2.2, 1, 1])
+    with history_col1:
+        st.selectbox(
+            "最近查詢紀錄",
+            options=history_options,
+            key="stock_history_selector",
+            on_change=load_history_selection,
+        )
+    with history_col2:
+        st.button(
+            "刪除選取紀錄",
+            icon=":material/delete:",
+            disabled=not history_items or selected_history == history_placeholder,
+            on_click=delete_history_selection,
+            use_container_width=True,
+        )
+    with history_col3:
+        st.button(
+            "清除全部",
+            icon=":material/delete_sweep:",
+            disabled=not history_items,
+            on_click=clear_query_history,
+            use_container_width=True,
+        )
+    if history_items:
+        st.caption(f"已保存最近 {len(history_items)} 檔，本次瀏覽期間可直接選取分析。")
+    else:
+        st.caption("成功查詢的股票會自動保存在這裡，最多保留 12 檔。")
 
     with st.form("stock_lookup_form", clear_on_submit=False):
         query_input = st.text_input(
             "智慧檢索",
-            value=st.session_state.active_query,
+            key="stock_query_input",
             placeholder="輸入股名或股號，例如台積電、長榮航、希華、2330、2618",
         )
         submitted = st.form_submit_button("查詢股號並分析", use_container_width=True)
         if submitted:
             st.session_state.active_query = query_input.strip()
+            st.session_state.record_active_query = True
 
     query = st.session_state.active_query
     if not query.strip():
@@ -2646,6 +2744,19 @@ def render_single_stock_tab(market: dict[str, Any], refresh_token: int = 0) -> N
     except Exception as exc:
         st.error(f"單股分析失敗：{exc}")
         return
+
+    if st.session_state.record_active_query:
+        history_entry = {"name": stock_name, "symbol": match.symbol}
+        st.session_state.stock_query_history = [
+            history_entry,
+            *[
+                item
+                for item in st.session_state.stock_query_history
+                if item.get("symbol") != match.symbol
+            ],
+        ][:12]
+        st.session_state.record_active_query = False
+        sync_history_to_url()
 
     st.caption(f"{stock_name} · {match.symbol} · 最新資料日 {strategy_df.index[-1].strftime('%Y-%m-%d')}")
     if realtime_quote.get("ok"):
