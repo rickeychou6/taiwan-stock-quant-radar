@@ -214,6 +214,10 @@ COMMON_TW_STOCKS = {
     "9910": "豐泰",
 }
 
+COMMON_TPEX_STOCKS = {
+    "8071": "能率網通",
+}
+
 TW_STOCK_ALIASES = {
     "台积电": "2330",
     "tsmc": "2330",
@@ -233,6 +237,8 @@ TW_STOCK_ALIASES = {
     "长荣航空": "2618",
     "中華電": "2412",
     "中华电": "2412",
+    "能率網通": "8071",
+    "能率网通": "8071",
 }
 
 
@@ -258,6 +264,12 @@ def load_stock_directory() -> dict[str, dict[str, str]]:
         code: {"symbol": _symbol_from_code(code), "name": name}
         for code, name in COMMON_TW_STOCKS.items()
     }
+    directory.update(
+        {
+            code: {"symbol": f"{code}.TWO", "name": name}
+            for code, name in COMMON_TPEX_STOCKS.items()
+        }
+    )
 
     try:
         listed = requests.get(
@@ -282,8 +294,21 @@ def load_stock_directory() -> dict[str, dict[str, str]]:
         )
         otc.raise_for_status()
         for item in otc.json():
-            code = str(item.get("SecuritiesCompanyCode") or "").strip()
-            name = str(item.get("CompanyAbbreviation") or item.get("CompanyName") or "").strip()
+            code = str(
+                item.get("SecuritiesCompanyCode")
+                or item.get("公司代號")
+                or item.get("股票代號")
+                or item.get("Code")
+                or ""
+            ).strip()
+            name = str(
+                item.get("CompanyAbbreviation")
+                or item.get("CompanyName")
+                or item.get("公司簡稱")
+                or item.get("公司名稱")
+                or item.get("Name")
+                or ""
+            ).strip()
             if code.isdigit() and name:
                 directory[code] = {"symbol": f"{code}.TWO", "name": name}
     except Exception:
@@ -882,7 +907,7 @@ def resolve_symbol(raw_query: str) -> dict[str, str]:
     try:
         response = requests.get(
             YAHOO_SEARCH_URL,
-            params={"q": query, "lang": "zh-TW", "quotesCount": 1},
+            params={"q": query, "lang": "zh-TW", "quotesCount": 10},
             headers={"User-Agent": USER_AGENT},
             timeout=8,
         )
@@ -890,7 +915,16 @@ def resolve_symbol(raw_query: str) -> dict[str, str]:
         payload = response.json()
         quotes = payload.get("quotes") or []
         if quotes:
-            quote = quotes[0]
+            quote = next(
+                (
+                    item
+                    for item in quotes
+                    if str(item.get("symbol") or "").upper().endswith((".TW", ".TWO"))
+                ),
+                None,
+            )
+            if quote is None:
+                quote = quotes[0]
             symbol = str(quote.get("symbol") or "").upper()
             name = quote.get("shortname") or quote.get("longname") or symbol
             if symbol:
