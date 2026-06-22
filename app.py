@@ -379,6 +379,17 @@ def _parse_float(value: Any) -> float:
         return np.nan
 
 
+def _parse_quote_levels(value: Any) -> list[float]:
+    try:
+        return [
+            number
+            for number in (_parse_float(item) for item in str(value or "").split("_"))
+            if pd.notna(number)
+        ]
+    except Exception:
+        return []
+
+
 def _recent_dates(days: int = 12) -> list[pd.Timestamp]:
     today = pd.Timestamp.today(tz="Asia/Taipei").normalize().tz_localize(None)
     return [today - pd.Timedelta(days=i) for i in range(days)]
@@ -446,11 +457,55 @@ def fetch_realtime_quote(
             "low": low,
             "close": last,
             "volume": volume_lots * 1000 if pd.notna(volume_lots) else np.nan,
+            "previous_close": _parse_float(item.get("y")),
+            "bid_prices": _parse_quote_levels(item.get("b")),
+            "ask_prices": _parse_quote_levels(item.get("a")),
+            "bid_lots": _parse_quote_levels(item.get("g")),
+            "ask_lots": _parse_quote_levels(item.get("f")),
             "source": "TWSE MIS 官方即時/延遲報價",
             "message": quote_message,
         }
     except Exception as exc:
         return {"ok": False, "message": f"官方報價讀取失敗：{exc}"}
+
+
+@st.cache_data(ttl=REALTIME_CACHE_TTL, show_spinner=False)
+def download_intraday_data(
+    symbol: str,
+    refresh_token: int = 0,
+    _version: str = CACHE_VERSION,
+) -> pd.DataFrame:
+    try:
+        data = yf.download(
+            symbol,
+            period="1d",
+            interval="1m",
+            auto_adjust=False,
+            progress=False,
+            threads=False,
+            timeout=10,
+        )
+        if data.empty:
+            return pd.DataFrame()
+        if isinstance(data.columns, pd.MultiIndex):
+            data.columns = data.columns.get_level_values(0)
+        required = ["Open", "High", "Low", "Close", "Volume"]
+        if not all(column in data.columns for column in required):
+            return pd.DataFrame()
+        data = data[required].copy().dropna(subset=["Close"])
+        index = pd.to_datetime(data.index)
+        if index.tz is None:
+            index = index.tz_localize("UTC")
+        data.index = index.tz_convert("Asia/Taipei")
+        data = data.between_time("09:00", "13:30")
+        typical_price = (data["High"] + data["Low"] + data["Close"]) / 3
+        cumulative_volume = data["Volume"].fillna(0).cumsum()
+        data["VWAP"] = (typical_price * data["Volume"].fillna(0)).cumsum().div(
+            cumulative_volume.replace(0, np.nan)
+        )
+        return data
+    except Exception:
+        return pd.DataFrame()
 
 
 def apply_realtime_quote(df: pd.DataFrame, symbol: str, refresh_token: int = 0) -> pd.DataFrame:
@@ -2796,6 +2851,272 @@ def render_single_stock_tab(market: dict[str, Any], refresh_token: int = 0) -> N
     render_decision_table(strategy_df)
 
 
+def intraday_trade_snapshot(
+    strategy_df: pd.DataFrame,
+    quote: dict[str, Any],
+    minute_data: pd.DataFrame,
+    market: dict[str, Any],
+) -> dict[str, Any]:
+    latest = strategy_df.iloc[-1]
+    levels = trade_price_levels(strategy_df)
+    price = _num(quote.get("close"), _num(latest.get("Close")))
+    previous_close = _num(quote.get("previous_close"))
+    if pd.isna(previous_close) and len(strategy_df) >= 2:
+        previous_close = _num(strategy_df.iloc[-2].get("Close"))
+
+    vwap = _num(minute_data.iloc[-1].get("VWAP")) if not minute_data.empty else np.nan
+    opening_rows = minute_data.between_time("09:00", "09:14") if not minute_data.empty else pd.DataFrame()
+    opening_high = _num(opening_rows["High"].max()) if not opening_rows.empty else np.nan
+    opening_low = _num(opening_rows["Low"].min()) if not opening_rows.empty else np.nan
+
+    current_volume = _num(quote.get("volume"), 0.0)
+    if current_volume <= 0 and not minute_data.empty:
+        current_volume = _num(minute_data["Volume"].sum(), 0.0)
+    daily_volumes = strategy_df["Volume"].copy()
+    if quote.get("ok") and not daily_volumes.empty:
+        quote_date = pd.Timestamp(quote.get("date")).normalize()
+        if pd.Timestamp(daily_volumes.index[-1]).normalize() == quote_date:
+            daily_volumes = daily_volumes.iloc[:-1]
+    average_volume = _num(daily_volumes.tail(5).mean())
+
+    now = pd.Timestamp.now(tz="Asia/Taipei")
+    quote_time = str(quote.get("time") or "")
+    try:
+        hour, minute = [int(part) for part in quote_time.split(":")[:2]]
+    except (TypeError, ValueError):
+        hour, minute = now.hour, now.minute
+    elapsed_minutes = max(1, min(270, hour * 60 + minute - 9 * 60))
+    session_progress = elapsed_minutes / 270
+    projected_volume = current_volume / session_progress if session_progress > 0 else current_volume
+    projected_volume_ratio = (
+        projected_volume / average_volume
+        if pd.notna(average_volume) and average_volume > 0 and current_volume > 0
+        else np.nan
+    )
+
+    bid_lots = sum(quote.get("bid_lots") or [])
+    ask_lots = sum(quote.get("ask_lots") or [])
+    order_imbalance = (
+        (bid_lots - ask_lots) / (bid_lots + ask_lots) * 100
+        if bid_lots + ask_lots > 0
+        else np.nan
+    )
+
+    support_low = _num(levels.get("support_low_value"))
+    support_high = _num(levels.get("support_high_value"))
+    breakout = _num(levels.get("breakout_value"))
+    stop = _num(levels.get("stop_value"))
+    target = _num(levels.get("target_value"))
+    bb_upper = _num(latest.get("BB_Upper"))
+    ma20 = _num(latest.get("20MA"))
+    in_support = pd.notna(price) and pd.notna(support_low) and pd.notna(support_high) and support_low <= price <= support_high
+    above_vwap = pd.notna(price) and pd.notna(vwap) and price >= vwap
+    volume_confirmed = pd.notna(projected_volume_ratio) and projected_volume_ratio >= 1.2
+    opening_breakout = pd.notna(price) and pd.notna(opening_high) and price > opening_high
+    breakout_confirmed = pd.notna(price) and pd.notna(breakout) and price >= breakout
+
+    if pd.notna(price) and pd.notna(stop) and price <= stop:
+        action = "出場"
+        status = "跌破停損價"
+        detail = "停止攤平，依紀律退出。"
+    elif pd.notna(price) and pd.notna(bb_upper) and price > bb_upper * 1.02 and not above_vwap:
+        action = "減碼"
+        status = "高檔轉弱"
+        detail = "股價遠離布林上軌後跌回 VWAP 下方，優先保護獲利。"
+    elif breakout_confirmed and above_vwap and volume_confirmed and market.get("is_bull"):
+        action = "確認買進"
+        status = "突破共振"
+        detail = "突破壓力、站上 VWAP 且預估量能達標；避免一次滿倉。"
+    elif in_support and market.get("is_bull") and (above_vwap or pd.isna(vwap)):
+        action = "試單"
+        status = "支撐區承接"
+        detail = "位於支撐買點區，可小部位測試，跌破停損價退出。"
+    elif pd.notna(price) and pd.notna(ma20) and price > ma20 and above_vwap:
+        action = "續抱"
+        status = "盤中偏多"
+        detail = "價格在 MA20 與 VWAP 上方，但尚未形成完整突破共振。"
+    else:
+        action = "等待"
+        status = "條件未完成"
+        detail = "等待支撐承接或突破價、VWAP、量能同步確認。"
+
+    return {
+        "price": price,
+        "previous_close": previous_close,
+        "change_pct": (price / previous_close - 1) * 100 if pd.notna(price) and pd.notna(previous_close) and previous_close else np.nan,
+        "vwap": vwap,
+        "opening_high": opening_high,
+        "opening_low": opening_low,
+        "opening_breakout": opening_breakout,
+        "current_volume": current_volume,
+        "projected_volume_ratio": projected_volume_ratio,
+        "order_imbalance": order_imbalance,
+        "action": action,
+        "status": status,
+        "detail": detail,
+        "support_low": support_low,
+        "support_high": support_high,
+        "breakout": breakout,
+        "stop": stop,
+        "target": target,
+        "levels": levels,
+    }
+
+
+def build_intraday_chart(minute_data: pd.DataFrame, snapshot: dict[str, Any], title: str) -> go.Figure:
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatter(
+            x=minute_data.index,
+            y=minute_data["Close"],
+            mode="lines",
+            name="現價",
+            line=dict(color="#2563eb", width=2),
+        )
+    )
+    if minute_data["VWAP"].notna().any():
+        fig.add_trace(
+            go.Scatter(
+                x=minute_data.index,
+                y=minute_data["VWAP"],
+                mode="lines",
+                name="VWAP",
+                line=dict(color="#0891b2", width=2),
+            )
+        )
+    guide_lines = [
+        ("開盤15分高", snapshot["opening_high"], "#7c3aed", "dot"),
+        ("開盤15分低", snapshot["opening_low"], "#64748b", "dot"),
+        ("突破買點", snapshot["breakout"], "#16a34a", "dash"),
+        ("停損價", snapshot["stop"], "#dc2626", "dash"),
+    ]
+    for name, value, color, dash in guide_lines:
+        if pd.notna(value):
+            fig.add_hline(y=value, line_color=color, line_dash=dash, annotation_text=name)
+    fig.update_layout(
+        title=title,
+        template="plotly_white",
+        height=460,
+        margin=dict(l=12, r=12, t=52, b=20),
+        paper_bgcolor="#ffffff",
+        plot_bgcolor="#ffffff",
+        font=dict(color="#111827"),
+        xaxis=dict(showgrid=True, gridcolor="#eef2f7"),
+        yaxis=dict(showgrid=True, gridcolor="#eef2f7"),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+    )
+    return fig
+
+
+def render_intraday_live_panel(symbol: str, name: str, market: dict[str, Any], refresh_token: int) -> None:
+    try:
+        strategy_df = analyze_symbol(symbol, market["is_bull"], refresh_token=refresh_token)
+        quote = fetch_realtime_quote(symbol, refresh_token=refresh_token)
+        minute_data = download_intraday_data(symbol, refresh_token=refresh_token)
+        if not quote.get("ok") and minute_data.empty:
+            st.error(f"盤中資料讀取失敗：{quote.get('message', '查無報價')}")
+            return
+        snapshot = intraday_trade_snapshot(strategy_df, quote, minute_data, market)
+    except Exception as exc:
+        st.error(f"盤中分析失敗：{exc}")
+        return
+
+    quote_date = quote.get("date")
+    quote_stamp = (
+        f"{pd.Timestamp(quote_date).strftime('%Y-%m-%d')} {quote.get('time', '')}"
+        if quote.get("ok") and pd.notna(quote_date)
+        else "分鐘線最新時間"
+    )
+    st.caption(f"{name} · {symbol} · {quote_stamp} · MIS 報價優先，分鐘 VWAP 使用 Yahoo Finance 盤中資料")
+
+    top1, top2, top3, top4 = st.columns(4)
+    with top1:
+        st.metric("盤中現價", _price_text(snapshot["price"]), f"{snapshot['change_pct']:+.2f}%" if pd.notna(snapshot["change_pct"]) else None)
+    with top2:
+        st.metric("盤中判斷", snapshot["action"], snapshot["status"])
+    with top3:
+        st.metric("VWAP", _price_text(snapshot["vwap"]), "站上" if pd.notna(snapshot["vwap"]) and snapshot["price"] >= snapshot["vwap"] else "未站上")
+    with top4:
+        volume_text = f"{snapshot['projected_volume_ratio']:.2f}x" if pd.notna(snapshot["projected_volume_ratio"]) else "-"
+        st.metric("預估量比", volume_text, "量能確認" if pd.notna(snapshot["projected_volume_ratio"]) and snapshot["projected_volume_ratio"] >= 1.2 else "量能不足")
+
+    st.info(f"{snapshot['status']}：{snapshot['detail']}")
+    level1, level2, level3, level4, level5 = st.columns(5)
+    with level1:
+        st.metric("支撐買點", snapshot["levels"]["support_buy"])
+    with level2:
+        st.metric("突破買點", snapshot["levels"]["breakout_buy"])
+    with level3:
+        st.metric("停損價", snapshot["levels"]["stop_price"])
+    with level4:
+        st.metric("短線目標", snapshot["levels"]["target_price"])
+    with level5:
+        st.metric("風險報酬比", snapshot["levels"]["reward_risk"])
+
+    micro1, micro2, micro3, micro4 = st.columns(4)
+    with micro1:
+        st.metric("開盤15分高", _price_text(snapshot["opening_high"]), "已突破" if snapshot["opening_breakout"] else "未突破")
+    with micro2:
+        st.metric("開盤15分低", _price_text(snapshot["opening_low"]))
+    with micro3:
+        imbalance = snapshot["order_imbalance"]
+        st.metric("五檔委買賣差", f"{imbalance:+.1f}%" if pd.notna(imbalance) else "-", "委買較強" if pd.notna(imbalance) and imbalance > 10 else "委賣較強" if pd.notna(imbalance) and imbalance < -10 else "均衡")
+    with micro4:
+        st.metric("大盤環境", format_market_status(market))
+
+    if minute_data.empty:
+        st.warning("目前沒有可用的分鐘線，因此 VWAP 與開盤 15 分鐘區間暫不判斷；其他價位仍以 MIS 與日線計算。")
+    else:
+        st.plotly_chart(
+            build_intraday_chart(minute_data, snapshot, f"{name} ({symbol}) 盤中走勢"),
+            use_container_width=True,
+        )
+    st.caption("盤中訊號為技術分析提示，不會自動下單。三大法人為盤後資料，不納入即時盤中買賣判斷。")
+
+
+def render_intraday_tab(market: dict[str, Any], refresh_token: int = 0) -> None:
+    if "intraday_query" not in st.session_state:
+        st.session_state.intraday_query = st.session_state.get("active_query", "2330")
+    if "intraday_refresh_token" not in st.session_state:
+        st.session_state.intraday_refresh_token = 0
+
+    st.subheader("盤中現貨交易分析")
+    st.caption("適用 5–7 天短線：盤中確認進場節奏，日線箱型、布林與停損架構維持不變。")
+    with st.form("intraday_lookup_form", clear_on_submit=False):
+        query = st.text_input(
+            "股名或股號",
+            value=st.session_state.intraday_query,
+            placeholder="例如台積電、佳凌、2330、4976",
+        )
+        submitted = st.form_submit_button("載入盤中分析", use_container_width=True)
+        if submitted and query.strip():
+            st.session_state.intraday_query = query.strip()
+            st.session_state.intraday_refresh_token += 1
+
+    control1, control2 = st.columns([1, 2])
+    with control1:
+        if st.button("更新盤中報價", icon=":material/refresh:", use_container_width=True):
+            st.session_state.intraday_refresh_token += 1
+    with control2:
+        auto_refresh = st.toggle("每 15 秒自動更新", value=False)
+
+    try:
+        match = SymbolMatch(**resolve_symbol(st.session_state.intraday_query))
+        if not match.symbol:
+            st.error("找不到符合的台股，請改用股名或股號。")
+            return
+        stock_name = match.name if match.name != match.symbol else get_symbol_name(match.symbol)
+    except Exception as exc:
+        st.error(f"股票查詢失敗：{exc}")
+        return
+
+    live_token = refresh_token + int(st.session_state.intraday_refresh_token)
+    if auto_refresh and hasattr(st, "fragment"):
+        st.fragment(run_every=15)(render_intraday_live_panel)(match.symbol, stock_name, market, live_token)
+    else:
+        render_intraday_live_panel(match.symbol, stock_name, market, live_token)
+
+
 def render_scanner_tab(market: dict[str, Any], refresh_token: int = 0) -> None:
     st.caption(f"掃描基準：0050 權值股內建清單，共 {len(WATCHLIST_0050)} 檔。")
     if not st.button("🚀 啟動全自動多股共振掃描", use_container_width=True):
@@ -3170,14 +3491,28 @@ def main() -> None:
     try:
         market_regime = get_market_regime(refresh_token=refresh_token)
     except Exception as exc:
-        st.error(f"大盤資料載入失敗：{exc}")
-        st.stop()
+        st.warning(f"大盤資料暫時無法載入，已採保守模式並關閉新買進訊號：{exc}")
+        market_regime = {
+            "is_bull": False,
+            "close": 0.0,
+            "ma20": np.nan,
+            "ma60": np.nan,
+            "return_5d": 0.0,
+            "as_of": "資料暫缺",
+        }
 
-    tab_single, tab_scan, tab_non_futures = st.tabs(
-        ["單股智慧雷達儀表板", "台灣前 50 大權值股每日掃描", "非期貨個股法人箱型布林掃描"]
+    tab_single, tab_intraday, tab_scan, tab_non_futures = st.tabs(
+        [
+            "單股智慧雷達儀表板",
+            "盤中現貨交易分析",
+            "台灣前 50 大權值股每日掃描",
+            "非期貨個股法人箱型布林掃描",
+        ]
     )
     with tab_single:
         render_single_stock_tab(market_regime, refresh_token=refresh_token)
+    with tab_intraday:
+        render_intraday_tab(market_regime, refresh_token=refresh_token)
     with tab_scan:
         render_scanner_tab(market_regime, refresh_token=refresh_token)
     with tab_non_futures:
