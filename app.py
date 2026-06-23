@@ -211,11 +211,48 @@ COMMON_TW_STOCKS = {
     "6415": "矽力-KY",
     "6505": "台塑化",
     "6669": "緯穎",
+    "1476": "儒鴻",
+    "2049": "上銀",
+    "2201": "裕隆",
+    "2301": "光寶科",
+    "2324": "仁寶",
+    "2344": "華邦電",
+    "2353": "宏碁",
+    "2354": "鴻準",
+    "2356": "英業達",
+    "2376": "技嘉",
+    "2377": "微星",
+    "2383": "台光電",
+    "2404": "漢唐",
+    "2409": "友達",
+    "2449": "京元電子",
+    "2474": "可成",
+    "2484": "希華",
+    "2498": "宏達電",
+    "2605": "新興",
+    "2610": "華航",
+    "2633": "台灣高鐵",
+    "3017": "奇鋐",
+    "3037": "欣興",
+    "3231": "緯創",
+    "3481": "群創",
+    "3661": "世芯-KY",
+    "4938": "和碩",
+    "4968": "立積",
+    "4976": "佳凌",
+    "6409": "旭隼",
+    "8454": "富邦媒",
     "9910": "豐泰",
 }
 
 COMMON_TPEX_STOCKS = {
+    "3288": "點晶",
+    "3707": "漢磊",
+    "6187": "萬潤",
+    "6274": "台燿",
+    "6488": "環球晶",
     "8071": "能率網通",
+    "8299": "群聯",
 }
 
 TW_STOCK_ALIASES = {
@@ -237,6 +274,13 @@ TW_STOCK_ALIASES = {
     "长荣航空": "2618",
     "中華電": "2412",
     "中华电": "2412",
+    "希華": "2484",
+    "希华": "2484",
+    "佳凌": "4976",
+    "點晶": "3288",
+    "点晶": "3288",
+    "漢磊": "3707",
+    "汉磊": "3707",
     "能率網通": "8071",
     "能率网通": "8071",
 }
@@ -2775,10 +2819,35 @@ def render_single_stock_tab(market: dict[str, Any], refresh_token: int = 0) -> N
         "股名/股號快速對照",
         options=stock_selector_options(),
         index=0,
-        placeholder="可輸入股名搜尋，例如台積電、長榮航、希華",
+        placeholder="可從已載入名單搜尋，例如台積電、長榮航、希華",
         key="stock_quick_selector",
         on_change=load_quick_selection,
     )
+
+    with st.form("quick_symbol_lookup_form", clear_on_submit=False):
+        quick_col1, quick_col2 = st.columns([3, 1])
+        with quick_col1:
+            quick_lookup = st.text_input(
+                "快速輸入股名/股號對照",
+                key="stock_quick_lookup_text",
+                placeholder="找不到下拉選項時直接輸入，例如佳凌、能率網通、希華、4976",
+            )
+        with quick_col2:
+            st.write("")
+            quick_submitted = st.form_submit_button("對照並分析", use_container_width=True)
+        if quick_submitted:
+            quick_query = quick_lookup.strip()
+            if quick_query:
+                quick_match = SymbolMatch(**resolve_symbol(quick_query))
+                if quick_match.symbol:
+                    st.session_state.active_query = quick_match.symbol
+                    st.session_state.stock_query_input = quick_match.symbol
+                    st.session_state.record_active_query = True
+                    st.success(f"已對照：{quick_match.name} = {quick_match.symbol}")
+                else:
+                    st.error("找不到符合的台股，請改用完整股名或股號。")
+            else:
+                st.warning("請先輸入股名或股號。")
 
     history_items = st.session_state.stock_query_history
     history_options = [history_placeholder] + [history_label(item) for item in history_items]
