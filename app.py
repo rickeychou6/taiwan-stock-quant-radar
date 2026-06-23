@@ -2911,37 +2911,39 @@ def render_single_stock_tab(market: dict[str, Any], refresh_token: int = 0) -> N
         st.session_state.record_active_query = False
         sync_history_to_url()
 
-    history_items = st.session_state.stock_query_history
-    history_options = [history_placeholder] + [history_label(item) for item in history_items]
-    selected_history = st.session_state.get("stock_history_selector", history_placeholder)
-    history_col1, history_col2, history_col3 = st.columns([2.2, 1, 1])
-    with history_col1:
-        st.selectbox(
-            "最近查詢紀錄",
-            options=history_options,
-            key="stock_history_selector",
-            on_change=load_history_selection,
-        )
-    with history_col2:
-        st.button(
-            "刪除選取紀錄",
-            icon=":material/delete:",
-            disabled=not history_items or selected_history == history_placeholder,
-            on_click=delete_history_selection,
-            use_container_width=True,
-        )
-    with history_col3:
-        st.button(
-            "清除全部",
-            icon=":material/delete_sweep:",
-            disabled=not history_items,
-            on_click=clear_query_history,
-            use_container_width=True,
-        )
-    if history_items:
-        st.caption(f"已保存最近 {len(history_items)} 檔，本次瀏覽期間可直接選取分析。")
-    else:
-        st.caption("成功查詢的股票會自動保存在這裡，最多保留 12 檔。")
+    def render_query_history() -> None:
+        history_items = st.session_state.stock_query_history
+        history_options = [history_placeholder] + [history_label(item) for item in history_items]
+        selected_history = st.session_state.get("stock_history_selector", history_placeholder)
+        st.caption("最近查詢紀錄")
+        history_col1, history_col2, history_col3 = st.columns([2.2, 1, 1])
+        with history_col1:
+            st.selectbox(
+                "選擇最近查詢",
+                options=history_options,
+                key="stock_history_selector",
+                on_change=load_history_selection,
+            )
+        with history_col2:
+            st.button(
+                "刪除選取紀錄",
+                icon=":material/delete:",
+                disabled=not history_items or selected_history == history_placeholder,
+                on_click=delete_history_selection,
+                use_container_width=True,
+            )
+        with history_col3:
+            st.button(
+                "清除全部",
+                icon=":material/delete_sweep:",
+                disabled=not history_items,
+                on_click=clear_query_history,
+                use_container_width=True,
+            )
+        if history_items:
+            st.caption(f"已保存最近 {len(history_items)} 檔，本次瀏覽期間可直接選取分析。")
+        else:
+            st.caption("成功查詢的股票會自動保存在這裡，最多保留 12 檔。")
 
     if st.button("檢查全市場名冊狀態", use_container_width=True):
         directory_status = stock_directory_status()
@@ -2967,6 +2969,7 @@ def render_single_stock_tab(market: dict[str, Any], refresh_token: int = 0) -> N
 
     query = st.session_state.active_query
     if not query.strip():
+        render_query_history()
         st.info("輸入中文股名或股票代碼即可啟動單股雷達。")
         return
 
@@ -3005,6 +3008,8 @@ def render_single_stock_tab(market: dict[str, Any], refresh_token: int = 0) -> N
         ][:12]
         st.session_state.record_active_query = False
         sync_history_to_url()
+
+    render_query_history()
 
     st.caption(f"{stock_name} · {match.symbol} · 最新資料日 {strategy_df.index[-1].strftime('%Y-%m-%d')}")
     if realtime_quote.get("ok"):
