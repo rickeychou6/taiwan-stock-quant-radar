@@ -1194,6 +1194,25 @@ def get_market_regime(refresh_token: int = 0, _version: str = CACHE_VERSION) -> 
     }
 
 
+def default_market_regime() -> dict[str, Any]:
+    return {
+        "is_bull": False,
+        "close": 0.0,
+        "ma20": np.nan,
+        "ma60": np.nan,
+        "return_5d": 0.0,
+        "as_of": "尚未載入",
+    }
+
+
+def get_market_regime_safe(refresh_token: int = 0) -> dict[str, Any]:
+    try:
+        return get_market_regime(refresh_token=refresh_token)
+    except Exception as exc:
+        st.warning(f"大盤資料暫時無法載入，已採保守模式並關閉新買進訊號：{exc}")
+        return default_market_regime()
+
+
 def _entry_reason(data: pd.DataFrame, i: int) -> str | None:
     row = data.iloc[i]
     prev = data.iloc[i - 1]
@@ -2825,7 +2844,7 @@ def analyze_symbol(symbol: str, market_is_bull: bool, refresh_token: int = 0) ->
 
 def render_single_stock_tab(market: dict[str, Any], refresh_token: int = 0) -> None:
     if "active_query" not in st.session_state:
-        st.session_state.active_query = "2330"
+        st.session_state.active_query = ""
     if "stock_query_input" not in st.session_state:
         st.session_state.stock_query_input = st.session_state.active_query
     if "record_active_query" not in st.session_state:
@@ -2924,14 +2943,15 @@ def render_single_stock_tab(market: dict[str, Any], refresh_token: int = 0) -> N
     else:
         st.caption("成功查詢的股票會自動保存在這裡，最多保留 12 檔。")
 
-    directory_status = stock_directory_status()
-    if directory_status["is_full"]:
-        st.caption(directory_status["message"])
-    else:
-        st.warning(
-            f"{directory_status['message']}，未達全市場名冊標準。"
-            "系統仍會用 Yahoo 搜尋備援，但若股名查不到，請先按「立即刷新最新資料」重新載入。"
-        )
+    if st.button("檢查全市場名冊狀態", use_container_width=True):
+        directory_status = stock_directory_status()
+        if directory_status["is_full"]:
+            st.success(directory_status["message"])
+        else:
+            st.warning(
+                f"{directory_status['message']}，未達全市場名冊標準。"
+                "系統仍會用 Yahoo 搜尋備援，但若股名查不到，請先按「立即刷新最新資料」重新載入。"
+            )
 
     def run_stock_query() -> None:
         st.session_state.active_query = st.session_state.stock_query_input.strip()
@@ -2961,6 +2981,7 @@ def render_single_stock_tab(market: dict[str, Any], refresh_token: int = 0) -> N
             )
             return
         st.success(f"已對照：{match.name} = {match.symbol}")
+        market = get_market_regime_safe(refresh_token=refresh_token)
         strategy_df = analyze_symbol(match.symbol, market["is_bull"], refresh_token=refresh_token)
         realtime_quote = fetch_realtime_quote(match.symbol, refresh_token=refresh_token)
         institutional = fetch_institutional_flow(match.symbol, refresh_token=refresh_token)
@@ -3253,7 +3274,9 @@ def render_intraday_live_panel(symbol: str, name: str, market: dict[str, Any], r
 
 def render_intraday_tab(market: dict[str, Any], refresh_token: int = 0) -> None:
     if "intraday_query" not in st.session_state:
-        st.session_state.intraday_query = st.session_state.get("active_query", "2330")
+        st.session_state.intraday_query = st.session_state.get("active_query", "")
+    if "intraday_loaded" not in st.session_state:
+        st.session_state.intraday_loaded = False
     if "intraday_refresh_token" not in st.session_state:
         st.session_state.intraday_refresh_token = 0
 
@@ -3268,14 +3291,21 @@ def render_intraday_tab(market: dict[str, Any], refresh_token: int = 0) -> None:
         submitted = st.form_submit_button("載入盤中分析", use_container_width=True)
         if submitted and query.strip():
             st.session_state.intraday_query = query.strip()
+            st.session_state.intraday_loaded = True
             st.session_state.intraday_refresh_token += 1
 
     control1, control2 = st.columns([1, 2])
     with control1:
         if st.button("更新盤中報價", icon=":material/refresh:", use_container_width=True):
+            if st.session_state.intraday_query.strip():
+                st.session_state.intraday_loaded = True
             st.session_state.intraday_refresh_token += 1
     with control2:
         auto_refresh = st.toggle("每 15 秒自動更新", value=False)
+
+    if not st.session_state.intraday_loaded or not st.session_state.intraday_query.strip():
+        st.info("輸入股名或股號後，按「載入盤中分析」才會開始抓即時與分鐘資料。")
+        return
 
     try:
         match = SymbolMatch(**resolve_symbol(st.session_state.intraday_query))
@@ -3288,6 +3318,7 @@ def render_intraday_tab(market: dict[str, Any], refresh_token: int = 0) -> None:
         return
 
     live_token = refresh_token + int(st.session_state.intraday_refresh_token)
+    market = get_market_regime_safe(refresh_token=refresh_token)
     if auto_refresh and hasattr(st, "fragment"):
         st.fragment(run_every=15)(render_intraday_live_panel)(match.symbol, stock_name, market, live_token)
     else:
@@ -3299,6 +3330,7 @@ def render_scanner_tab(market: dict[str, Any], refresh_token: int = 0) -> None:
     if not st.button("🚀 啟動全自動多股共振掃描", use_container_width=True):
         return
 
+    market = get_market_regime_safe(refresh_token=refresh_token)
     progress = st.progress(0)
     status = st.empty()
     rows: list[dict[str, Any]] = []
@@ -3409,11 +3441,13 @@ def render_non_futures_tab(market: dict[str, Any], refresh_token: int = 0) -> No
     with cfg2:
         only_actionable = st.checkbox("只顯示非觀望", value=True)
 
-    universe = non_futures_universe(scan_limit)
-    st.caption(f"本次候選：排除個股期貨後取前 {len(universe)} 檔。")
+    st.caption("按下掃描後才會載入上市櫃名冊與候選清單。")
     if not st.button("啟動非期貨個股法人箱型布林掃描", use_container_width=True):
         return
 
+    market = get_market_regime_safe(refresh_token=refresh_token)
+    universe = non_futures_universe(scan_limit)
+    st.caption(f"本次候選：排除個股期貨後取前 {len(universe)} 檔。")
     progress = st.progress(0)
     status = st.empty()
     rows: list[dict[str, Any]] = []
@@ -3665,18 +3699,7 @@ def main() -> None:
 
     refresh_token = int(st.session_state.refresh_token)
 
-    try:
-        market_regime = get_market_regime(refresh_token=refresh_token)
-    except Exception as exc:
-        st.warning(f"大盤資料暫時無法載入，已採保守模式並關閉新買進訊號：{exc}")
-        market_regime = {
-            "is_bull": False,
-            "close": 0.0,
-            "ma20": np.nan,
-            "ma60": np.nan,
-            "return_5d": 0.0,
-            "as_of": "資料暫缺",
-        }
+    market_regime = default_market_regime()
 
     tab_single, tab_intraday, tab_scan, tab_non_futures = st.tabs(
         [
