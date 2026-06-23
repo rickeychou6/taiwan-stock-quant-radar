@@ -41,6 +41,8 @@ HISTORY_CACHE_TTL = 1800
 REALTIME_CACHE_TTL = 15
 MARKET_CACHE_TTL = 30
 INSTITUTIONAL_CACHE_TTL = 300
+STOCK_DIRECTORY_CACHE_VERSION = "stock-directory-v5"
+SYMBOL_LOOKUP_CACHE_VERSION = "symbol-lookup-v5"
 
 STOCK_FUTURES_CODES = {
     "1101",
@@ -390,7 +392,8 @@ def _load_isin_stocks(
 
 
 @st.cache_data(ttl=1800, show_spinner=False)
-def load_stock_directory() -> dict[str, dict[str, str]]:
+def load_stock_directory(cache_version: str = STOCK_DIRECTORY_CACHE_VERSION) -> dict[str, dict[str, str]]:
+    _ = cache_version
     directory = {
         code: {"symbol": _symbol_from_code(code), "name": name}
         for code, name in COMMON_TW_STOCKS.items()
@@ -418,7 +421,7 @@ def load_stock_directory() -> dict[str, dict[str, str]]:
 
 
 def stock_selector_options() -> list[str]:
-    directory = load_stock_directory()
+    directory = load_stock_directory(STOCK_DIRECTORY_CACHE_VERSION)
     pairs = sorted(directory.items(), key=lambda item: item[0])
     return ["手動輸入"] + [f"{data['name']} ({data['symbol']})" for _, data in pairs]
 
@@ -436,7 +439,7 @@ def _local_symbol_match(query: str) -> SymbolMatch | None:
     if not lookup_key:
         return None
 
-    directory = load_stock_directory()
+    directory = load_stock_directory(STOCK_DIRECTORY_CACHE_VERSION)
 
     if lookup_key.isdigit() and lookup_key in directory:
         data = directory[lookup_key]
@@ -993,7 +996,11 @@ def institutional_summary(
 
 
 @st.cache_data(ttl=1800, show_spinner=False)
-def resolve_symbol(raw_query: str) -> dict[str, str]:
+def resolve_symbol(
+    raw_query: str,
+    cache_version: str = SYMBOL_LOOKUP_CACHE_VERSION,
+) -> dict[str, str]:
+    _ = cache_version
     query = raw_query.strip()
     if not query:
         return {"symbol": "", "name": ""}
@@ -1001,7 +1008,7 @@ def resolve_symbol(raw_query: str) -> dict[str, str]:
     normalized = query.upper()
     if normalized.endswith((".TW", ".TWO")):
         code = normalized.rsplit(".", 1)[0]
-        directory = load_stock_directory()
+        directory = load_stock_directory(STOCK_DIRECTORY_CACHE_VERSION)
         name = directory.get(code, {}).get("name", normalized)
         return {"symbol": normalized, "name": name}
 
@@ -2926,7 +2933,7 @@ def render_single_stock_tab(market: dict[str, Any], refresh_token: int = 0) -> N
         return
 
     try:
-        match = SymbolMatch(**resolve_symbol(query))
+        match = SymbolMatch(**resolve_symbol(query, SYMBOL_LOOKUP_CACHE_VERSION))
         if not match.symbol:
             st.error("找不到符合的台股標的，請改用股號或完整 Yahoo Finance 代碼。")
             return
@@ -3248,7 +3255,7 @@ def render_intraday_tab(market: dict[str, Any], refresh_token: int = 0) -> None:
         auto_refresh = st.toggle("每 15 秒自動更新", value=False)
 
     try:
-        match = SymbolMatch(**resolve_symbol(st.session_state.intraday_query))
+        match = SymbolMatch(**resolve_symbol(st.session_state.intraday_query, SYMBOL_LOOKUP_CACHE_VERSION))
         if not match.symbol:
             st.error("找不到符合的台股，請改用股名或股號。")
             return
@@ -3356,7 +3363,7 @@ def render_scanner_tab(market: dict[str, Any], refresh_token: int = 0) -> None:
 
 
 def non_futures_universe(limit: int) -> list[tuple[str, str]]:
-    directory = load_stock_directory()
+    directory = load_stock_directory(STOCK_DIRECTORY_CACHE_VERSION)
     candidates: list[tuple[str, str]] = []
     for code, data in sorted(directory.items(), key=lambda item: item[0]):
         if code in STOCK_FUTURES_CODES:
