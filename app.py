@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Any
+import html
 import json
+import re
 import unicodedata
 
 import numpy as np
@@ -23,6 +25,8 @@ st.set_page_config(
 YAHOO_SEARCH_URL = "https://query2.finance.yahoo.com/v1/finance/search"
 TWSE_LISTED_URL = "https://openapi.twse.com.tw/v1/opendata/t187ap03_L"
 TPEX_OTC_URL = "https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap03_O"
+TWSE_ISIN_LISTED_URL = "https://isin.twse.com.tw/isin/C_public.jsp?strMode=2"
+TWSE_ISIN_TPEX_URL = "https://isin.twse.com.tw/isin/C_public.jsp?strMode=4"
 TWSE_INSTITUTIONAL_URL = "https://www.twse.com.tw/rwd/zh/fund/T86"
 TPEX_INSTITUTIONAL_URL = "https://www.tpex.org.tw/www/zh-tw/insti/dailyTrade"
 TWSE_MIS_QUOTE_URL = "https://mis.twse.com.tw/stock/api/getStockInfo.jsp"
@@ -302,6 +306,82 @@ def _symbol_from_code(code: str) -> str:
     return f"{code}.TW"
 
 
+def _add_stock_to_directory(
+    directory: dict[str, dict[str, str]],
+    code: Any,
+    name: Any,
+    suffix: str,
+) -> None:
+    code_text = str(code or "").strip()
+    name_text = str(name or "").strip()
+    if code_text.isdigit() and len(code_text) == 4 and name_text:
+        directory[code_text] = {"symbol": f"{code_text}.{suffix}", "name": name_text}
+
+
+def _record_code_name(item: dict[str, Any]) -> tuple[str, str]:
+    code_keys = (
+        "公司代號",
+        "股票代號",
+        "證券代號",
+        "SecuritiesCompanyCode",
+        "Code",
+        "有價證券代號",
+    )
+    name_keys = (
+        "公司簡稱",
+        "公司名稱",
+        "股票名稱",
+        "證券名稱",
+        "有價證券名稱",
+        "CompanyAbbreviation",
+        "CompanyName",
+        "Name",
+    )
+    code = next((str(item.get(key) or "").strip() for key in code_keys if item.get(key)), "")
+    name = next((str(item.get(key) or "").strip() for key in name_keys if item.get(key)), "")
+    return code, name
+
+
+def _load_openapi_stocks(
+    directory: dict[str, dict[str, str]],
+    url: str,
+    suffix: str,
+) -> None:
+    response = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=10)
+    response.raise_for_status()
+    for item in response.json():
+        if isinstance(item, dict):
+            code, name = _record_code_name(item)
+            _add_stock_to_directory(directory, code, name, suffix)
+
+
+def _load_isin_stocks(
+    directory: dict[str, dict[str, str]],
+    url: str,
+    suffix: str,
+) -> None:
+    response = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=10)
+    response.raise_for_status()
+    response.encoding = "big5"
+    rows = re.findall(r"<tr[^>]*>(.*?)</tr>", response.text, flags=re.IGNORECASE | re.DOTALL)
+    for row_html in rows:
+        cells = re.findall(r"<td[^>]*>(.*?)</td>", row_html, flags=re.IGNORECASE | re.DOTALL)
+        if not cells:
+            continue
+        first_cell = re.sub(r"<[^>]+>", "", cells[0])
+        first_cell = html.unescape(first_cell).replace("\xa0", " ").strip()
+        match = re.match(r"^(\d{4})[\s\u3000]+(.+)$", first_cell)
+        if not match:
+            continue
+        code, name = match.groups()
+        name = name.strip()
+        if name in {"上市認購(售)權證", "上市公司", "上櫃公司", "上櫃認購(售)權證"}:
+            continue
+        if "KY" not in name and any(mark in name for mark in ("購", "售", "牛", "熊", "權證", "特別股")):
+            continue
+        _add_stock_to_directory(directory, code, name, suffix)
+
+
 @st.cache_data(ttl=1800, show_spinner=False)
 def load_stock_directory() -> dict[str, dict[str, str]]:
     directory = {
@@ -315,48 +395,17 @@ def load_stock_directory() -> dict[str, dict[str, str]]:
         }
     )
 
-    try:
-        listed = requests.get(
-            TWSE_LISTED_URL,
-            headers={"User-Agent": USER_AGENT},
-            timeout=10,
-        )
-        listed.raise_for_status()
-        for item in listed.json():
-            code = str(item.get("公司代號") or "").strip()
-            name = str(item.get("公司簡稱") or item.get("公司名稱") or "").strip()
-            if code.isdigit() and name:
-                directory[code] = {"symbol": f"{code}.TW", "name": name}
-    except Exception:
-        pass
-
-    try:
-        otc = requests.get(
-            TPEX_OTC_URL,
-            headers={"User-Agent": USER_AGENT},
-            timeout=10,
-        )
-        otc.raise_for_status()
-        for item in otc.json():
-            code = str(
-                item.get("SecuritiesCompanyCode")
-                or item.get("公司代號")
-                or item.get("股票代號")
-                or item.get("Code")
-                or ""
-            ).strip()
-            name = str(
-                item.get("CompanyAbbreviation")
-                or item.get("CompanyName")
-                or item.get("公司簡稱")
-                or item.get("公司名稱")
-                or item.get("Name")
-                or ""
-            ).strip()
-            if code.isdigit() and name:
-                directory[code] = {"symbol": f"{code}.TWO", "name": name}
-    except Exception:
-        pass
+    sources = (
+        (_load_openapi_stocks, TWSE_LISTED_URL, "TW"),
+        (_load_openapi_stocks, TPEX_OTC_URL, "TWO"),
+        (_load_isin_stocks, TWSE_ISIN_LISTED_URL, "TW"),
+        (_load_isin_stocks, TWSE_ISIN_TPEX_URL, "TWO"),
+    )
+    for loader, url, suffix in sources:
+        try:
+            loader(directory, url, suffix)
+        except Exception:
+            pass
 
     return directory
 
