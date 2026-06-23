@@ -52,6 +52,18 @@ def institutional_streak_text(streak: dict[str, Any], key: str) -> str:
     return "未連續"
 
 
+def safe_resolve_symbol(query: str) -> dict[str, str] | None:
+    try:
+        match = core.resolve_symbol(query)
+    except Exception:
+        return None
+    symbol = str(match.get("symbol", "")).strip()
+    if not symbol:
+        return None
+    name = str(match.get("name", symbol)).strip() or symbol
+    return {"symbol": symbol, "name": name}
+
+
 def build_advanced_snapshot(
     symbol: str,
     name: str,
@@ -196,11 +208,11 @@ def resolve_inputs(raw_text: str) -> list[tuple[str, str]]:
     resolved: list[tuple[str, str]] = []
     seen: set[str] = set()
     for item in items:
-        match = core.resolve_stock_symbol(item)
-        if not match or not match.symbol or match.symbol in seen:
+        match = safe_resolve_symbol(item)
+        if not match or match["symbol"] in seen:
             continue
-        seen.add(match.symbol)
-        resolved.append((match.symbol, match.name))
+        seen.add(match["symbol"])
+        resolved.append((match["symbol"], match["name"]))
     return resolved[:SCAN_LIMIT]
 
 
@@ -286,13 +298,17 @@ def main() -> None:
     with tab_single:
         query = st.text_input("輸入股名或股號", value="台積電", placeholder="例如：台積電、信驊、2330、5274")
         if st.button("查詢進階分析", use_container_width=True):
-            match = core.resolve_stock_symbol(query)
+            match = safe_resolve_symbol(query)
             if not match:
                 st.error("找不到符合的台股，請改用股號或完整 Yahoo Finance 代碼。")
             else:
-                with st.spinner(f"分析 {match.name} ({match.symbol}) 中..."):
-                    snapshot = build_advanced_snapshot(match.symbol, match.name, refresh_token)
-                render_snapshot(snapshot)
+                try:
+                    with st.spinner(f"分析 {match['name']} ({match['symbol']}) 中..."):
+                        snapshot = build_advanced_snapshot(match["symbol"], match["name"], refresh_token)
+                    render_snapshot(snapshot)
+                except Exception as exc:
+                    st.error(f"分析資料暫時無法載入：{exc}")
+                    st.caption("請稍後重試，或改用完整股號代碼，例如 2330.TW、5274.TWO。")
 
     with tab_scan:
         default_symbols = ",".join(core.WATCHLIST_0050[:20])
