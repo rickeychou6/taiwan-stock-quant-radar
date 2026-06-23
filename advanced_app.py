@@ -79,13 +79,8 @@ def render_metric_grid(items: list[dict[str, Any]]) -> None:
                 delta_class += f" {tone}"
             delta_html = f'<div class="{delta_class}">{html.escape(delta)}</div>'
         cards.append(
-            f"""
-            <div class="metric-card">
-                <div class="metric-label">{label}</div>
-                <div class="metric-value">{value}</div>
-                {delta_html}
-            </div>
-            """
+            f'<div class="metric-card"><div class="metric-label">{label}</div>'
+            f'<div class="metric-value">{value}</div>{delta_html}</div>'
         )
     st.markdown(f'<div class="metric-grid">{"".join(cards)}</div>', unsafe_allow_html=True)
 
