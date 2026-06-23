@@ -41,8 +41,8 @@ HISTORY_CACHE_TTL = 1800
 REALTIME_CACHE_TTL = 15
 MARKET_CACHE_TTL = 30
 INSTITUTIONAL_CACHE_TTL = 300
-STOCK_DIRECTORY_CACHE_VERSION = "stock-directory-v5"
-SYMBOL_LOOKUP_CACHE_VERSION = "symbol-lookup-v5"
+MIN_FULL_STOCK_DIRECTORY_SIZE = 1500
+STOCK_DIRECTORY_CACHE_VERSION = "stock-directory-v6"
 
 STOCK_FUTURES_CODES = {
     "1101",
@@ -391,7 +391,7 @@ def _load_isin_stocks(
         _add_stock_to_directory(directory, code, name, suffix)
 
 
-@st.cache_data(ttl=1800, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def load_stock_directory(cache_version: str = STOCK_DIRECTORY_CACHE_VERSION) -> dict[str, dict[str, str]]:
     _ = cache_version
     directory = {
@@ -424,6 +424,20 @@ def stock_selector_options() -> list[str]:
     directory = load_stock_directory(STOCK_DIRECTORY_CACHE_VERSION)
     pairs = sorted(directory.items(), key=lambda item: item[0])
     return ["手動輸入"] + [f"{data['name']} ({data['symbol']})" for _, data in pairs]
+
+
+def stock_directory_status() -> dict[str, Any]:
+    directory = load_stock_directory(STOCK_DIRECTORY_CACHE_VERSION)
+    listed_count = sum(1 for data in directory.values() if data.get("symbol", "").endswith(".TW"))
+    tpex_count = sum(1 for data in directory.values() if data.get("symbol", "").endswith(".TWO"))
+    total = len(directory)
+    return {
+        "total": total,
+        "listed_count": listed_count,
+        "tpex_count": tpex_count,
+        "is_full": total >= MIN_FULL_STOCK_DIRECTORY_SIZE,
+        "message": f"台股名冊已載入 {total:,} 檔（上市 {listed_count:,}、上櫃 {tpex_count:,}）",
+    }
 
 
 def query_from_selector_label(label: str) -> str:
@@ -995,12 +1009,7 @@ def institutional_summary(
     }
 
 
-@st.cache_data(ttl=1800, show_spinner=False)
-def resolve_symbol(
-    raw_query: str,
-    cache_version: str = SYMBOL_LOOKUP_CACHE_VERSION,
-) -> dict[str, str]:
-    _ = cache_version
+def resolve_symbol(raw_query: str) -> dict[str, str]:
     query = raw_query.strip()
     if not query:
         return {"symbol": "", "name": ""}
@@ -2915,6 +2924,15 @@ def render_single_stock_tab(market: dict[str, Any], refresh_token: int = 0) -> N
     else:
         st.caption("成功查詢的股票會自動保存在這裡，最多保留 12 檔。")
 
+    directory_status = stock_directory_status()
+    if directory_status["is_full"]:
+        st.caption(directory_status["message"])
+    else:
+        st.warning(
+            f"{directory_status['message']}，未達全市場名冊標準。"
+            "系統仍會用 Yahoo 搜尋備援，但若股名查不到，請先按「立即刷新最新資料」重新載入。"
+        )
+
     def run_stock_query() -> None:
         st.session_state.active_query = st.session_state.stock_query_input.strip()
         st.session_state.record_active_query = True
@@ -2933,9 +2951,14 @@ def render_single_stock_tab(market: dict[str, Any], refresh_token: int = 0) -> N
         return
 
     try:
-        match = SymbolMatch(**resolve_symbol(query, SYMBOL_LOOKUP_CACHE_VERSION))
+        match = SymbolMatch(**resolve_symbol(query))
         if not match.symbol:
-            st.error("找不到符合的台股標的，請改用股號或完整 Yahoo Finance 代碼。")
+            status = stock_directory_status()
+            st.error(
+                "找不到符合的台股標的。"
+                f"目前名冊狀態：{status['message']}。"
+                "若未達全市場名冊，請先按「立即刷新最新資料」；若仍失敗，請輸入完整股號或 Yahoo Finance 代碼。"
+            )
             return
         st.success(f"已對照：{match.name} = {match.symbol}")
         strategy_df = analyze_symbol(match.symbol, market["is_bull"], refresh_token=refresh_token)
@@ -3255,7 +3278,7 @@ def render_intraday_tab(market: dict[str, Any], refresh_token: int = 0) -> None:
         auto_refresh = st.toggle("每 15 秒自動更新", value=False)
 
     try:
-        match = SymbolMatch(**resolve_symbol(st.session_state.intraday_query, SYMBOL_LOOKUP_CACHE_VERSION))
+        match = SymbolMatch(**resolve_symbol(st.session_state.intraday_query))
         if not match.symbol:
             st.error("找不到符合的台股，請改用股名或股號。")
             return
