@@ -85,6 +85,210 @@ def render_metric_grid(items: list[dict[str, Any]]) -> None:
     st.markdown(f'<div class="metric-grid">{"".join(cards)}</div>', unsafe_allow_html=True)
 
 
+def parse_percent(value: Any) -> float:
+    if value is None:
+        return np.nan
+    text = str(value).replace("%", "").replace(",", "").strip()
+    return num(text)
+
+
+def short_swing_decision_engine(
+    strategy_df: pd.DataFrame,
+    levels: dict[str, Any],
+    phase: dict[str, Any],
+    radar: dict[str, Any],
+    backtest: dict[str, Any],
+    streak: dict[str, Any],
+    market: dict[str, Any],
+) -> dict[str, Any]:
+    latest = strategy_df.iloc[-1]
+    previous = strategy_df.iloc[-2] if len(strategy_df) >= 2 else latest
+    close = num(latest.get("Close"))
+    ma20 = num(latest.get("20MA"))
+    ma60 = num(latest.get("60MA"))
+    bb_upper = num(latest.get("BB_Upper"))
+    bb_mid = num(latest.get("BB_Mid"))
+    bb_lower = num(latest.get("BB_Lower"))
+    box_high = num(latest.get("Box_High"))
+    box_low = num(latest.get("Box_Low"))
+    atr = num(latest.get("ATR"))
+    volume_ratio = num(latest.get("Volume_Ratio"), 0.0)
+    macd_hist = num(latest.get("MACD_Hist"))
+    prev_macd_hist = num(previous.get("MACD_Hist"))
+    k_value = num(latest.get("K"))
+    d_value = num(latest.get("D"))
+    support_low = num(levels.get("support_low_value"))
+    support_high = num(levels.get("support_high_value"))
+    breakout = num(levels.get("breakout_value"))
+    stop = num(levels.get("stop_value"))
+    rr = rr_value(levels)
+    total_streak = int(streak.get("total", 0) or 0)
+    trust_streak = int(streak.get("trust", 0) or 0)
+    foreign_streak = int(streak.get("foreign", 0) or 0)
+    dealer_streak = int(streak.get("dealer", 0) or 0)
+    radar_score = int(radar.get("score", 0) or 0)
+    win_7d = parse_percent(backtest.get("win_7d"))
+    avg_7d = parse_percent(backtest.get("avg_7d"))
+    stop_rate = parse_percent(backtest.get("stop_rate"))
+
+    score = 50
+    positives: list[str] = []
+    risks: list[str] = []
+    wait_for: list[str] = []
+
+    near_support = (
+        pd.notna(close)
+        and pd.notna(support_low)
+        and pd.notna(support_high)
+        and support_low * 0.99 <= close <= support_high + max(atr * 0.4 if pd.notna(atr) else 0, close * 0.01)
+    )
+    breakout_confirmed = pd.notna(close) and pd.notna(breakout) and close >= breakout and volume_ratio >= 1.2
+    below_stop = pd.notna(close) and pd.notna(stop) and close <= stop
+    uptrend = pd.notna(close) and pd.notna(ma20) and pd.notna(ma60) and close >= ma20 >= ma60
+    weak_trend = pd.notna(close) and pd.notna(ma20) and pd.notna(ma60) and close < ma20 and ma20 < ma60
+    bollinger_hot = pd.notna(close) and pd.notna(bb_upper) and close >= bb_upper * 0.995
+    bollinger_reclaim = pd.notna(close) and pd.notna(bb_mid) and pd.notna(ma20) and close >= bb_mid and close >= ma20
+    box_compress = (
+        pd.notna(box_high)
+        and pd.notna(box_low)
+        and box_low > 0
+        and ((box_high - box_low) / box_low * 100) <= 12
+    )
+    macd_rising = pd.notna(macd_hist) and pd.notna(prev_macd_hist) and macd_hist > prev_macd_hist
+    kd_bull = pd.notna(k_value) and pd.notna(d_value) and k_value >= d_value
+
+    if market.get("is_bull"):
+        score += 8
+        positives.append("大盤位於多頭安全區")
+    else:
+        score -= 12
+        risks.append("大盤未站上多頭安全區，短線勝率會被壓低")
+
+    if uptrend:
+        score += 10
+        positives.append("價格在 MA20/MA60 之上，趨勢結構偏多")
+    elif weak_trend:
+        score -= 14
+        risks.append("價格與均線結構偏弱")
+    else:
+        wait_for.append("等待收盤重新站上 MA20 與布林中軌")
+
+    if near_support:
+        score += 12
+        positives.append("現價接近支撐買點，適合低接觀察")
+    if breakout_confirmed:
+        score += 18
+        positives.append("已帶量突破追價買點")
+    elif pd.notna(breakout) and pd.notna(close) and close < breakout:
+        wait_for.append(f"等待突破買點 {price(breakout)} 且量能大於 1.2x")
+
+    if bollinger_reclaim:
+        score += 8
+        positives.append("收盤站回布林中軌與 MA20")
+    if box_compress:
+        score += 6
+        positives.append("箱型整理仍有壓縮效果")
+    if macd_rising:
+        score += 5
+        positives.append("MACD 柱狀體轉強")
+    if kd_bull and k_value < 80:
+        score += 4
+        positives.append("KD 維持多方但未明顯過熱")
+
+    if total_streak >= 2:
+        score += 10
+        positives.append(f"三大法人連買 {total_streak} 天")
+    elif total_streak <= -2:
+        score -= 12
+        risks.append(f"三大法人連賣 {abs(total_streak)} 天")
+    if trust_streak >= 2:
+        score += 6
+        positives.append(f"投信連買 {trust_streak} 天，短線籌碼加分")
+    if foreign_streak <= -3 or dealer_streak <= -3:
+        score -= 5
+
+    if pd.notna(rr) and rr >= 1.8:
+        score += 10
+        positives.append(f"風險報酬比 {rr:.2f} 倍")
+    elif pd.notna(rr) and rr < 1.2:
+        score -= 10
+        risks.append("風險報酬比不足 1.2，追價空間不佳")
+
+    if pd.notna(win_7d) and win_7d >= 58:
+        score += 8
+        positives.append(f"過去同類買點 7 日勝率 {win_7d:.0f}%")
+    elif pd.notna(win_7d) and win_7d < 45:
+        score -= 8
+        risks.append(f"過去同類買點 7 日勝率僅 {win_7d:.0f}%")
+    if pd.notna(avg_7d) and avg_7d > 1.0:
+        score += 4
+    if pd.notna(stop_rate) and stop_rate >= 45:
+        score -= 6
+        risks.append(f"回測停損率 {stop_rate:.0f}% 偏高")
+
+    if bollinger_hot and volume_ratio < 1.1:
+        score -= 12
+        risks.append("接近布林上軌但量能不足，追價容易震盪")
+    if pd.notna(k_value) and k_value > 85 and not breakout_confirmed:
+        score -= 6
+        risks.append("KD 偏高但尚未帶量突破")
+    if below_stop:
+        score -= 35
+        risks.append("現價跌破停損防守線")
+
+    if below_stop or weak_trend:
+        final_decision = "轉弱賣出"
+        entry_type = "風險控管型"
+        instruction = "跌破防守線或均線轉弱，短線先出場或避開。"
+    elif bollinger_hot and not breakout_confirmed:
+        final_decision = "過熱勿追"
+        entry_type = "過熱追價風險型"
+        instruction = "等回測 MA20、布林中軌或支撐買點再評估。"
+    elif breakout_confirmed and score >= 68:
+        final_decision = "可買"
+        entry_type = "突破型"
+        instruction = "已帶量突破，可用突破買點附近分批進場，停損嚴守。"
+    elif near_support and score >= 62:
+        final_decision = "可買"
+        entry_type = "低接型"
+        instruction = "接近支撐買點，可分批低接，跌破停損價放棄。"
+    elif pd.notna(close) and pd.notna(breakout) and close < breakout:
+        final_decision = "等突破"
+        entry_type = "突破等待型"
+        instruction = "先不要追，等收盤站上突破買點並放量。"
+    elif pd.notna(close) and pd.notna(support_high) and close > support_high:
+        final_decision = "等回測"
+        entry_type = "回測等待型"
+        instruction = "價格離支撐偏遠，等回測支撐區再提高勝率。"
+    else:
+        final_decision = "觀望"
+        entry_type = "條件不足型"
+        instruction = "多因子尚未共振，先觀察。"
+
+    if score < 55 and final_decision == "可買":
+        final_decision = "觀望"
+        instruction = "雖有進場位置，但總分不足，先降低出手頻率。"
+
+    score = int(max(0, min(100, score)))
+    confidence = "高" if score >= 75 else "中" if score >= 60 else "低"
+    return {
+        "final_decision": final_decision,
+        "entry_type": entry_type,
+        "instruction": instruction,
+        "score": score,
+        "confidence": confidence,
+        "positives": positives[:5],
+        "risks": risks[:5],
+        "wait_for": wait_for[:4],
+        "win_7d": f"{win_7d:.0f}%" if pd.notna(win_7d) else "-",
+        "avg_7d": f"{avg_7d:.2f}%" if pd.notna(avg_7d) else "-",
+        "stop_rate": f"{stop_rate:.0f}%" if pd.notna(stop_rate) else "-",
+        "rr_value": rr,
+        "near_support": near_support,
+        "breakout_confirmed": breakout_confirmed,
+    }
+
+
 def build_advanced_snapshot(
     symbol: str,
     name: str,
@@ -105,6 +309,7 @@ def build_advanced_snapshot(
     radar = core.short_term_radar(strategy_df, market.get("return_5d", 0.0), institutional)
     backtest, trades = core.backtest_short_windows(strategy_df)
     streak = core.institutional_streak_summary(institutional_history)
+    swing = short_swing_decision_engine(strategy_df, levels, phase, radar, backtest, streak, market)
 
     close = num(latest.get("Close"))
     prev_close = num(previous.get("Close"))
@@ -124,21 +329,8 @@ def build_advanced_snapshot(
     score = int(radar.get("score", 0) or 0)
     rr = rr_value(levels)
 
-    if pd.notna(close) and pd.notna(stop) and close <= stop:
-        decision = "賣出 / 避開"
-        action_note = "現價跌破停損或防守線，先保護本金。"
-    elif pd.notna(close) and pd.notna(support_low) and pd.notna(support_high) and support_low <= close <= support_high:
-        decision = "支撐觀察買"
-        action_note = "現價在支撐買點區，需搭配量能與大盤。"
-    elif pd.notna(close) and pd.notna(breakout) and close >= breakout and volume_ratio >= 1.2:
-        decision = "突破買進"
-        action_note = "收盤/盤中站上突破買點且量能確認。"
-    elif score >= 70 and pd.notna(rr) and rr >= 1.5:
-        decision = "偏多觀察"
-        action_note = "條件接近共振，等待支撐或突破位置。"
-    else:
-        decision = "觀望"
-        action_note = "條件尚未集中，不急著出手。"
+    decision = swing["final_decision"]
+    action_note = swing["instruction"]
 
     return {
         "symbol": symbol,
@@ -156,6 +348,7 @@ def build_advanced_snapshot(
         "backtest": backtest,
         "trades": trades,
         "streak": streak,
+        "swing": swing,
         "close": close,
         "change": change,
         "change_pct": change_pct,
@@ -171,7 +364,7 @@ def build_advanced_snapshot(
         "bb_mid": price(bb_mid),
         "bb_lower": price(bb_lower),
         "volume_ratio": f"{volume_ratio:.2f}x" if pd.notna(volume_ratio) else "-",
-        "score": score,
+        "score": swing["score"],
         "decision": decision,
         "action_note": action_note,
     }
@@ -193,14 +386,23 @@ def render_snapshot(snapshot: dict[str, Any]) -> None:
         [
             {"label": "現價", "value": price(snapshot["close"]), "delta": delta, "tone": delta_tone},
             {"label": "短線決策", "value": snapshot["decision"]},
-            {"label": "強度分數", "value": f"{snapshot['score']} / 100"},
-            {"label": "波段階段", "value": snapshot["phase"].get("stage", "-")},
+            {"label": "進場型態", "value": snapshot["swing"]["entry_type"]},
+            {"label": "決策信心", "value": snapshot["swing"]["confidence"]},
+            {"label": "短線總分", "value": f"{snapshot['score']} / 100"},
             {"label": "法人總買賣", "value": institutional_streak_text(snapshot["streak"], "total")},
-            {"label": "風險報酬比", "value": snapshot["rr"]},
         ]
     )
 
     st.info(snapshot["action_note"])
+    render_metric_grid(
+        [
+            {"label": "7日勝率", "value": snapshot["swing"]["win_7d"]},
+            {"label": "7日平均報酬", "value": snapshot["swing"]["avg_7d"]},
+            {"label": "回測停損率", "value": snapshot["swing"]["stop_rate"]},
+            {"label": "風險報酬比", "value": snapshot["rr"]},
+            {"label": "波段階段", "value": snapshot["phase"].get("stage", "-")},
+        ]
+    )
 
     render_metric_grid(
         [
@@ -244,6 +446,33 @@ def render_snapshot(snapshot: dict[str, Any]) -> None:
         ]
     )
 
+    st.subheader("短線決策理由")
+    reason_col, risk_col, wait_col = st.columns(3)
+    with reason_col:
+        st.markdown("**加分條件**")
+        positives = snapshot["swing"].get("positives", [])
+        if positives:
+            for item in positives:
+                st.write(f"- {item}")
+        else:
+            st.write("- 尚無明確加分條件")
+    with risk_col:
+        st.markdown("**風險燈號**")
+        risks = snapshot["swing"].get("risks", [])
+        if risks:
+            for item in risks:
+                st.write(f"- {item}")
+        else:
+            st.write("- 未偵測到主要風險")
+    with wait_col:
+        st.markdown("**等待條件**")
+        waits = snapshot["swing"].get("wait_for", [])
+        if waits:
+            for item in waits:
+                st.write(f"- {item}")
+        else:
+            st.write("- 目前不需額外等待條件")
+
     st.plotly_chart(
         core.build_candlestick_chart(snapshot["strategy_df"], f"{name} 進階短線雷達"),
         use_container_width=True,
@@ -277,15 +506,28 @@ def scan_symbols(symbols: list[tuple[str, str]], refresh_token: int) -> pd.DataF
             except Exception as exc:
                 rows.append({"股名": name, "股號": symbol, "短線決策": "資料失敗", "備註": str(exc)})
                 continue
+            priority = {
+                "可買": 1,
+                "等突破": 2,
+                "等回測": 3,
+                "觀望": 4,
+                "過熱勿追": 5,
+                "轉弱賣出": 6,
+            }.get(snapshot["decision"], 9)
             rows.append(
                 {
                     "股名": snapshot["name"],
                     "股號": snapshot["symbol"],
                     "現價": snapshot["close"],
                     "漲跌": snapshot["change"],
+                    "排序": priority,
                     "短線決策": snapshot["decision"],
+                    "進場型態": snapshot["swing"]["entry_type"],
+                    "信心": snapshot["swing"]["confidence"],
                     "分數": snapshot["score"],
                     "階段": snapshot["phase"].get("stage", "-"),
+                    "7日勝率": snapshot["swing"]["win_7d"],
+                    "停損率": snapshot["swing"]["stop_rate"],
                     "法人總連續": institutional_streak_text(snapshot["streak"], "total"),
                     "支撐買點": snapshot["support"],
                     "突破買點": snapshot["breakout"],
@@ -300,7 +542,8 @@ def scan_symbols(symbols: list[tuple[str, str]], refresh_token: int) -> pd.DataF
     result = pd.DataFrame(rows)
     if result.empty or "分數" not in result.columns:
         return result
-    return result.sort_values(["分數", "漲跌"], ascending=[False, False], na_position="last")
+    result = result.sort_values(["排序", "分數", "漲跌"], ascending=[True, False, False], na_position="last")
+    return result.drop(columns=["排序"], errors="ignore")
 
 
 def main() -> None:
