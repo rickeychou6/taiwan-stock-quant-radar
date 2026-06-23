@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any
+import html
 
 import numpy as np
 import pandas as pd
@@ -62,6 +63,31 @@ def safe_resolve_symbol(query: str) -> dict[str, str] | None:
         return None
     name = str(match.get("name", symbol)).strip() or symbol
     return {"symbol": symbol, "name": name}
+
+
+def render_metric_grid(items: list[dict[str, Any]]) -> None:
+    cards: list[str] = []
+    for item in items:
+        label = html.escape(str(item.get("label", "")))
+        value = html.escape(str(item.get("value", "-")))
+        delta = str(item.get("delta", "") or "")
+        tone = str(item.get("tone", "neutral"))
+        delta_html = ""
+        if delta:
+            delta_class = "metric-delta"
+            if tone in {"positive", "negative", "warning"}:
+                delta_class += f" {tone}"
+            delta_html = f'<div class="{delta_class}">{html.escape(delta)}</div>'
+        cards.append(
+            f"""
+            <div class="metric-card">
+                <div class="metric-label">{label}</div>
+                <div class="metric-value">{value}</div>
+                {delta_html}
+            </div>
+            """
+        )
+    st.markdown(f'<div class="metric-grid">{"".join(cards)}</div>', unsafe_allow_html=True)
 
 
 def build_advanced_snapshot(
@@ -161,41 +187,67 @@ def render_snapshot(snapshot: dict[str, Any]) -> None:
     symbol = snapshot["symbol"]
     change = snapshot["change"]
     delta = "-"
+    delta_tone = "neutral"
     if pd.notna(change):
         sign = "+" if change >= 0 else ""
         delta = f"{sign}{change:.2f} ({sign}{snapshot['change_pct']:.2f}%)"
+        delta_tone = "positive" if change >= 0 else "negative"
 
     st.subheader(f"{name} ({symbol})")
-    cols = st.columns(6)
-    cols[0].metric("現價", price(snapshot["close"]), delta)
-    cols[1].metric("短線決策", snapshot["decision"])
-    cols[2].metric("強度分數", f"{snapshot['score']} / 100")
-    cols[3].metric("波段階段", snapshot["phase"].get("stage", "-"))
-    cols[4].metric("法人總買賣", institutional_streak_text(snapshot["streak"], "total"))
-    cols[5].metric("風險報酬比", snapshot["rr"])
+    render_metric_grid(
+        [
+            {"label": "現價", "value": price(snapshot["close"]), "delta": delta, "tone": delta_tone},
+            {"label": "短線決策", "value": snapshot["decision"]},
+            {"label": "強度分數", "value": f"{snapshot['score']} / 100"},
+            {"label": "波段階段", "value": snapshot["phase"].get("stage", "-")},
+            {"label": "法人總買賣", "value": institutional_streak_text(snapshot["streak"], "total")},
+            {"label": "風險報酬比", "value": snapshot["rr"]},
+        ]
+    )
 
     st.info(snapshot["action_note"])
 
-    trade_cols = st.columns(5)
-    trade_cols[0].metric("支撐買點", snapshot["support"])
-    trade_cols[1].metric("突破買點", snapshot["breakout"], snapshot["levels"].get("breakout_status", "-"))
-    trade_cols[2].metric("停損價", snapshot["stop"])
-    trade_cols[3].metric("短線目標", snapshot["target"])
-    trade_cols[4].metric("量能比", snapshot["volume_ratio"])
+    render_metric_grid(
+        [
+            {"label": "支撐買點", "value": snapshot["support"]},
+            {
+                "label": "突破買點",
+                "value": snapshot["breakout"],
+                "delta": snapshot["levels"].get("breakout_status", "-"),
+                "tone": "positive"
+                if snapshot["levels"].get("breakout_status") == "已突破"
+                else "warning",
+            },
+            {"label": "停損價", "value": snapshot["stop"]},
+            {"label": "短線目標", "value": snapshot["target"]},
+            {"label": "量能比", "value": snapshot["volume_ratio"]},
+        ]
+    )
 
-    box_cols = st.columns(6)
-    box_cols[0].metric("箱型頂部", snapshot["box_high"])
-    box_cols[1].metric("箱型底部", snapshot["box_low"])
-    box_cols[2].metric("箱體高度", snapshot["box_height"])
-    box_cols[3].metric("布林上軌", snapshot["bb_upper"])
-    box_cols[4].metric("布林中軌", snapshot["bb_mid"])
-    box_cols[5].metric("布林下軌", snapshot["bb_lower"])
+    render_metric_grid(
+        [
+            {"label": "箱型頂部", "value": snapshot["box_high"]},
+            {"label": "箱型底部", "value": snapshot["box_low"]},
+            {"label": "箱體高度", "value": snapshot["box_height"]},
+            {"label": "布林上軌", "value": snapshot["bb_upper"]},
+            {"label": "布林中軌", "value": snapshot["bb_mid"]},
+            {"label": "布林下軌", "value": snapshot["bb_lower"]},
+        ]
+    )
 
-    inst_cols = st.columns(4)
-    inst_cols[0].metric("外資連續", institutional_streak_text(snapshot["streak"], "foreign"))
-    inst_cols[1].metric("投信連續", institutional_streak_text(snapshot["streak"], "trust"))
-    inst_cols[2].metric("自營商連續", institutional_streak_text(snapshot["streak"], "dealer"))
-    inst_cols[3].metric("5-7日回測樣本", snapshot["backtest"].get("samples", 0), snapshot["backtest"].get("grade", "-"))
+    render_metric_grid(
+        [
+            {"label": "外資連續", "value": institutional_streak_text(snapshot["streak"], "foreign")},
+            {"label": "投信連續", "value": institutional_streak_text(snapshot["streak"], "trust")},
+            {"label": "自營商連續", "value": institutional_streak_text(snapshot["streak"], "dealer")},
+            {
+                "label": "5-7日回測樣本",
+                "value": snapshot["backtest"].get("samples", 0),
+                "delta": snapshot["backtest"].get("grade", "-"),
+                "tone": "positive",
+            },
+        ]
+    )
 
     st.plotly_chart(
         core.build_candlestick_chart(snapshot["strategy_df"], f"{name} 進階短線雷達"),
@@ -261,12 +313,78 @@ def main() -> None:
         """
         <style>
         .stApp { background: #f8fafc; color: #0f172a; }
+        .block-container {
+            max-width: 1180px;
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+        }
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 14px;
+            margin: 14px 0 24px 0;
+            align-items: stretch;
+        }
+        .metric-card {
+            background: #ffffff;
+            border: 1px solid #dbe4ef;
+            border-radius: 12px;
+            padding: 16px 18px;
+            min-height: 126px;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            gap: 10px;
+        }
+        .metric-label {
+            color: #334155;
+            font-size: 0.96rem;
+            font-weight: 700;
+            line-height: 1.25;
+        }
+        .metric-value {
+            color: #0f172a;
+            font-size: clamp(1.32rem, 2.1vw, 2.15rem);
+            font-weight: 800;
+            line-height: 1.15;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+        .metric-delta {
+            align-self: flex-start;
+            border-radius: 999px;
+            background: #eef2ff;
+            color: #334155;
+            font-size: 0.92rem;
+            font-weight: 700;
+            padding: 5px 10px;
+            line-height: 1.2;
+            max-width: 100%;
+            overflow-wrap: anywhere;
+        }
+        .metric-delta.positive {
+            background: #dcfce7;
+            color: #15803d;
+        }
+        .metric-delta.negative {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+        .metric-delta.warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
         div[data-testid="stMetric"] {
             background: #ffffff;
             border: 1px solid #e2e8f0;
             border-radius: 10px;
             padding: 14px 16px;
             box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+        }
+        div[data-testid="stAlert"] {
+            border-radius: 12px;
         }
         .stButton button {
             background: #2563eb;
@@ -279,6 +397,23 @@ def main() -> None:
         .stTextInput input, .stTextArea textarea {
             background: #ffffff;
             border-radius: 10px;
+        }
+        @media (max-width: 760px) {
+            .block-container {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            .metric-grid {
+                grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+                gap: 10px;
+            }
+            .metric-card {
+                min-height: 112px;
+                padding: 13px 14px;
+            }
+            .metric-value {
+                font-size: 1.35rem;
+            }
         }
         </style>
         """,
