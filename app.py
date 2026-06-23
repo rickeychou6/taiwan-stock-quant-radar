@@ -2820,17 +2820,6 @@ def render_single_stock_tab(market: dict[str, Any], refresh_token: int = 0) -> N
         st.session_state.record_active_query = False
         sync_history_to_url()
 
-    st.caption("股名或股號請直接在下方「智慧檢索」輸入；下拉清單只做常用股票快速選取。")
-    with st.expander("常用股票快速選取", expanded=False):
-        st.selectbox(
-            "股名/股號快速對照",
-            options=stock_selector_options(),
-            index=0,
-            placeholder="可從已載入名單搜尋，例如台積電、長榮航、希華",
-            key="stock_quick_selector",
-            on_change=load_quick_selection,
-        )
-
     history_items = st.session_state.stock_query_history
     history_options = [history_placeholder] + [history_label(item) for item in history_items]
     selected_history = st.session_state.get("stock_history_selector", history_placeholder)
@@ -2863,16 +2852,17 @@ def render_single_stock_tab(market: dict[str, Any], refresh_token: int = 0) -> N
     else:
         st.caption("成功查詢的股票會自動保存在這裡，最多保留 12 檔。")
 
-    with st.form("stock_lookup_form", clear_on_submit=False):
-        query_input = st.text_input(
-            "智慧檢索",
-            key="stock_query_input",
-            placeholder="輸入股名或股號，例如台積電、長榮航、希華、2330、2618",
-        )
-        submitted = st.form_submit_button("查詢股號並分析", use_container_width=True)
-        if submitted:
-            st.session_state.active_query = query_input.strip()
-            st.session_state.record_active_query = True
+    def run_stock_query() -> None:
+        st.session_state.active_query = st.session_state.stock_query_input.strip()
+        st.session_state.record_active_query = True
+
+    st.text_input(
+        "智慧檢索",
+        key="stock_query_input",
+        placeholder="輸入股名或股號，例如台積電、長榮航、希華、佳凌、2330、4976",
+        on_change=run_stock_query,
+    )
+    st.button("查詢股號並分析", on_click=run_stock_query, use_container_width=True)
 
     query = st.session_state.active_query
     if not query.strip():
