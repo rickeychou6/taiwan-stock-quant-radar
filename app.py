@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import Any
 import html
@@ -655,8 +656,7 @@ def download_intraday_data(
         return pd.DataFrame()
 
 
-def apply_realtime_quote(df: pd.DataFrame, symbol: str, refresh_token: int = 0) -> pd.DataFrame:
-    quote = fetch_realtime_quote(symbol, refresh_token=refresh_token)
+def apply_realtime_quote_data(df: pd.DataFrame, quote: dict[str, Any]) -> pd.DataFrame:
     if not quote.get("ok"):
         return df
 
@@ -687,6 +687,11 @@ def apply_realtime_quote(df: pd.DataFrame, symbol: str, refresh_token: int = 0) 
         data.loc[quote_date] = row
         data = data.sort_index()
     return data
+
+
+def apply_realtime_quote(df: pd.DataFrame, symbol: str, refresh_token: int = 0) -> pd.DataFrame:
+    quote = fetch_realtime_quote(symbol, refresh_token=refresh_token)
+    return apply_realtime_quote_data(df, quote)
 
 
 def _empty_institutional(symbol: str, message: str = "查無最新官方法人資料") -> dict[str, Any]:
@@ -2842,6 +2847,33 @@ def analyze_symbol(symbol: str, market_is_bull: bool, refresh_token: int = 0) ->
     return run_strategy(prices, market_is_bull)
 
 
+def load_single_stock_analysis_bundle(
+    symbol: str,
+    refresh_token: int = 0,
+) -> tuple[pd.DataFrame, dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any]]:
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        market_future = executor.submit(get_market_regime, refresh_token=refresh_token)
+        history_future = executor.submit(download_history_data, symbol, LOOKBACK_PERIOD)
+        quote_future = executor.submit(fetch_realtime_quote, symbol, refresh_token)
+        institutional_future = executor.submit(fetch_institutional_flow, symbol, refresh_token)
+        institutional_history_future = executor.submit(fetch_institutional_history, symbol, refresh_token=refresh_token)
+
+        try:
+            market = market_future.result()
+        except Exception as exc:
+            st.warning(f"大盤資料暫時無法載入，已採保守模式並關閉新買進訊號：{exc}")
+            market = default_market_regime()
+
+        history = history_future.result()
+        realtime_quote = quote_future.result()
+        prices = apply_realtime_quote_data(history, realtime_quote)
+        strategy_df = run_strategy(prices, market["is_bull"])
+        institutional = institutional_future.result()
+        institutional_history = institutional_history_future.result()
+
+    return strategy_df, realtime_quote, institutional, institutional_history, market
+
+
 def render_single_stock_tab(market: dict[str, Any], refresh_token: int = 0) -> None:
     if "active_query" not in st.session_state:
         st.session_state.active_query = ""
@@ -2984,11 +3016,10 @@ def render_single_stock_tab(market: dict[str, Any], refresh_token: int = 0) -> N
             )
             return
         st.success(f"已對照：{match.name} = {match.symbol}")
-        market = get_market_regime_safe(refresh_token=refresh_token)
-        strategy_df = analyze_symbol(match.symbol, market["is_bull"], refresh_token=refresh_token)
-        realtime_quote = fetch_realtime_quote(match.symbol, refresh_token=refresh_token)
-        institutional = fetch_institutional_flow(match.symbol, refresh_token=refresh_token)
-        institutional_history = fetch_institutional_history(match.symbol, refresh_token=refresh_token)
+        strategy_df, realtime_quote, institutional, institutional_history, market = load_single_stock_analysis_bundle(
+            match.symbol,
+            refresh_token=refresh_token,
+        )
         institutional_streak = institutional_streak_summary(institutional_history)
         stock_name = match.name if match.name != match.symbol else get_symbol_name(match.symbol)
         latest = strategy_df.iloc[-1]
