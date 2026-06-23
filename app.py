@@ -392,16 +392,21 @@ def _local_symbol_match(query: str) -> SymbolMatch | None:
         return SymbolMatch(symbol=data["symbol"], name=data["name"])
 
     exact_matches: list[SymbolMatch] = []
+    prefix_matches: list[SymbolMatch] = []
     partial_matches: list[SymbolMatch] = []
     for data in directory.values():
         name = data["name"]
         name_key = _normalize_lookup_key(name)
         if lookup_key == name_key:
             exact_matches.append(SymbolMatch(symbol=data["symbol"], name=name))
+        elif name_key.startswith(lookup_key):
+            prefix_matches.append(SymbolMatch(symbol=data["symbol"], name=name))
         elif lookup_key in name_key:
             partial_matches.append(SymbolMatch(symbol=data["symbol"], name=name))
     if exact_matches:
         return exact_matches[0]
+    if prefix_matches:
+        return sorted(prefix_matches, key=lambda match: (len(match.name), match.symbol))[0]
     if len(partial_matches) == 1:
         return partial_matches[0]
     return None
@@ -2815,39 +2820,16 @@ def render_single_stock_tab(market: dict[str, Any], refresh_token: int = 0) -> N
         st.session_state.record_active_query = False
         sync_history_to_url()
 
-    st.selectbox(
-        "股名/股號快速對照",
-        options=stock_selector_options(),
-        index=0,
-        placeholder="可從已載入名單搜尋，例如台積電、長榮航、希華",
-        key="stock_quick_selector",
-        on_change=load_quick_selection,
-    )
-
-    with st.form("quick_symbol_lookup_form", clear_on_submit=False):
-        quick_col1, quick_col2 = st.columns([3, 1])
-        with quick_col1:
-            quick_lookup = st.text_input(
-                "快速輸入股名/股號對照",
-                key="stock_quick_lookup_text",
-                placeholder="找不到下拉選項時直接輸入，例如佳凌、能率網通、希華、4976",
-            )
-        with quick_col2:
-            st.write("")
-            quick_submitted = st.form_submit_button("對照並分析", use_container_width=True)
-        if quick_submitted:
-            quick_query = quick_lookup.strip()
-            if quick_query:
-                quick_match = SymbolMatch(**resolve_symbol(quick_query))
-                if quick_match.symbol:
-                    st.session_state.active_query = quick_match.symbol
-                    st.session_state.stock_query_input = quick_match.symbol
-                    st.session_state.record_active_query = True
-                    st.success(f"已對照：{quick_match.name} = {quick_match.symbol}")
-                else:
-                    st.error("找不到符合的台股，請改用完整股名或股號。")
-            else:
-                st.warning("請先輸入股名或股號。")
+    st.caption("股名或股號請直接在下方「智慧檢索」輸入；下拉清單只做常用股票快速選取。")
+    with st.expander("常用股票快速選取", expanded=False):
+        st.selectbox(
+            "股名/股號快速對照",
+            options=stock_selector_options(),
+            index=0,
+            placeholder="可從已載入名單搜尋，例如台積電、長榮航、希華",
+            key="stock_quick_selector",
+            on_change=load_quick_selection,
+        )
 
     history_items = st.session_state.stock_query_history
     history_options = [history_placeholder] + [history_label(item) for item in history_items]
