@@ -1217,7 +1217,14 @@ def plain_trade_plan(
     levels = final["levels"]
     bt_stats, _ = backtest_short_windows(strategy_df)
 
-    close = _price_text(latest.get("Close"))
+    latest_close = _num(latest.get("Close"))
+    previous_close = _num(strategy_df.iloc[-2].get("Close")) if len(strategy_df) >= 2 else np.nan
+    change_points = (
+        latest_close - previous_close
+        if pd.notna(latest_close) and pd.notna(previous_close)
+        else np.nan
+    )
+    close = _price_text(latest_close)
     support_buy = levels["support_buy"]
     breakout_buy = levels["breakout_buy"]
     stop_price = levels["stop_price"]
@@ -1231,6 +1238,8 @@ def plain_trade_plan(
         "decision": decision,
         "instruction": instruction,
         "now": close,
+        "change_points": f"{change_points:+.2f} 點" if pd.notna(change_points) else "-",
+        "change_pct": f"{(latest_close / previous_close - 1) * 100:+.2f}%" if pd.notna(latest_close) and pd.notna(previous_close) and previous_close else "-",
         "support_buy": support_buy,
         "breakout_buy": breakout_buy,
         "breakout_status": levels["breakout_status"],
@@ -2232,12 +2241,14 @@ def render_plain_trade_plan(
     else:
         st.info(message)
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.metric("現價", plan["now"])
     with col2:
-        st.metric("建議操作", plan["decision"])
+        st.metric("漲跌點數", plan["change_points"], plan["change_pct"])
     with col3:
+        st.metric("建議操作", plan["decision"])
+    with col4:
         st.metric("信心分數", plan["score"])
 
     col4, col5, col6 = st.columns(3)
@@ -2977,6 +2988,7 @@ def intraday_trade_snapshot(
     return {
         "price": price,
         "previous_close": previous_close,
+        "change_points": price - previous_close if pd.notna(price) and pd.notna(previous_close) else np.nan,
         "change_pct": (price / previous_close - 1) * 100 if pd.notna(price) and pd.notna(previous_close) and previous_close else np.nan,
         "vwap": vwap,
         "opening_high": opening_high,
@@ -3063,14 +3075,18 @@ def render_intraday_live_panel(symbol: str, name: str, market: dict[str, Any], r
     )
     st.caption(f"{name} · {symbol} · {quote_stamp} · MIS 報價優先，分鐘 VWAP 使用 Yahoo Finance 盤中資料")
 
-    top1, top2, top3, top4 = st.columns(4)
+    top1, top2, top3, top4, top5 = st.columns(5)
     with top1:
-        st.metric("盤中現價", _price_text(snapshot["price"]), f"{snapshot['change_pct']:+.2f}%" if pd.notna(snapshot["change_pct"]) else None)
+        st.metric("盤中現價", _price_text(snapshot["price"]))
     with top2:
-        st.metric("盤中判斷", snapshot["action"], snapshot["status"])
+        change_points_text = f"{snapshot['change_points']:+.2f} 點" if pd.notna(snapshot["change_points"]) else "-"
+        change_pct_text = f"{snapshot['change_pct']:+.2f}%" if pd.notna(snapshot["change_pct"]) else None
+        st.metric("漲跌點數", change_points_text, change_pct_text)
     with top3:
-        st.metric("VWAP", _price_text(snapshot["vwap"]), "站上" if pd.notna(snapshot["vwap"]) and snapshot["price"] >= snapshot["vwap"] else "未站上")
+        st.metric("盤中判斷", snapshot["action"], snapshot["status"])
     with top4:
+        st.metric("VWAP", _price_text(snapshot["vwap"]), "站上" if pd.notna(snapshot["vwap"]) and snapshot["price"] >= snapshot["vwap"] else "未站上")
+    with top5:
         volume_text = f"{snapshot['projected_volume_ratio']:.2f}x" if pd.notna(snapshot["projected_volume_ratio"]) else "-"
         st.metric("預估量比", volume_text, "量能確認" if pd.notna(snapshot["projected_volume_ratio"]) and snapshot["projected_volume_ratio"] >= 1.2 else "量能不足")
 
