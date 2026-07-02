@@ -3810,7 +3810,7 @@ def render_next_day_jump_tab(market: dict[str, Any], refresh_token: int = 0) -> 
                     "法人連續": streak["total_text"],
                     "三大法人買賣超": _shares_to_lots_text(int(institutional["total"])),
                     "題材新聞": news_text,
-                    "加分原因": "；".join(estimate["factors"]) or "-",
+                    "上漲原因": "；".join(estimate["factors"]) or "-",
                     "風險提醒": "；".join(estimate["risks"]) or "-",
                 }
             )
