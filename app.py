@@ -3769,6 +3769,46 @@ def purchase_recommendation(estimate: dict[str, Any], market: dict[str, Any]) ->
     return "觀望", "條件接近但尚未完全共振，等突破、放量或回測支撐再考慮。"
 
 
+def build_rise_reason_summary(
+    estimate: dict[str, Any],
+    news: list[dict[str, str]],
+) -> str:
+    factors = [str(item) for item in (estimate.get("factors") or []) if str(item).strip()]
+    technical_terms = (
+        "大盤",
+        "MA",
+        "箱型",
+        "箱頂",
+        "布林",
+        "成交量",
+        "量能",
+        "MACD",
+        "KD",
+        "收在",
+        "下影",
+        "三大法人",
+        "投信",
+    )
+    technical = [item for item in factors if any(term in item for term in technical_terms)]
+    if not technical:
+        technical = factors[:3]
+    news_titles = [f"{item['title']}（{item['source']}）" for item in news[:2]]
+    if news_titles:
+        message = "；".join(news_titles)
+    else:
+        message = str(estimate.get("news_label") or "暫無明確即時題材新聞")
+    outlook = (
+        f"上漲機率 {float(estimate.get('probability', 0)):.0f}%、"
+        f"預估隔日漲幅 {float(estimate.get('expected_pct', 0)):.2f}%；"
+        f"短線階段 {estimate.get('phase', {}).get('stage', '-')}"
+    )
+    return (
+        f"技術面：{'；'.join(technical[:4]) or '-'}｜"
+        f"消息面：{message}｜"
+        f"展望面：{outlook}"
+    )
+
+
 def render_next_day_jump_tab(market: dict[str, Any], refresh_token: int = 0) -> None:
     st.caption(
         "預估下一個交易日上漲超過 5% 的候選股。這是技術面、籌碼、量能、題材新聞的機率模型，"
@@ -3831,7 +3871,7 @@ def render_next_day_jump_tab(market: dict[str, Any], refresh_token: int = 0) -> 
                     "法人連續": streak["total_text"],
                     "三大法人買賣超": _shares_to_lots_text(int(institutional["total"])),
                     "題材新聞": news_text,
-                    "上漲原因": "；".join(estimate["factors"]) or "-",
+                    "上漲原因": build_rise_reason_summary(estimate, news),
                     "風險提醒": "；".join(estimate["risks"]) or "-",
                     "建議說明": purchase_note,
                 }
