@@ -7,6 +7,7 @@ import html
 import json
 import re
 import unicodedata
+import xml.etree.ElementTree as ET
 
 import numpy as np
 import pandas as pd
@@ -3466,6 +3467,381 @@ def non_futures_universe(limit: int) -> list[tuple[str, str]]:
     return candidates[:limit]
 
 
+def next_day_jump_universe(limit: int, include_non_futures: bool) -> list[tuple[str, str]]:
+    directory = load_stock_directory(STOCK_DIRECTORY_CACHE_VERSION)
+    by_symbol: dict[str, str] = {}
+    for symbol in WATCHLIST_0050:
+        code = symbol.split(".", 1)[0]
+        by_symbol[symbol] = directory.get(code, {}).get("name", get_symbol_name(symbol))
+    if include_non_futures:
+        for symbol, name in non_futures_universe(limit):
+            by_symbol.setdefault(symbol, name)
+    return list(by_symbol.items())[:limit]
+
+
+@st.cache_data(ttl=900, show_spinner=False)
+def fetch_theme_news(name: str, symbol: str, refresh_token: int = 0) -> list[dict[str, str]]:
+    _ = refresh_token
+    news: list[dict[str, str]] = []
+    query = f"{name} 股票 題材"
+    try:
+        response = requests.get(
+            YAHOO_SEARCH_URL,
+            params={
+                "q": name,
+                "lang": "zh-TW",
+                "region": "TW",
+                "quotesCount": 0,
+                "newsCount": 5,
+            },
+            headers={"User-Agent": USER_AGENT},
+            timeout=8,
+        )
+        response.raise_for_status()
+        for item in response.json().get("news", [])[:5]:
+            title = str(item.get("title") or "").strip()
+            if not title:
+                continue
+            news.append(
+                {
+                    "title": title,
+                    "source": str(item.get("publisher") or "Yahoo Finance"),
+                    "link": str(item.get("link") or ""),
+                }
+            )
+    except Exception:
+        pass
+
+    if len(news) < 3:
+        try:
+            response = requests.get(
+                "https://news.google.com/rss/search",
+                params={"q": query, "hl": "zh-TW", "gl": "TW", "ceid": "TW:zh-Hant"},
+                headers={"User-Agent": USER_AGENT},
+                timeout=8,
+            )
+            response.raise_for_status()
+            root = ET.fromstring(response.content)
+            for item in root.findall(".//item")[:5]:
+                title = (item.findtext("title") or "").strip()
+                link = (item.findtext("link") or "").strip()
+                source_node = item.find("source")
+                source = source_node.text.strip() if source_node is not None and source_node.text else "Google News"
+                if title and title not in {row["title"] for row in news}:
+                    news.append({"title": title, "source": source, "link": link})
+                if len(news) >= 5:
+                    break
+        except Exception:
+            pass
+
+    return news[:5]
+
+
+def news_topic_score(news: list[dict[str, str]]) -> tuple[int, str]:
+    positive_terms = (
+        "AI",
+        "GB200",
+        "CoWoS",
+        "輝達",
+        "NVIDIA",
+        "機器人",
+        "重電",
+        "電力",
+        "軍工",
+        "ASIC",
+        "矽光子",
+        "高速傳輸",
+        "漲價",
+        "接單",
+        "訂單",
+        "營收創高",
+        "轉盈",
+        "法說",
+        "併購",
+        "題材",
+    )
+    negative_terms = ("虧損", "下修", "調降", "利空", "減產", "跌價", "罰", "調查", "衰退")
+    text = " ".join(item.get("title", "") for item in news)
+    positive = sum(1 for term in positive_terms if term.lower() in text.lower())
+    negative = sum(1 for term in negative_terms if term in text)
+    score = min(12, positive * 4) - min(12, negative * 5)
+    if positive > 0 and negative == 0:
+        label = "題材偏多"
+    elif negative > 0 and positive == 0:
+        label = "新聞偏空"
+    elif positive > negative:
+        label = "題材多空混合偏多"
+    elif negative > positive:
+        label = "新聞多空混合偏空"
+    else:
+        label = "題材中性"
+    return score, label
+
+
+def estimate_next_day_jump_probability(
+    strategy_df: pd.DataFrame,
+    market: dict[str, Any],
+    institutional: dict[str, Any],
+    streak: dict[str, Any],
+    news: list[dict[str, str]] | None = None,
+) -> dict[str, Any]:
+    latest = strategy_df.iloc[-1]
+    previous = strategy_df.iloc[-2] if len(strategy_df) >= 2 else latest
+    levels = trade_price_levels(strategy_df)
+    phase = trend_phase_analysis(strategy_df)
+    box = box_status(latest)
+    bb = bollinger_status(latest)
+    close = _num(latest.get("Close"))
+    ma20 = _num(latest.get("20MA"))
+    ma60 = _num(latest.get("60MA"))
+    box_high = _num(latest.get("Box_High"))
+    box_low = _num(latest.get("Box_Low"))
+    box_width = _num(latest.get("Box_Width_Pct"))
+    bb_upper = _num(latest.get("BB_Upper"))
+    bb_mid = _num(latest.get("BB_Mid"))
+    volume_ratio = _num(latest.get("Volume_Ratio"), 0.0)
+    macd_hist = _num(latest.get("MACD_Hist"))
+    prev_macd_hist = _num(previous.get("MACD_Hist"))
+    k_value = _num(latest.get("K"))
+    d_value = _num(latest.get("D"))
+    return_3d = _num(latest.get("Return_3D"), 0.0)
+    return_5d = _num(latest.get("Return_5D"), 0.0)
+    close_position = _num(latest.get("Close_Position"), 50.0)
+    atr_pct = _num(latest.get("ATR_Pct"), 0.0)
+    upper_shadow = _num(latest.get("Upper_Shadow_Ratio"), 0.0)
+    lower_shadow = _num(latest.get("Lower_Shadow_Ratio"), 0.0)
+    total_streak = int(streak.get("total", 0) or 0)
+    trust_streak = int(streak.get("trust", 0) or 0)
+    institutional_total = int(institutional.get("total", 0) or 0)
+    news_score, news_label = news_topic_score(news or [])
+
+    probability = 18.0
+    expected_pct = 1.0
+    factors: list[str] = []
+    risks: list[str] = []
+
+    if market.get("is_bull"):
+        probability += 8
+        expected_pct += 0.6
+        factors.append("大盤多頭安全區")
+    else:
+        probability -= 8
+        risks.append("大盤未滿足多頭安全條件")
+
+    if pd.notna(close) and pd.notna(ma20) and pd.notna(ma60) and close > ma20 > ma60:
+        probability += 10
+        expected_pct += 0.8
+        factors.append("股價站上 MA20/MA60")
+    elif pd.notna(close) and pd.notna(ma20) and close < ma20:
+        probability -= 8
+        risks.append("收盤跌破 MA20")
+
+    if pd.notna(box_width) and box_width <= 10:
+        probability += 9
+        expected_pct += 0.8
+        factors.append(f"箱型壓縮 {box_width:.1f}%")
+    if pd.notna(close) and pd.notna(box_high) and close >= box_high * 0.985:
+        probability += 9
+        expected_pct += 0.9
+        factors.append("接近箱型突破位置")
+    if pd.notna(close) and pd.notna(box_high) and close > box_high and volume_ratio >= 1.25:
+        probability += 14
+        expected_pct += 1.4
+        factors.append("已帶量突破箱頂")
+
+    if pd.notna(close) and pd.notna(bb_upper) and close >= bb_upper * 0.98 and volume_ratio >= 1.2:
+        probability += 8
+        expected_pct += 0.8
+        factors.append("布林上緣帶量轉強")
+    elif pd.notna(close) and pd.notna(bb_upper) and close >= bb_upper and volume_ratio < 1.1:
+        probability -= 7
+        risks.append("觸及布林上軌但量能不足")
+    if pd.notna(close) and pd.notna(bb_mid) and close >= bb_mid:
+        probability += 4
+
+    if volume_ratio >= 1.8:
+        probability += 12
+        expected_pct += 1.2
+        factors.append(f"成交量放大 {volume_ratio:.2f}x")
+    elif volume_ratio >= 1.25:
+        probability += 7
+        expected_pct += 0.7
+        factors.append(f"量能高於均量 {volume_ratio:.2f}x")
+    elif volume_ratio < 0.8:
+        probability -= 6
+        risks.append("量能不足")
+
+    if pd.notna(macd_hist) and pd.notna(prev_macd_hist) and macd_hist > prev_macd_hist:
+        probability += 6
+        expected_pct += 0.4
+        factors.append("MACD 動能上升")
+    if pd.notna(k_value) and pd.notna(d_value) and k_value > d_value and k_value < 80:
+        probability += 5
+        factors.append("KD 多方且未過熱")
+    elif pd.notna(k_value) and k_value > 88:
+        probability -= 5
+        risks.append("KD 過熱")
+
+    if close_position >= 70:
+        probability += 5
+        factors.append("收在日內相對高位")
+    if lower_shadow >= 0.35:
+        probability += 5
+        factors.append("下影線承接")
+    if upper_shadow >= 0.35 and close_position < 60:
+        probability -= 7
+        risks.append("上影線賣壓偏重")
+
+    if total_streak >= 2:
+        probability += 8
+        expected_pct += 0.6
+        factors.append(f"三大法人連買 {total_streak} 天")
+    elif total_streak <= -2:
+        probability -= 10
+        risks.append(f"三大法人連賣 {abs(total_streak)} 天")
+    if trust_streak >= 2:
+        probability += 5
+        factors.append(f"投信連買 {trust_streak} 天")
+    if institutional_total > 0:
+        probability += 4
+    elif institutional_total < 0:
+        probability -= 4
+
+    probability += news_score
+    if news_score > 0:
+        expected_pct += min(1.0, news_score / 10)
+        factors.append(news_label)
+    elif news_score < 0:
+        risks.append(news_label)
+
+    if return_3d > 12 or return_5d > 18:
+        probability -= 10
+        risks.append("短線漲幅已大，隔日追價風險提高")
+    if atr_pct < 2:
+        expected_pct -= 0.5
+    elif atr_pct >= 4:
+        expected_pct += 0.8
+
+    if pd.notna(close) and pd.notna(box_high):
+        breakout_gap = max(0.0, (box_high / close - 1) * 100)
+        if breakout_gap <= 2:
+            expected_pct += 0.4
+    if pd.notna(close) and pd.notna(levels.get("target_value")):
+        target_gap = (_num(levels.get("target_value")) / close - 1) * 100
+        expected_pct = min(expected_pct, max(0.0, target_gap))
+
+    probability = float(max(0, min(95, probability)))
+    expected_pct = float(max(0, min(12, expected_pct)))
+    if expected_pct < 5 and probability >= 70:
+        expected_pct = min(6.5, expected_pct + 1.2)
+    if expected_pct < 5:
+        probability = min(probability, 59)
+
+    return {
+        "probability": probability,
+        "expected_pct": expected_pct,
+        "factors": factors[:5],
+        "risks": risks[:4],
+        "levels": levels,
+        "phase": phase,
+        "box": box,
+        "bb": bb,
+        "news_label": news_label,
+    }
+
+
+def render_next_day_jump_tab(market: dict[str, Any], refresh_token: int = 0) -> None:
+    st.caption(
+        "預估下一個交易日上漲超過 5% 的候選股。這是技術面、籌碼、量能、題材新聞的機率模型，"
+        "不是保證漲幅，請搭配停損控管。"
+    )
+    cfg1, cfg2, cfg3 = st.columns(3)
+    with cfg1:
+        scan_limit = st.slider("掃描檔數", min_value=30, max_value=200, value=80, step=10, key="jump_scan_limit")
+    with cfg2:
+        min_probability = st.slider("最低上漲機率百分比", min_value=45, max_value=85, value=60, step=5)
+    with cfg3:
+        include_non_futures = st.checkbox("納入非期貨候選股", value=True)
+
+    if not st.button("啟動隔日 5% 上漲機率雷達", use_container_width=True):
+        return
+
+    market = get_market_regime_safe(refresh_token=refresh_token)
+    universe = next_day_jump_universe(scan_limit, include_non_futures)
+    progress = st.progress(0)
+    status = st.empty()
+    rows: list[dict[str, Any]] = []
+
+    for idx, (symbol, name) in enumerate(universe, start=1):
+        status.write(f"掃描中：{symbol} {name} ({idx}/{len(universe)})")
+        try:
+            strategy_df = analyze_symbol(symbol, market["is_bull"], refresh_token=refresh_token)
+            latest = strategy_df.iloc[-1]
+            institutional = fetch_institutional_flow(symbol, refresh_token=refresh_token)
+            history = fetch_institutional_history(symbol, refresh_token=refresh_token)
+            streak = institutional_streak_summary(history)
+            first_pass = estimate_next_day_jump_probability(strategy_df, market, institutional, streak, [])
+            if first_pass["probability"] < min_probability - 12:
+                progress.progress(idx / len(universe))
+                continue
+            news = fetch_theme_news(name, symbol, refresh_token=refresh_token)
+            estimate = estimate_next_day_jump_probability(strategy_df, market, institutional, streak, news)
+            if estimate["probability"] < min_probability or estimate["expected_pct"] < 5:
+                progress.progress(idx / len(universe))
+                continue
+            news_text = "；".join(
+                f"{item['title']}（{item['source']}）" for item in news[:3]
+            ) or "暫無即時題材新聞"
+            rows.append(
+                {
+                    "股號": symbol,
+                    "股名": name,
+                    "資料日": latest.name.strftime("%Y-%m-%d"),
+                    "現價": float(latest["Close"]),
+                    "上漲機率百分比": estimate["probability"],
+                    "預估上漲幅度": estimate["expected_pct"],
+                    "短線階段": estimate["phase"]["stage"],
+                    "量能比": float(_num(latest.get("Volume_Ratio"))),
+                    "箱型狀態": estimate["box"]["status"],
+                    "布林狀態": estimate["bb"]["status"],
+                    "支撐買點": estimate["levels"]["support_buy"],
+                    "突破買點": estimate["levels"]["breakout_buy"],
+                    "停損價": estimate["levels"]["stop_price"],
+                    "法人連續": streak["total_text"],
+                    "三大法人買賣超": _shares_to_lots_text(int(institutional["total"])),
+                    "題材新聞": news_text,
+                    "加分原因": "；".join(estimate["factors"]) or "-",
+                    "風險提醒": "；".join(estimate["risks"]) or "-",
+                }
+            )
+        except Exception as exc:
+            st.warning(f"{symbol} 掃描失敗：{exc}")
+        progress.progress(idx / len(universe))
+
+    status.write("掃描完成")
+    if not rows:
+        st.info("目前沒有符合「預估隔日上漲幅度超過 5%」且達到機率門檻的個股。可降低機率門檻或增加掃描檔數。")
+        return
+
+    result = pd.DataFrame(rows).sort_values(
+        ["上漲機率百分比", "預估上漲幅度"],
+        ascending=[False, False],
+    )
+    st.dataframe(
+        result.style.format(
+            {
+                "現價": "{:.2f}",
+                "上漲機率百分比": "{:.0f}%",
+                "預估上漲幅度": "{:.2f}%",
+                "量能比": "{:.2f}x",
+            },
+            na_rep="-",
+        ),
+        use_container_width=True,
+        height=620,
+    )
+
+
 def render_non_futures_tab(market: dict[str, Any], refresh_token: int = 0) -> None:
     st.caption(
         "排除常見有個股期貨交易的標的後，掃描一般股票；"
@@ -3742,12 +4118,13 @@ def main() -> None:
 
     market_regime = default_market_regime()
 
-    tab_single, tab_intraday, tab_scan, tab_non_futures = st.tabs(
+    tab_single, tab_intraday, tab_scan, tab_non_futures, tab_next_jump = st.tabs(
         [
             "單股智慧雷達儀表板",
             "盤中現貨交易分析",
             "台灣前 50 大權值股每日掃描",
             "非期貨個股法人箱型布林掃描",
+            "隔日 5% 上漲機率雷達",
         ]
     )
     with tab_single:
@@ -3758,6 +4135,8 @@ def main() -> None:
         render_scanner_tab(market_regime, refresh_token=refresh_token)
     with tab_non_futures:
         render_non_futures_tab(market_regime, refresh_token=refresh_token)
+    with tab_next_jump:
+        render_next_day_jump_tab(market_regime, refresh_token=refresh_token)
 
     st.divider()
     st.caption("本系統為技術分析輔助工具，不構成投資建議。請自行控制部位與風險。")
