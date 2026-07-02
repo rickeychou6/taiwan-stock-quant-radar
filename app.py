@@ -3750,6 +3750,25 @@ def estimate_next_day_jump_probability(
     }
 
 
+def purchase_recommendation(estimate: dict[str, Any], market: dict[str, Any]) -> tuple[str, str]:
+    probability = _num(estimate.get("probability"), 0.0)
+    expected_pct = _num(estimate.get("expected_pct"), 0.0)
+    risks = estimate.get("risks", []) or []
+    factors = estimate.get("factors", []) or []
+
+    if not market.get("is_bull") and probability < 75:
+        return "不可", "大盤未在多頭安全區，除非機率極高否則不建議追買。"
+    if probability >= 72 and expected_pct >= 5.5 and len(risks) <= 1:
+        return "購入", "機率、預估漲幅與風險條件同時達標，可小量分批並嚴設停損。"
+    if probability >= 65 and expected_pct >= 5 and len(risks) <= 2 and len(factors) >= 3:
+        return "購入", "多因子偏多，可等待開盤量價確認後分批購入。"
+    if probability < 55 or expected_pct < 5:
+        return "不可", "機率或預估漲幅未達 5% 門檻，不建議購入。"
+    if len(risks) >= 3:
+        return "不可", "風險燈號偏多，容易隔日開高走低或回檔。"
+    return "觀望", "條件接近但尚未完全共振，等突破、放量或回測支撐再考慮。"
+
+
 def render_next_day_jump_tab(market: dict[str, Any], refresh_token: int = 0) -> None:
     st.caption(
         "預估下一個交易日上漲超過 5% 的候選股。這是技術面、籌碼、量能、題材新聞的機率模型，"
@@ -3789,11 +3808,13 @@ def render_next_day_jump_tab(market: dict[str, Any], refresh_token: int = 0) -> 
             if estimate["probability"] < min_probability or estimate["expected_pct"] < 5:
                 progress.progress(idx / len(universe))
                 continue
+            purchase_action, purchase_note = purchase_recommendation(estimate, market)
             news_text = "；".join(
                 f"{item['title']}（{item['source']}）" for item in news[:3]
             ) or "暫無即時題材新聞"
             rows.append(
                 {
+                    "購入建議": purchase_action,
                     "股號": symbol,
                     "股名": name,
                     "資料日": latest.name.strftime("%Y-%m-%d"),
@@ -3812,6 +3833,7 @@ def render_next_day_jump_tab(market: dict[str, Any], refresh_token: int = 0) -> 
                     "題材新聞": news_text,
                     "上漲原因": "；".join(estimate["factors"]) or "-",
                     "風險提醒": "；".join(estimate["risks"]) or "-",
+                    "建議說明": purchase_note,
                 }
             )
         except Exception as exc:
@@ -3823,10 +3845,12 @@ def render_next_day_jump_tab(market: dict[str, Any], refresh_token: int = 0) -> 
         st.info("目前沒有符合「預估隔日上漲幅度超過 5%」且達到機率門檻的個股。可降低機率門檻或增加掃描檔數。")
         return
 
-    result = pd.DataFrame(rows).sort_values(
-        ["上漲機率百分比", "預估上漲幅度"],
-        ascending=[False, False],
-    )
+    result = pd.DataFrame(rows)
+    result["_排序"] = result["購入建議"].map({"購入": 0, "觀望": 1, "不可": 2}).fillna(9)
+    result = result.sort_values(
+        ["_排序", "上漲機率百分比", "預估上漲幅度"],
+        ascending=[True, False, False],
+    ).drop(columns=["_排序"])
     st.dataframe(
         result.style.format(
             {
