@@ -4163,7 +4163,7 @@ def main() -> None:
         )
     with shortcut_col2:
         st.page_link(
-            "pages/6_照片群組分析.py",
+            "pages/photo_watchlist.py",
             label="開啟照片群組分析雷達",
             use_container_width=True,
         )
