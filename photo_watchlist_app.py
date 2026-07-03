@@ -27,6 +27,9 @@ PHOTO_WATCHLIST = [
     {"name": "鴻海", "symbol": "2317.TW", "source": "追加"},
     {"name": "友達", "symbol": "2409.TW", "source": "追加"},
     {"name": "佳凌", "symbol": "4976.TW", "source": "追加"},
+    {"name": "啟碁", "symbol": "6285.TW", "source": "追加"},
+    {"name": "南亞", "symbol": "1303.TW", "source": "追加"},
+    {"name": "大立光", "symbol": "3008.TW", "source": "追加"},
 ]
 
 
