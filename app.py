@@ -1670,6 +1670,8 @@ def trade_price_levels(strategy_df: pd.DataFrame) -> dict[str, Any]:
     else:
         support_low = close - atr if pd.notna(close) and pd.notna(atr) else np.nan
         support_high = close if pd.notna(close) else np.nan
+    if pd.notna(support_low) and pd.notna(support_high) and support_low > support_high:
+        support_low, support_high = support_high, support_low
 
     pressure_candidates = [box_high, bb_upper, previous_high]
     pressure_candidates = sorted(
@@ -3084,28 +3086,110 @@ def render_single_stock_tab(market: dict[str, Any], refresh_token: int = 0) -> N
     render_decision_table(strategy_df)
 
 
+def build_intraday_strategy_frame(
+    strategy_df: pd.DataFrame,
+    quote: dict[str, Any],
+    minute_data: pd.DataFrame,
+    market: dict[str, Any],
+) -> pd.DataFrame:
+    raw_columns = ["Open", "High", "Low", "Close", "Volume"]
+    raw = strategy_df[raw_columns].copy()
+
+    if quote.get("ok") and pd.notna(quote.get("date")):
+        quote_date = pd.Timestamp(quote["date"]).normalize()
+    elif not minute_data.empty:
+        minute_stamp = pd.Timestamp(minute_data.index[-1])
+        if minute_stamp.tzinfo is not None:
+            minute_stamp = minute_stamp.tz_convert("Asia/Taipei").tz_localize(None)
+        quote_date = minute_stamp.normalize()
+    else:
+        return strategy_df
+
+    minute_open = _num(minute_data["Open"].iloc[0]) if not minute_data.empty else np.nan
+    minute_high = _num(minute_data["High"].max()) if not minute_data.empty else np.nan
+    minute_low = _num(minute_data["Low"].min()) if not minute_data.empty else np.nan
+    minute_close = _num(minute_data["Close"].iloc[-1]) if not minute_data.empty else np.nan
+    minute_volume = _num(minute_data["Volume"].sum(), 0.0) if not minute_data.empty else np.nan
+
+    price = _num(quote.get("close"), minute_close)
+    if pd.isna(price):
+        return strategy_df
+    previous_close = _num(quote.get("previous_close"), _num(raw["Close"].iloc[-1]))
+    open_price = _num(quote.get("open"), minute_open)
+    if pd.isna(open_price):
+        open_price = previous_close
+    high_candidates = [_num(quote.get("high")), minute_high, price, open_price]
+    low_candidates = [_num(quote.get("low")), minute_low, price, open_price]
+    high = max(value for value in high_candidates if pd.notna(value))
+    low = min(value for value in low_candidates if pd.notna(value))
+    volume = _num(quote.get("volume"), minute_volume)
+    if pd.isna(volume):
+        volume = 0.0
+
+    existing_dates = pd.to_datetime(raw.index).normalize()
+    row = {
+        "Open": open_price,
+        "High": high,
+        "Low": low,
+        "Close": price,
+        "Volume": volume,
+    }
+    if quote_date in set(existing_dates):
+        row_position = list(existing_dates).index(quote_date)
+        for col, value in row.items():
+            raw.iat[row_position, raw.columns.get_loc(col)] = value
+    elif quote_date > existing_dates.max():
+        raw.loc[quote_date] = row
+        raw = raw.sort_index()
+
+    return run_strategy(raw, bool(market.get("is_bull")), version=f"{CACHE_VERSION}-intraday")
+
+
 def intraday_trade_snapshot(
     strategy_df: pd.DataFrame,
     quote: dict[str, Any],
     minute_data: pd.DataFrame,
     market: dict[str, Any],
+    institutional: dict[str, Any] | None = None,
+    streak: dict[str, Any] | None = None,
+    entry_price: float | None = None,
 ) -> dict[str, Any]:
-    latest = strategy_df.iloc[-1]
-    levels = trade_price_levels(strategy_df)
+    intraday_df = build_intraday_strategy_frame(strategy_df, quote, minute_data, market)
+    latest = intraday_df.iloc[-1]
+    levels = trade_price_levels(intraday_df)
     price = _num(quote.get("close"), _num(latest.get("Close")))
     previous_close = _num(quote.get("previous_close"))
-    if pd.isna(previous_close) and len(strategy_df) >= 2:
-        previous_close = _num(strategy_df.iloc[-2].get("Close"))
+    if pd.isna(previous_close) and len(intraday_df) >= 2:
+        previous_close = _num(intraday_df.iloc[-2].get("Close"))
 
     vwap = _num(minute_data.iloc[-1].get("VWAP")) if not minute_data.empty else np.nan
     opening_rows = minute_data.between_time("09:00", "09:14") if not minute_data.empty else pd.DataFrame()
     opening_high = _num(opening_rows["High"].max()) if not opening_rows.empty else np.nan
     opening_low = _num(opening_rows["Low"].min()) if not opening_rows.empty else np.nan
+    intraday_high = max(
+        [value for value in [_num(quote.get("high")), _num(minute_data["High"].max()) if not minute_data.empty else np.nan, price] if pd.notna(value)],
+        default=np.nan,
+    )
+    intraday_low = min(
+        [value for value in [_num(quote.get("low")), _num(minute_data["Low"].min()) if not minute_data.empty else np.nan, price] if pd.notna(value)],
+        default=np.nan,
+    )
+    intraday_range = intraday_high - intraday_low if pd.notna(intraday_high) and pd.notna(intraday_low) else np.nan
+    intraday_position = (
+        (price - intraday_low) / intraday_range * 100
+        if pd.notna(intraday_range) and intraday_range > 0 and pd.notna(price)
+        else np.nan
+    )
+    intraday_upper_shadow = (
+        (intraday_high - price) / intraday_range
+        if pd.notna(intraday_range) and intraday_range > 0 and pd.notna(price)
+        else np.nan
+    )
 
     current_volume = _num(quote.get("volume"), 0.0)
     if current_volume <= 0 and not minute_data.empty:
         current_volume = _num(minute_data["Volume"].sum(), 0.0)
-    daily_volumes = strategy_df["Volume"].copy()
+    daily_volumes = intraday_df["Volume"].copy()
     if quote.get("ok") and not daily_volumes.empty:
         quote_date = pd.Timestamp(quote.get("date")).normalize()
         if pd.Timestamp(daily_volumes.index[-1]).normalize() == quote_date:
@@ -3173,6 +3257,107 @@ def intraday_trade_snapshot(
         status = "條件未完成"
         detail = "等待支撐承接或突破價、VWAP、量能同步確認。"
 
+    institutional = institutional or _empty_institutional(str(quote.get("symbol") or ""), "盤中法人資料使用最近盤後資料")
+    streak = streak or {"total": 0, "trust": 0, "total_text": "未連續", "trust_text": "未連續"}
+    estimate = estimate_next_day_jump_probability(intraday_df, market, institutional, streak, [])
+    purchase_action, purchase_note = purchase_recommendation(estimate, market)
+    entry = _num(entry_price)
+    using_entry = pd.notna(entry) and entry > 0
+    if not using_entry:
+        entry = price
+
+    risk_flags: list[str] = []
+    protect_flags: list[str] = []
+
+    def add_risk(points: float, text: str) -> float:
+        risk_flags.append(text)
+        return points
+
+    def add_protect(points: float, text: str) -> float:
+        protect_flags.append(text)
+        return points
+
+    risk_points = 45.0
+    up_probability = _num(estimate.get("probability"), 0.0)
+    expected_pct = _num(estimate.get("expected_pct"), 0.0)
+    risk_points += max(-14.0, min(18.0, (55.0 - up_probability) * 0.45))
+
+    if not market.get("is_bull"):
+        risk_points += add_risk(9, "大盤不在多頭安全區，隔日承接風險提高")
+    else:
+        risk_points -= add_protect(6, "大盤仍在多頭安全區")
+    if pd.notna(price) and pd.notna(stop) and price <= stop:
+        risk_points += add_risk(32, "盤中已跌破停損價")
+    if not above_vwap and pd.notna(vwap):
+        risk_points += add_risk(14, "現價跌破 VWAP，代表盤中均價上方套牢")
+    elif above_vwap:
+        risk_points -= add_protect(8, "現價站上 VWAP")
+    if pd.notna(price) and pd.notna(opening_low) and price < opening_low:
+        risk_points += add_risk(15, "跌破開盤 15 分鐘低點，日內轉弱")
+    if opening_breakout:
+        risk_points -= add_protect(6, "突破開盤 15 分鐘高點")
+    if not breakout_confirmed and pd.notna(breakout):
+        risk_points += add_risk(8, "尚未站上突破買點，追價條件未完成")
+    elif breakout_confirmed:
+        risk_points -= add_protect(10, "已站上突破買點")
+    if using_entry and pd.notna(breakout) and entry >= breakout and price < breakout:
+        risk_points += add_risk(18, "買價在突破區上方，但現價跌回突破買點下方")
+    if pd.notna(projected_volume_ratio) and projected_volume_ratio < 0.8:
+        risk_points += add_risk(9, "預估量比不足，突破容易失敗")
+    elif volume_confirmed:
+        risk_points -= add_protect(8, "預估量比達標")
+    if pd.notna(order_imbalance) and order_imbalance < -10:
+        risk_points += add_risk(7, "五檔委賣明顯大於委買")
+    elif pd.notna(order_imbalance) and order_imbalance > 10:
+        risk_points -= add_protect(5, "五檔委買較強")
+    if pd.notna(intraday_upper_shadow) and intraday_upper_shadow >= 0.35 and pd.notna(intraday_position) and intraday_position < 60:
+        risk_points += add_risk(10, "盤中高點拉回，上方賣壓偏重")
+    if pd.notna(price) and pd.notna(bb_upper) and price >= bb_upper and not volume_confirmed:
+        risk_points += add_risk(10, "觸及布林上軌但量能不足，容易隔日回檔")
+    if in_support:
+        risk_points -= add_protect(6, "現價仍在支撐買點區")
+    total_streak = int(streak.get("total", 0) or 0)
+    trust_streak = int(streak.get("trust", 0) or 0)
+    if total_streak <= -2:
+        risk_points += add_risk(8, f"三大法人連賣 {abs(total_streak)} 天")
+    elif total_streak >= 2:
+        risk_points -= add_protect(6, f"三大法人連買 {total_streak} 天")
+    if trust_streak <= -2:
+        risk_points += add_risk(5, f"投信連賣 {abs(trust_streak)} 天")
+    elif trust_streak >= 2:
+        risk_points -= add_protect(4, f"投信連買 {trust_streak} 天")
+    if purchase_action == "不可":
+        risk_points += add_risk(8, f"隔日模型判斷不可購入：{purchase_note}")
+    elif purchase_action == "購入":
+        risk_points -= add_protect(8, "隔日模型仍允許小量購入")
+    if expected_pct >= 5 and up_probability >= 65:
+        risk_points -= add_protect(5, f"隔日上漲機率 {up_probability:.0f}% 且預估漲幅達標")
+
+    down_probability = float(max(5, min(95, risk_points)))
+    if pd.notna(price) and pd.notna(stop) and price <= stop:
+        wrong_verdict = "買錯機率高"
+        wrong_action = "賣出/停損"
+        wrong_detail = "已跌破停損價，不建議攤平，先退出保護資金。"
+    elif down_probability >= 75:
+        wrong_verdict = "高風險"
+        wrong_action = "不可追，已買先減碼"
+        wrong_detail = "盤中條件轉弱，隔日下跌或開高走低風險偏高。"
+    elif down_probability >= 60:
+        wrong_verdict = "偏危險"
+        wrong_action = "等待確認"
+        wrong_detail = "買進條件不完整，若已買需用 VWAP、突破價與停損價管理。"
+    elif down_probability >= 45:
+        wrong_verdict = "觀察"
+        wrong_action = "小心續抱"
+        wrong_detail = "多空仍拉鋸，適合等收盤確認，不宜加碼。"
+    else:
+        wrong_verdict = "風險可控"
+        wrong_action = "可依紀律小量"
+        wrong_detail = "盤中條件尚可，但仍需跌破停損價立即退出。"
+
+    entry_pnl_pct = (price / entry - 1) * 100 if using_entry and pd.notna(price) and pd.notna(entry) and entry > 0 else np.nan
+    entry_pnl_points = price - entry if using_entry and pd.notna(price) and pd.notna(entry) else np.nan
+
     return {
         "price": price,
         "previous_close": previous_close,
@@ -3185,6 +3370,10 @@ def intraday_trade_snapshot(
         "current_volume": current_volume,
         "projected_volume_ratio": projected_volume_ratio,
         "order_imbalance": order_imbalance,
+        "intraday_high": intraday_high,
+        "intraday_low": intraday_low,
+        "intraday_position": intraday_position,
+        "intraday_upper_shadow": intraday_upper_shadow,
         "action": action,
         "status": status,
         "detail": detail,
@@ -3194,6 +3383,23 @@ def intraday_trade_snapshot(
         "stop": stop,
         "target": target,
         "levels": levels,
+        "intraday_df": intraday_df,
+        "wrong_buy": {
+            "verdict": wrong_verdict,
+            "action": wrong_action,
+            "detail": wrong_detail,
+            "down_probability": down_probability,
+            "up_probability": up_probability,
+            "expected_pct": expected_pct,
+            "purchase_action": purchase_action,
+            "purchase_note": purchase_note,
+            "risk_flags": risk_flags[:5],
+            "protect_flags": protect_flags[:5],
+            "entry_price": entry,
+            "entry_basis": "今日買進價" if using_entry else "未填買價，以現價模擬",
+            "entry_pnl_pct": entry_pnl_pct,
+            "entry_pnl_points": entry_pnl_points,
+        },
     }
 
 
@@ -3223,6 +3429,14 @@ def build_intraday_chart(minute_data: pd.DataFrame, snapshot: dict[str, Any], ti
         ("開盤15分低", snapshot["opening_low"], "#64748b", "dot"),
         ("突破買點", snapshot["breakout"], "#16a34a", "dash"),
         ("停損價", snapshot["stop"], "#dc2626", "dash"),
+        (
+            "我的買進價",
+            snapshot.get("wrong_buy", {}).get("entry_price")
+            if snapshot.get("wrong_buy", {}).get("entry_basis") == "今日買進價"
+            else np.nan,
+            "#f59e0b",
+            "solid",
+        ),
     ]
     for name, value, color, dash in guide_lines:
         if pd.notna(value):
@@ -3242,15 +3456,36 @@ def build_intraday_chart(minute_data: pd.DataFrame, snapshot: dict[str, Any], ti
     return fig
 
 
-def render_intraday_live_panel(symbol: str, name: str, market: dict[str, Any], refresh_token: int) -> None:
+def render_intraday_live_panel(
+    symbol: str,
+    name: str,
+    market: dict[str, Any],
+    refresh_token: int,
+    entry_price: float | None = None,
+) -> None:
     try:
         strategy_df = analyze_symbol(symbol, market["is_bull"], refresh_token=refresh_token)
         quote = fetch_realtime_quote(symbol, refresh_token=refresh_token)
         minute_data = download_intraday_data(symbol, refresh_token=refresh_token)
+        try:
+            institutional = fetch_institutional_flow(symbol, refresh_token=refresh_token)
+            institutional_history = fetch_institutional_history(symbol, refresh_token=refresh_token)
+            streak = institutional_streak_summary(institutional_history)
+        except Exception:
+            institutional = _empty_institutional(symbol, "盤中法人資料暫時無法載入")
+            streak = {"total": 0, "trust": 0, "total_text": "未連續", "trust_text": "未連續"}
         if not quote.get("ok") and minute_data.empty:
             st.error(f"盤中資料讀取失敗：{quote.get('message', '查無報價')}")
             return
-        snapshot = intraday_trade_snapshot(strategy_df, quote, minute_data, market)
+        snapshot = intraday_trade_snapshot(
+            strategy_df,
+            quote,
+            minute_data,
+            market,
+            institutional=institutional,
+            streak=streak,
+            entry_price=entry_price,
+        )
     except Exception as exc:
         st.error(f"盤中分析失敗：{exc}")
         return
@@ -3279,6 +3514,42 @@ def render_intraday_live_panel(symbol: str, name: str, market: dict[str, Any], r
         st.metric("預估量比", volume_text, "量能確認" if pd.notna(snapshot["projected_volume_ratio"]) and snapshot["projected_volume_ratio"] >= 1.2 else "量能不足")
 
     st.info(f"{snapshot['status']}：{snapshot['detail']}")
+    wrong = snapshot["wrong_buy"]
+    risk_col1, risk_col2, risk_col3, risk_col4 = st.columns(4)
+    with risk_col1:
+        st.metric("今日是否買錯", wrong["verdict"], wrong["action"])
+    with risk_col2:
+        st.metric("隔日下跌風險", f"{wrong['down_probability']:.0f}%")
+    with risk_col3:
+        st.metric(
+            "隔日上漲機率",
+            f"{wrong['up_probability']:.0f}%",
+            f"預估 +{wrong['expected_pct']:.2f}%",
+        )
+    with risk_col4:
+        pnl_text = (
+            f"{wrong['entry_pnl_points']:+.2f} 點"
+            if pd.notna(wrong["entry_pnl_points"])
+            else "-"
+        )
+        pnl_delta = f"{wrong['entry_pnl_pct']:+.2f}%" if pd.notna(wrong["entry_pnl_pct"]) else wrong["entry_basis"]
+        st.metric("今日買進損益", pnl_text, pnl_delta)
+
+    if wrong["down_probability"] >= 75:
+        st.error(f"{wrong['verdict']}：{wrong['detail']}")
+    elif wrong["down_probability"] >= 60:
+        st.warning(f"{wrong['verdict']}：{wrong['detail']}")
+    elif wrong["down_probability"] >= 45:
+        st.info(f"{wrong['verdict']}：{wrong['detail']}")
+    else:
+        st.success(f"{wrong['verdict']}：{wrong['detail']}")
+
+    with st.expander("盤中買錯判斷理由", expanded=False):
+        st.write(f"隔日模型：{wrong['purchase_action']}｜{wrong['purchase_note']}")
+        st.write("風險原因：" + ("；".join(wrong["risk_flags"]) if wrong["risk_flags"] else "目前沒有明顯買錯風險。"))
+        st.write("保護條件：" + ("；".join(wrong["protect_flags"]) if wrong["protect_flags"] else "保護條件尚未明顯。"))
+        st.caption("判斷會隨 MIS 報價、VWAP、開盤 15 分高低、預估量比、箱型/布林/ATR、法人盤後資料與隔日機率模型更新。")
+
     level1, level2, level3, level4, level5 = st.columns(5)
     with level1:
         st.metric("支撐買點", snapshot["levels"]["support_buy"])
@@ -3309,7 +3580,7 @@ def render_intraday_live_panel(symbol: str, name: str, market: dict[str, Any], r
             build_intraday_chart(minute_data, snapshot, f"{name} ({symbol}) 盤中走勢"),
             use_container_width=True,
         )
-    st.caption("盤中訊號為技術分析提示，不會自動下單。三大法人為盤後資料，不納入即時盤中買賣判斷。")
+    st.caption("盤中訊號為技術分析提示，不會自動下單。三大法人為官方盤後資料，盤中僅作隔日風險輔助。")
 
 
 def render_intraday_tab(market: dict[str, Any], refresh_token: int = 0) -> None:
@@ -3319,6 +3590,8 @@ def render_intraday_tab(market: dict[str, Any], refresh_token: int = 0) -> None:
         st.session_state.intraday_loaded = False
     if "intraday_refresh_token" not in st.session_state:
         st.session_state.intraday_refresh_token = 0
+    if "intraday_entry_price" not in st.session_state:
+        st.session_state.intraday_entry_price = 0.0
 
     st.subheader("盤中現貨交易分析")
     st.caption("適用 5–7 天短線：盤中確認進場節奏，日線箱型、布林與停損架構維持不變。")
@@ -3328,9 +3601,17 @@ def render_intraday_tab(market: dict[str, Any], refresh_token: int = 0) -> None:
             value=st.session_state.intraday_query,
             placeholder="例如台積電、佳凌、2330、4976",
         )
+        entry_price = st.number_input(
+            "今日買進價（選填；填 0 則用現價模擬是否買錯）",
+            min_value=0.0,
+            value=float(st.session_state.intraday_entry_price or 0.0),
+            step=0.1,
+            format="%.2f",
+        )
         submitted = st.form_submit_button("載入盤中分析", use_container_width=True)
         if submitted and query.strip():
             st.session_state.intraday_query = query.strip()
+            st.session_state.intraday_entry_price = float(entry_price or 0.0)
             st.session_state.intraday_loaded = True
             st.session_state.intraday_refresh_token += 1
 
@@ -3359,10 +3640,19 @@ def render_intraday_tab(market: dict[str, Any], refresh_token: int = 0) -> None:
 
     live_token = refresh_token + int(st.session_state.intraday_refresh_token)
     market = get_market_regime_safe(refresh_token=refresh_token)
+    saved_entry_price = _num(st.session_state.get("intraday_entry_price"), np.nan)
+    if pd.isna(saved_entry_price) or saved_entry_price <= 0:
+        saved_entry_price = None
     if auto_refresh and hasattr(st, "fragment"):
-        st.fragment(run_every=15)(render_intraday_live_panel)(match.symbol, stock_name, market, live_token)
+        st.fragment(run_every=15)(render_intraday_live_panel)(
+            match.symbol,
+            stock_name,
+            market,
+            live_token,
+            saved_entry_price,
+        )
     else:
-        render_intraday_live_panel(match.symbol, stock_name, market, live_token)
+        render_intraday_live_panel(match.symbol, stock_name, market, live_token, saved_entry_price)
 
 
 def render_scanner_tab(market: dict[str, Any], refresh_token: int = 0) -> None:
