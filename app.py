@@ -4154,11 +4154,19 @@ def main() -> None:
     )
 
     st.title("台股智慧多維度波段共振量化雷達")
-    st.link_button(
-        "開啟第二版 5-7 天短線決策雷達",
-        "https://taiwan-stock-advanced-radar.streamlit.app/",
-        use_container_width=True,
-    )
+    shortcut_col1, shortcut_col2 = st.columns(2)
+    with shortcut_col1:
+        st.link_button(
+            "開啟第二版 5-7 天短線決策雷達",
+            "https://taiwan-stock-advanced-radar.streamlit.app/",
+            use_container_width=True,
+        )
+    with shortcut_col2:
+        st.page_link(
+            "pages/6_照片群組分析.py",
+            label="開啟照片群組分析雷達",
+            use_container_width=True,
+        )
 
     if "refresh_token" not in st.session_state:
         st.session_state.refresh_token = 0
