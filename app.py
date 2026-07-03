@@ -4162,9 +4162,9 @@ def main() -> None:
             use_container_width=True,
         )
     with shortcut_col2:
-        st.page_link(
-            "pages/photo_watchlist.py",
-            label="開啟照片群組分析雷達",
+        st.link_button(
+            "開啟照片群組分析雷達",
+            "https://taiwan-stock-quant-radar.streamlit.app/photo_watchlist",
             use_container_width=True,
         )
 
