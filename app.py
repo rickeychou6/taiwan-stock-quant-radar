@@ -6,6 +6,7 @@ from typing import Any
 import html
 import json
 import re
+import sys
 import unicodedata
 import xml.etree.ElementTree as ET
 
@@ -16,6 +17,8 @@ import requests
 import streamlit as st
 import yfinance as yf
 
+
+sys.modules.setdefault("app", sys.modules[__name__])
 
 st.set_page_config(
     page_title="台股智慧多維度波段共振量化雷達",
@@ -3978,6 +3981,15 @@ def render_non_futures_tab(market: dict[str, Any], refresh_token: int = 0) -> No
     )
 
 
+def render_photo_watchlist_tab() -> None:
+    try:
+        import photo_watchlist_app
+
+        photo_watchlist_app.main()
+    except Exception as exc:
+        st.error(f"照片群組分析載入失敗：{exc}")
+
+
 def main() -> None:
     st.markdown(
         """
@@ -4162,11 +4174,7 @@ def main() -> None:
             use_container_width=True,
         )
     with shortcut_col2:
-        st.link_button(
-            "開啟照片群組分析雷達",
-            "https://taiwan-stock-quant-radar.streamlit.app/photo_watchlist",
-            use_container_width=True,
-        )
+        st.info("照片群組分析已加入下方最後一個頁籤。")
 
     if "refresh_token" not in st.session_state:
         st.session_state.refresh_token = 0
@@ -4190,13 +4198,14 @@ def main() -> None:
 
     market_regime = default_market_regime()
 
-    tab_single, tab_intraday, tab_scan, tab_non_futures, tab_next_jump = st.tabs(
+    tab_single, tab_intraday, tab_scan, tab_non_futures, tab_next_jump, tab_photo = st.tabs(
         [
             "單股智慧雷達儀表板",
             "盤中現貨交易分析",
             "台灣前 50 大權值股每日掃描",
             "非期貨個股法人箱型布林掃描",
             "隔日 5% 上漲機率雷達",
+            "照片群組分析雷達",
         ]
     )
     with tab_single:
@@ -4209,6 +4218,8 @@ def main() -> None:
         render_non_futures_tab(market_regime, refresh_token=refresh_token)
     with tab_next_jump:
         render_next_day_jump_tab(market_regime, refresh_token=refresh_token)
+    with tab_photo:
+        render_photo_watchlist_tab()
 
     st.divider()
     st.caption("本系統為技術分析輔助工具，不構成投資建議。請自行控制部位與風險。")
