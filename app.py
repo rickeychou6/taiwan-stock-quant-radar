@@ -2283,18 +2283,30 @@ def backtest_short_windows(strategy_df: pd.DataFrame, years: int = 2) -> tuple[d
             continue
 
         future = strategy_df.iloc[i + 1 : i + 8]
+        close_3 = _num(strategy_df.iloc[i + 3].get("Close"))
+        close_4 = _num(strategy_df.iloc[i + 4].get("Close"))
         close_5 = _num(strategy_df.iloc[i + 5].get("Close"))
         close_7 = _num(strategy_df.iloc[i + 7].get("Close"))
         max_high_7 = _num(future["High"].max())
         min_low_7 = _num(future["Low"].min())
+        returns_3_5 = [
+            (value - entry) / entry * 100
+            for value in [close_3, close_4, close_5]
+            if pd.notna(value)
+        ]
         stop_hit = bool(pd.notna(stop) and (future["Low"] <= stop).any())
 
         trades.append(
             {
                 "日期": trade_date.strftime("%Y-%m-%d"),
                 "進場價": entry,
+                "3日報酬": (close_3 - entry) / entry * 100 if pd.notna(close_3) else np.nan,
+                "4日報酬": (close_4 - entry) / entry * 100 if pd.notna(close_4) else np.nan,
                 "5日報酬": (close_5 - entry) / entry * 100 if pd.notna(close_5) else np.nan,
                 "7日報酬": (close_7 - entry) / entry * 100 if pd.notna(close_7) else np.nan,
+                "3-5日平均": float(np.mean(returns_3_5)) if returns_3_5 else np.nan,
+                "3-5日最佳": float(np.max(returns_3_5)) if returns_3_5 else np.nan,
+                "3-5日最差": float(np.min(returns_3_5)) if returns_3_5 else np.nan,
                 "7日最大漲幅": (max_high_7 - entry) / entry * 100 if pd.notna(max_high_7) else np.nan,
                 "7日最大回撤": (min_low_7 - entry) / entry * 100 if pd.notna(min_low_7) else np.nan,
                 "碰停損": stop_hit,
@@ -2306,23 +2318,47 @@ def backtest_short_windows(strategy_df: pd.DataFrame, years: int = 2) -> tuple[d
     if trades_df.empty:
         return {
             "samples": 0,
+            "win_3d": "-",
+            "win_4d": "-",
             "win_5d": "-",
             "win_7d": "-",
+            "win_3_5": "-",
+            "loss_3_5": "-",
+            "avg_3d": "-",
+            "avg_4d": "-",
             "avg_5d": "-",
             "avg_7d": "-",
+            "avg_3_5": "-",
             "avg_mfe": "-",
             "avg_mae": "-",
             "stop_rate": "-",
+            "best_window": "-",
+            "three_to_five_grade": "樣本不足",
+            "three_to_five_note": "近兩年買進樣本不足，暫時無法判斷買後 3-5 天漲跌傾向。",
             "grade": "樣本不足",
         }, trades_df
 
+    win_3d = (trades_df["3日報酬"] > 0).mean() * 100
+    win_4d = (trades_df["4日報酬"] > 0).mean() * 100
     win_5d = (trades_df["5日報酬"] > 0).mean() * 100
     win_7d = (trades_df["7日報酬"] > 0).mean() * 100
+    avg_3d = trades_df["3日報酬"].mean()
+    avg_4d = trades_df["4日報酬"].mean()
     avg_5d = trades_df["5日報酬"].mean()
     avg_7d = trades_df["7日報酬"].mean()
+    returns_3_5 = trades_df[["3日報酬", "4日報酬", "5日報酬"]].stack().dropna()
+    win_3_5 = (returns_3_5 > 0).mean() * 100 if not returns_3_5.empty else np.nan
+    loss_3_5 = (returns_3_5 < 0).mean() * 100 if not returns_3_5.empty else np.nan
+    avg_3_5 = returns_3_5.mean() if not returns_3_5.empty else np.nan
     avg_mfe = trades_df["7日最大漲幅"].mean()
     avg_mae = trades_df["7日最大回撤"].mean()
     stop_rate = trades_df["碰停損"].mean() * 100
+    window_avgs = {"3日": avg_3d, "4日": avg_4d, "5日": avg_5d}
+    best_window = max(
+        ((label, value) for label, value in window_avgs.items() if pd.notna(value)),
+        key=lambda item: item[1],
+        default=("-", np.nan),
+    )
 
     if len(trades_df) < 5:
         grade = "樣本偏少"
@@ -2333,15 +2369,38 @@ def backtest_short_windows(strategy_df: pd.DataFrame, years: int = 2) -> tuple[d
     else:
         grade = "保守觀望"
 
+    if len(trades_df) < 5:
+        three_to_five_grade = "樣本偏少"
+        three_to_five_note = "樣本少，3-5 天結果僅供參考。"
+    elif pd.notna(win_3_5) and pd.notna(avg_3_5) and win_3_5 >= 58 and avg_3_5 > 0.8:
+        three_to_five_grade = "3-5日偏多"
+        three_to_five_note = "歷史買點後 3-5 天上漲機率與平均報酬偏正，可作短線持有參考。"
+    elif pd.notna(loss_3_5) and pd.notna(avg_3_5) and loss_3_5 >= 55 and avg_3_5 < 0:
+        three_to_five_grade = "3-5日偏弱"
+        three_to_five_note = "歷史買點後 3-5 天容易轉弱，買進後若未快速表態要更嚴格停損。"
+    else:
+        three_to_five_grade = "3-5日中性"
+        three_to_five_note = "歷史買點後 3-5 天多空差距不大，需搭配盤中 VWAP 與量能確認。"
+
     return {
         "samples": int(len(trades_df)),
+        "win_3d": f"{win_3d:.0f}%",
+        "win_4d": f"{win_4d:.0f}%",
         "win_5d": f"{win_5d:.0f}%",
         "win_7d": f"{win_7d:.0f}%",
+        "win_3_5": f"{win_3_5:.0f}%" if pd.notna(win_3_5) else "-",
+        "loss_3_5": f"{loss_3_5:.0f}%" if pd.notna(loss_3_5) else "-",
+        "avg_3d": f"{avg_3d:.2f}%",
+        "avg_4d": f"{avg_4d:.2f}%",
         "avg_5d": f"{avg_5d:.2f}%",
         "avg_7d": f"{avg_7d:.2f}%",
+        "avg_3_5": f"{avg_3_5:.2f}%" if pd.notna(avg_3_5) else "-",
         "avg_mfe": f"{avg_mfe:.2f}%",
         "avg_mae": f"{avg_mae:.2f}%",
         "stop_rate": f"{stop_rate:.0f}%",
+        "best_window": f"{best_window[0]} / {best_window[1]:.2f}%" if pd.notna(best_window[1]) else "-",
+        "three_to_five_grade": three_to_five_grade,
+        "three_to_five_note": three_to_five_note,
         "grade": grade,
     }, trades_df
 
@@ -2620,6 +2679,23 @@ def render_box_panel(
 
 def render_backtest_panel(strategy_df: pd.DataFrame) -> None:
     stats, trades = backtest_short_windows(strategy_df)
+    st.subheader("買入後 3-5 天漲跌分析")
+    short1, short2, short3, short4, short5 = st.columns(5)
+    with short1:
+        st.metric("歷史買進樣本", stats["samples"])
+    with short2:
+        st.metric("買後3日勝率", stats["win_3d"], stats["avg_3d"])
+    with short3:
+        st.metric("買後4日勝率", stats["win_4d"], stats["avg_4d"])
+    with short4:
+        st.metric("買後5日勝率", stats["win_5d"], stats["avg_5d"])
+    with short5:
+        st.metric("3-5天綜合", stats["win_3_5"], stats["three_to_five_grade"])
+    st.caption(
+        f"3-5天平均漲跌：{stats['avg_3_5']}；3-5天下跌比例：{stats['loss_3_5']}；"
+        f"最佳觀察天數：{stats['best_window']}。{stats['three_to_five_note']}"
+    )
+
     st.subheader("5-7 天短線回測")
     col1, col2, col3, col4 = st.columns(4)
     with col1:
@@ -2641,7 +2717,10 @@ def render_backtest_panel(strategy_df: pd.DataFrame) -> None:
     with col8:
         st.metric("停損觸發率", stats["stop_rate"])
 
-    st.caption(f"7日最大回撤均值：{stats['avg_mae']}。回測以歷史買進訊號當日收盤價進場，觀察後續第 5 / 第 7 個交易日。")
+    st.caption(
+        f"7日最大回撤均值：{stats['avg_mae']}。"
+        "回測以歷史買進訊號當日收盤價進場，觀察後續第 3 / 第 4 / 第 5 / 第 7 個交易日。"
+    )
 
     if trades.empty:
         st.info("近兩年買進樣本不足，暫時無法形成可靠勝率。")
@@ -2652,8 +2731,13 @@ def render_backtest_panel(strategy_df: pd.DataFrame) -> None:
         recent.style.format(
             {
                 "進場價": "{:.2f}",
+                "3日報酬": "{:.2f}%",
+                "4日報酬": "{:.2f}%",
                 "5日報酬": "{:.2f}%",
                 "7日報酬": "{:.2f}%",
+                "3-5日平均": "{:.2f}%",
+                "3-5日最佳": "{:.2f}%",
+                "3-5日最差": "{:.2f}%",
                 "7日最大漲幅": "{:.2f}%",
                 "7日最大回撤": "{:.2f}%",
             },
@@ -3261,6 +3345,7 @@ def intraday_trade_snapshot(
     streak = streak or {"total": 0, "trust": 0, "total_text": "未連續", "trust_text": "未連續"}
     estimate = estimate_next_day_jump_probability(intraday_df, market, institutional, streak, [])
     purchase_action, purchase_note = purchase_recommendation(estimate, market)
+    bt_stats, _ = backtest_short_windows(intraday_df)
     entry = _num(entry_price)
     using_entry = pd.notna(entry) and entry > 0
     if not using_entry:
@@ -3399,6 +3484,21 @@ def intraday_trade_snapshot(
             "entry_basis": "今日買進價" if using_entry else "未填買價，以現價模擬",
             "entry_pnl_pct": entry_pnl_pct,
             "entry_pnl_points": entry_pnl_points,
+            "bt_3_5": {
+                "samples": bt_stats["samples"],
+                "win_3d": bt_stats["win_3d"],
+                "win_4d": bt_stats["win_4d"],
+                "win_5d": bt_stats["win_5d"],
+                "win_3_5": bt_stats["win_3_5"],
+                "avg_3d": bt_stats["avg_3d"],
+                "avg_4d": bt_stats["avg_4d"],
+                "avg_5d": bt_stats["avg_5d"],
+                "avg_3_5": bt_stats["avg_3_5"],
+                "loss_3_5": bt_stats["loss_3_5"],
+                "best_window": bt_stats["best_window"],
+                "grade": bt_stats["three_to_five_grade"],
+                "note": bt_stats["three_to_five_note"],
+            },
         },
     }
 
@@ -3535,6 +3635,19 @@ def render_intraday_live_panel(
         pnl_delta = f"{wrong['entry_pnl_pct']:+.2f}%" if pd.notna(wrong["entry_pnl_pct"]) else wrong["entry_basis"]
         st.metric("今日買進損益", pnl_text, pnl_delta)
 
+    bt_3_5 = wrong["bt_3_5"]
+    hold1, hold2, hold3, hold4, hold5 = st.columns(5)
+    with hold1:
+        st.metric("買後3日歷史", bt_3_5["win_3d"], bt_3_5["avg_3d"])
+    with hold2:
+        st.metric("買後4日歷史", bt_3_5["win_4d"], bt_3_5["avg_4d"])
+    with hold3:
+        st.metric("買後5日歷史", bt_3_5["win_5d"], bt_3_5["avg_5d"])
+    with hold4:
+        st.metric("3-5天綜合", bt_3_5["win_3_5"], bt_3_5["grade"])
+    with hold5:
+        st.metric("3-5天下跌比例", bt_3_5["loss_3_5"], bt_3_5["best_window"])
+
     if wrong["down_probability"] >= 75:
         st.error(f"{wrong['verdict']}：{wrong['detail']}")
     elif wrong["down_probability"] >= 60:
@@ -3546,6 +3659,10 @@ def render_intraday_live_panel(
 
     with st.expander("盤中買錯判斷理由", expanded=False):
         st.write(f"隔日模型：{wrong['purchase_action']}｜{wrong['purchase_note']}")
+        st.write(
+            f"買後 3-5 天歷史：樣本 {bt_3_5['samples']} 筆；"
+            f"平均漲跌 {bt_3_5['avg_3_5']}；{bt_3_5['note']}"
+        )
         st.write("風險原因：" + ("；".join(wrong["risk_flags"]) if wrong["risk_flags"] else "目前沒有明顯買錯風險。"))
         st.write("保護條件：" + ("；".join(wrong["protect_flags"]) if wrong["protect_flags"] else "保護條件尚未明顯。"))
         st.caption("判斷會隨 MIS 報價、VWAP、開盤 15 分高低、預估量比、箱型/布林/ATR、法人盤後資料與隔日機率模型更新。")
