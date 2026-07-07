@@ -1,0 +1,82 @@
+export type Action = "BUY" | "SELL" | "HOLD" | "WATCH" | "REDUCE" | "STOP_LOSS";
+export type RiskLevel = "LOW" | "MEDIUM" | "HIGH";
+export type TrendStage = "初升段" | "主升段" | "末升段" | "盤整" | "轉弱" | "破線";
+
+export type PriceBar = {
+  date: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+  turnover: number;
+};
+
+export type StockProfile = {
+  symbol: string;
+  name: string;
+  market: "TWSE" | "TPEX" | "US";
+  industry: string;
+  sector: string;
+};
+
+export type ScoreBlock = {
+  score: number;
+  weight: number;
+  label: string;
+  explanation: string[];
+};
+
+export type AnalysisResult = {
+  symbol: string;
+  name: string;
+  price: number;
+  changePct: number;
+  finalScore: number;
+  action: Action;
+  confidence: number;
+  riskLevel: RiskLevel;
+  trendStage: TrendStage;
+  buyPrice: string;
+  idealBuyPrice: string;
+  stopLossPrice: number;
+  takeProfit1: number;
+  takeProfit2: number;
+  holdingPeriod: string;
+  postEntryForecast: {
+    day3Pct: number;
+    day4Pct: number;
+    day5Pct: number;
+    probabilityUp3To5: number;
+    probabilityDown3To5: number;
+    positionAdvice: "續抱" | "賣出" | "減碼" | "觀望";
+    reason: string;
+  };
+  scores: {
+    technical: ScoreBlock;
+    chip: ScoreBlock;
+    capital: ScoreBlock;
+    fundamental: ScoreBlock;
+    news: ScoreBlock;
+    macro: ScoreBlock;
+  };
+  backtest: {
+    oneYearWinRate: number;
+    threeYearWinRate: number;
+    fiveYearWinRate: number;
+    similarPatternCount: number;
+    avgReturn: number;
+    maxDrawdown: number;
+    profitFactor: number;
+  };
+  explanation: {
+    summary: string;
+    technical: string[];
+    chip: string[];
+    capital: string[];
+    fundamental: string[];
+    news: string[];
+    macro: string[];
+  };
+  prices: PriceBar[];
+};

@@ -1,0 +1,218 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Action {
+  BUY
+  SELL
+  HOLD
+  WATCH
+  REDUCE
+  STOP_LOSS
+}
+
+model User {
+  id           String      @id @default(cuid())
+  email        String      @unique
+  passwordHash String?
+  name         String?
+  role         String      @default("USER")
+  watchlists   Watchlist[]
+  portfolios   Portfolio[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model Stock {
+  id                    String                 @id @default(cuid())
+  symbol                String                 @unique
+  name                  String
+  market                String
+  industry              String?
+  sector                String?
+  prices                StockPrice[]
+  indicators            TechnicalIndicator[]
+  institutionalTrades   InstitutionalTrade[]
+  marginTrades          MarginTrade[]
+  fundamentals          Fundamental[]
+  news                  News[]
+  analysisResults       AnalysisResult[]
+  backtestResults       BacktestResult[]
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+}
+
+model Watchlist {
+  id        String   @id @default(cuid())
+  userId    String
+  stockId   String?
+  symbol    String
+  alertRule String?
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Portfolio {
+  id        String   @id @default(cuid())
+  userId    String
+  symbol    String
+  shares    Int
+  cost      Decimal
+  note      String?
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model StockPrice {
+  id        String   @id @default(cuid())
+  stockId   String
+  date      DateTime
+  open      Decimal
+  high      Decimal
+  low       Decimal
+  close     Decimal
+  volume    BigInt
+  turnover  BigInt?
+  stock     Stock    @relation(fields: [stockId], references: [id])
+
+  @@unique([stockId, date])
+}
+
+model TechnicalIndicator {
+  id        String   @id @default(cuid())
+  stockId   String
+  date      DateTime
+  payload   Json
+  stock     Stock    @relation(fields: [stockId], references: [id])
+
+  @@unique([stockId, date])
+}
+
+model InstitutionalTrade {
+  id       String   @id @default(cuid())
+  stockId  String
+  date     DateTime
+  foreign  BigInt
+  trust    BigInt
+  dealer   BigInt
+  total    BigInt
+  stock    Stock    @relation(fields: [stockId], references: [id])
+
+  @@unique([stockId, date])
+}
+
+model MarginTrade {
+  id            String   @id @default(cuid())
+  stockId       String
+  date          DateTime
+  marginBalance BigInt?
+  shortBalance  BigInt?
+  lending       BigInt?
+  stock         Stock    @relation(fields: [stockId], references: [id])
+
+  @@unique([stockId, date])
+}
+
+model Fundamental {
+  id        String   @id @default(cuid())
+  stockId   String
+  period    String
+  revenueYoY Decimal?
+  revenueMoM Decimal?
+  eps       Decimal?
+  grossMargin Decimal?
+  operatingMargin Decimal?
+  roe       Decimal?
+  pe        Decimal?
+  pb        Decimal?
+  dividendYield Decimal?
+  payload   Json?
+  stock     Stock    @relation(fields: [stockId], references: [id])
+}
+
+model News {
+  id        String   @id @default(cuid())
+  stockId   String?
+  title     String
+  url       String?
+  source    String?
+  sentiment Decimal?
+  impact    String?
+  publishedAt DateTime?
+  stock     Stock?   @relation(fields: [stockId], references: [id])
+}
+
+model AnalysisResult {
+  id                 String   @id @default(cuid())
+  stockId             String
+  date                DateTime
+  finalScore          Int
+  technicalScore      Int
+  chipScore           Int
+  capitalScore        Int
+  fundamentalScore    Int
+  newsScore           Int
+  macroScore          Int
+  action              Action
+  confidence          Int
+  buyPrice            String
+  stopLossPrice       Decimal
+  takeProfit1         Decimal
+  takeProfit2         Decimal
+  holdingPeriod       String
+  explanationJson     Json
+  createdAt           DateTime @default(now())
+  stock               Stock    @relation(fields: [stockId], references: [id])
+
+  @@index([stockId, date])
+}
+
+model BacktestResult {
+  id        String   @id @default(cuid())
+  stockId   String
+  strategy  String
+  period    String
+  winRate   Decimal
+  avgReturn Decimal
+  maxDrawdown Decimal
+  profitFactor Decimal?
+  trades    Int
+  payload   Json?
+  createdAt DateTime @default(now())
+  stock     Stock    @relation(fields: [stockId], references: [id])
+}
+
+model MarketIndex {
+  id        String   @id @default(cuid())
+  symbol    String
+  date      DateTime
+  close     Decimal
+  changePct Decimal?
+  payload   Json?
+
+  @@unique([symbol, date])
+}
+
+model ApiLog {
+  id        String   @id @default(cuid())
+  provider  String
+  endpoint  String
+  status    String
+  latencyMs Int?
+  message   String?
+  createdAt DateTime @default(now())
+}
+
+model SystemLog {
+  id        String   @id @default(cuid())
+  level     String
+  message   String
+  payload   Json?
+  createdAt DateTime @default(now())
+}

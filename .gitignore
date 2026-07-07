@@ -5,3 +5,8 @@ venv/
 .env
 *.log
 .streamlit/secrets.toml
+node_modules/
+.next/
+dist/
+build/
+*.tsbuildinfo
