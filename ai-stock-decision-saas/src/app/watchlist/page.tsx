@@ -1,8 +1,16 @@
-import { runFullAnalysis } from "@/lib/analysis-engine";
-import { watchlistSeed } from "@/lib/mock-data";
+import { runRealFullAnalysis } from "@/lib/real-analysis-engine";
 import { MetricCard } from "@/components/MetricCard";
 
-export default function WatchlistPage() {
+export const dynamic = "force-dynamic";
+
+const watchlistSeed = [
+  { id: "1", symbol: "2330.TW", name: "台積電", alert: "接近關鍵買點" },
+  { id: "2", symbol: "2317.TW", name: "鴻海", alert: "觀察量能突破" },
+  { id: "3", symbol: "4976.TWO", name: "佳凌", alert: "留意停損線" }
+];
+
+export default async function WatchlistPage() {
+  const rows = await Promise.all(watchlistSeed.map(async (item) => ({ item, analysis: await runRealFullAnalysis(item.symbol) })));
   return (
     <div className="space-y-6">
       <div>
@@ -10,8 +18,7 @@ export default function WatchlistPage() {
         <h1 className="text-3xl font-black text-white">自選股清單</h1>
       </div>
       <div className="grid gap-4 lg:grid-cols-3">
-        {watchlistSeed.map((item) => {
-          const analysis = runFullAnalysis(item.symbol);
+        {rows.map(({ item, analysis }) => {
           return (
             <div key={item.id} className="glass rounded-3xl p-5">
               <div className="flex items-start justify-between">

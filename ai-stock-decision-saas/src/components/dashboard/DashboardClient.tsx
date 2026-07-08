@@ -13,15 +13,36 @@ export function DashboardClient() {
   const params = useSearchParams();
   const symbol = params.get("symbol") || "2330.TW";
   const [data, setData] = useState<AnalysisResult | null>(null);
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
+    setError("");
+    setData(null);
     fetch(`/api/analysis/${encodeURIComponent(symbol)}`)
-      .then((res) => res.json())
+      .then(async (res) => {
+        const payload = await res.json();
+        if (!res.ok) throw new Error(payload.error || "真實資料取得失敗");
+        return payload;
+      })
       .then(setData)
+      .catch((err) => setError(err instanceof Error ? err.message : "真實資料取得失敗"))
       .finally(() => setLoading(false));
   }, [symbol]);
+
+  if (error) {
+    return (
+      <div className="space-y-4">
+        <SearchBox initialSymbol={symbol} />
+        <div className="glass rounded-3xl border border-rose-500/40 p-8 text-rose-100">
+          <h2 className="text-xl font-black text-white">真實資料取得失敗</h2>
+          <p className="mt-2">{error}</p>
+          <p className="mt-4 text-sm text-slate-300">請改用完整 Yahoo Finance 代碼，例如 2330.TW、4976.TWO，或稍後重新查詢。</p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading || !data) {
     return (

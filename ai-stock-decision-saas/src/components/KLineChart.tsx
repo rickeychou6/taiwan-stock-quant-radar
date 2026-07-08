@@ -20,7 +20,7 @@ export function KLineChart({ data }: { data: PriceBar[] }) {
     <div className="glass overflow-x-auto rounded-2xl p-4">
       <div className="mb-3 flex items-center justify-between">
         <h3 className="text-lg font-bold text-white">K 線圖</h3>
-        <p className="text-xs text-slate-400">Mock OHLC，可替換 TradingView Lightweight Charts 真實資料源</p>
+        <p className="text-xs text-slate-400">Yahoo Finance 真實 OHLC 日 K 資料</p>
       </div>
       <svg viewBox={`0 0 ${width} ${height}`} className="min-w-[820px]">
         {[0, 1, 2, 3].map((i) => {

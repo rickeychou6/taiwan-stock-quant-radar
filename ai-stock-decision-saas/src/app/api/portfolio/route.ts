@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import { portfolioSeed } from "@/lib/mock-data";
 
 export async function GET() {
-  return NextResponse.json(portfolioSeed);
+  return NextResponse.json([]);
 }
 
 export async function POST(request: Request) {

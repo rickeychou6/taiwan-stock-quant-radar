@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { ArrowRight, Bot, ChartCandlestick, Database, ShieldCheck, Sparkles } from "lucide-react";
-import { runFullAnalysis } from "@/lib/analysis-engine";
+import { runRealFullAnalysis } from "@/lib/real-analysis-engine";
 import { MetricCard } from "@/components/MetricCard";
 import { ScoreRing } from "@/components/ScoreRing";
 
-export default function HomePage() {
-  const sample = runFullAnalysis("2330.TW");
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const sample = await runRealFullAnalysis("2330.TW");
   return (
     <div className="space-y-10">
       <section className="grid gap-8 py-8 lg:grid-cols-[1.1fr_.9fr] lg:items-center">
@@ -70,7 +72,7 @@ export default function HomePage() {
           <h2 className="text-2xl font-black">商業化 SaaS 路線</h2>
         </div>
         <p className="mt-3 text-slate-600">
-          MVP 已提供頁面、API、分析引擎、schema、Docker 與假資料。下一階段可接正式登入、資料庫、金流與真實資料同步。
+          MVP 已提供頁面、API、分析引擎、schema、Docker、TWSE/TPEX 官方股名索引與 Yahoo Finance 真實 K 線。下一階段可接正式登入、資料庫、金流、法人與基本面資料。
         </p>
       </section>
     </div>

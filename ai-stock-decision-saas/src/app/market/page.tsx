@@ -1,4 +1,7 @@
 import { MetricCard } from "@/components/MetricCard";
+import { marketSnapshot } from "@/lib/real-data";
+
+export const dynamic = "force-dynamic";
 
 const markets = [
   ["台股大盤", "+0.82%", "多頭安全區"],
@@ -15,7 +18,7 @@ const markets = [
   ["BTC", "+2.70%", "風險資產偏多"]
 ];
 
-export default function MarketPage() {
+function OldMarketPage() {
   return (
     <div className="space-y-6">
       <div>
@@ -37,6 +40,51 @@ export default function MarketPage() {
             </div>
           ))}
         </div>
+      </div>
+    </div>
+  );
+}
+
+const marketLabels: Record<string, string> = {
+  "^TWII": "台股加權",
+  "^IXIC": "Nasdaq",
+  "^GSPC": "S&P 500",
+  "^DJI": "道瓊",
+  "^SOX": "費半",
+  "DX-Y.NYB": "美元指數",
+  "GC=F": "黃金",
+  "CL=F": "原油",
+  "^VIX": "VIX",
+  "BTC-USD": "BTC"
+};
+
+export default async function MarketPage() {
+  const snapshot = await marketSnapshot();
+  const rows = Object.entries(snapshot);
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <p className="text-sm text-slate-400">Market Overview</p>
+        <h1 className="text-3xl font-black text-white">市場總覽</h1>
+        <p className="mt-2 text-slate-300">資料來源：Yahoo Finance 真實市場報價快照。</p>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {rows.map(([symbol, value]) => (
+          <MetricCard
+            key={symbol}
+            label={marketLabels[symbol] ?? symbol}
+            value={`${value >= 0 ? "+" : ""}${value.toFixed(2)}%`}
+            sub={symbol}
+            tone={value >= 0 ? "bull" : symbol === "^VIX" ? "warn" : "bear"}
+          />
+        ))}
+      </div>
+      <div className="glass rounded-3xl p-5">
+        <h2 className="text-xl font-black text-white">產業資金輪動</h2>
+        <p className="mt-2 text-slate-300">
+          產業資金流需串接 TWSE/TPEX 成交值分產業統計或 FinMind 後啟用；目前不使用模擬排名。
+        </p>
       </div>
     </div>
   );

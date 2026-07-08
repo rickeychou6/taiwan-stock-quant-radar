@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
-import { mockMacro } from "@/lib/mock-data";
+import { marketSnapshot } from "@/lib/real-data";
 
 export async function GET() {
-  return NextResponse.json(mockMacro);
+  try {
+    return NextResponse.json(await marketSnapshot());
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : "真實市場資料取得失敗" }, { status: 502 });
+  }
 }

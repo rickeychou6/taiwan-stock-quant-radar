@@ -14,7 +14,7 @@
 - 市場總覽頁
 - 管理員後台
 - REST API
-- 模組化 mock 資料層
+- TWSE/TPEX 官方股名索引與 Yahoo Finance 真實 K 線資料層
 - AI 多因子分析引擎初版
 - 3-5 天漲跌百分比預估
 - 賣出 / 續抱 / 減碼 / 觀望提示
@@ -79,8 +79,8 @@ AI 不直接亂猜價格。價格、分數、勝率與 3-5 天漲跌百分比由
 
 1. 接 Prisma Client 與正式 PostgreSQL
 2. 建立 NextAuth Credentials 與 Google OAuth
-3. 建立 TWSE/TPEX/Yahoo/FinMind provider
+3. 擴充 FinMind provider 與法人 / 基本面正式資料
 4. 加 Redis 快取
 5. 加排程同步與 API logs
-6. 把 mock chart 換成 TradingView Lightweight Charts 資料流
+6. 把 SVG K 線升級成 TradingView Lightweight Charts
 7. 新聞情緒串 OpenAI API 或本地 LLM

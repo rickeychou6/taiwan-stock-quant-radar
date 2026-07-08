@@ -1,0 +1,356 @@
+import type { PriceBar, StockProfile } from "@/lib/types";
+
+const USER_AGENT =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36";
+
+const COMMON_TW_STOCKS: StockProfile[] = [
+  { symbol: "2330.TW", name: "台積電", market: "TWSE", industry: "半導體", sector: "科技" },
+  { symbol: "2317.TW", name: "鴻海", market: "TWSE", industry: "電子代工", sector: "科技" },
+  { symbol: "2454.TW", name: "聯發科", market: "TWSE", industry: "IC 設計", sector: "科技" },
+  { symbol: "3008.TW", name: "大立光", market: "TWSE", industry: "光學鏡頭", sector: "科技" },
+  { symbol: "2382.TW", name: "廣達", market: "TWSE", industry: "電腦及週邊", sector: "科技" },
+  { symbol: "2308.TW", name: "台達電", market: "TWSE", industry: "電源供應器", sector: "科技" },
+  { symbol: "3711.TW", name: "日月光投控", market: "TWSE", industry: "封測", sector: "科技" },
+  { symbol: "2412.TW", name: "中華電", market: "TWSE", industry: "電信", sector: "通訊" },
+  { symbol: "1303.TW", name: "南亞", market: "TWSE", industry: "塑化", sector: "傳產" },
+  { symbol: "2409.TW", name: "友達", market: "TWSE", industry: "面板", sector: "科技" },
+  { symbol: "6285.TW", name: "啟碁", market: "TWSE", industry: "網通", sector: "科技" },
+  { symbol: "4976.TW", name: "佳凌", market: "TWSE", industry: "光學", sector: "科技" },
+  { symbol: "5274.TWO", name: "信驊", market: "TPEX", industry: "IC 設計", sector: "科技" },
+  { symbol: "3017.TW", name: "奇鋐", market: "TWSE", industry: "散熱", sector: "科技" },
+  { symbol: "8046.TWO", name: "南電", market: "TPEX", industry: "IC 載板", sector: "科技" }
+];
+
+let stockUniversePromise: Promise<StockProfile[]> | null = null;
+let marketCache: { at: number; data: Record<string, number> } | null = null;
+
+type YahooQuote = {
+  symbol?: string;
+  shortname?: string;
+  longname?: string;
+  quoteType?: string;
+  exchange?: string;
+  exchDisp?: string;
+  typeDisp?: string;
+};
+
+type YahooSearchResponse = {
+  quotes?: YahooQuote[];
+  news?: Array<{ title?: string; publisher?: string; link?: string; providerPublishTime?: number }>;
+};
+
+type YahooChartResponse = {
+  chart?: {
+    result?: Array<{
+      meta?: {
+        symbol?: string;
+        shortName?: string;
+        longName?: string;
+        regularMarketPrice?: number;
+        previousClose?: number;
+        chartPreviousClose?: number;
+        exchangeName?: string;
+      };
+      timestamp?: number[];
+      indicators?: {
+        quote?: Array<{
+          open?: Array<number | null>;
+          high?: Array<number | null>;
+          low?: Array<number | null>;
+          close?: Array<number | null>;
+          volume?: Array<number | null>;
+        }>;
+      };
+    }>;
+    error?: { description?: string };
+  };
+};
+
+async function fetchJson<T>(url: string): Promise<T> {
+  const response = await fetch(url, {
+    cache: "no-store",
+    headers: {
+      "User-Agent": USER_AGENT,
+      Accept: "application/json"
+    }
+  });
+  if (!response.ok) {
+    throw new Error(`資料來源回應失敗：${response.status}`);
+  }
+  return response.json() as Promise<T>;
+}
+
+async function fetchOfficialJson<T>(url: string): Promise<T> {
+  const response = await fetch(url, {
+    cache: "force-cache",
+    next: { revalidate: 86400 },
+    headers: {
+      "User-Agent": USER_AGENT,
+      Accept: "application/json"
+    }
+  });
+  if (!response.ok) throw new Error(`官方股名清單回應失敗：${response.status}`);
+  return response.json() as Promise<T>;
+}
+
+function cleanSymbol(input: string) {
+  return input.trim().toUpperCase().replace(/\s+/g, "");
+}
+
+function normalizeText(input: string) {
+  return input.trim().replace(/\s+/g, "").replace(/臺/g, "台").toUpperCase();
+}
+
+function stockFromSymbol(symbol: string, name?: string): StockProfile {
+  const normalized = cleanSymbol(symbol);
+  const known = COMMON_TW_STOCKS.find((stock) => stock.symbol === normalized);
+  if (known) return known;
+  const market = normalized.endsWith(".TWO") ? "TPEX" : "TWSE";
+  return {
+    symbol: normalized,
+    name: name || normalized,
+    market,
+    industry: "待串接公開產業分類",
+    sector: "台股"
+  };
+}
+
+function isTaiwanEquity(symbol?: string) {
+  return Boolean(symbol?.toUpperCase().endsWith(".TW") || symbol?.toUpperCase().endsWith(".TWO"));
+}
+
+type TwseCompany = {
+  公司代號?: string;
+  公司名稱?: string;
+  公司簡稱?: string;
+  產業別?: string;
+};
+
+type TpexCompany = {
+  SecuritiesCompanyCode?: string;
+  CompanyName?: string;
+  CompanyAbbreviation?: string;
+  SecuritiesIndustryCode?: string;
+};
+
+async function loadOfficialStockUniverse(): Promise<StockProfile[]> {
+  if (stockUniversePromise) return stockUniversePromise;
+
+  stockUniversePromise = Promise.allSettled([
+    fetchOfficialJson<TwseCompany[]>("https://openapi.twse.com.tw/v1/opendata/t187ap03_L"),
+    fetchOfficialJson<TpexCompany[]>("https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap03_O")
+  ]).then((results) => {
+    const stocks: StockProfile[] = [...COMMON_TW_STOCKS];
+
+    const twse = results[0].status === "fulfilled" ? results[0].value : [];
+    for (const item of twse) {
+      const code = item.公司代號?.trim();
+      const name = item.公司簡稱?.trim() || item.公司名稱?.trim();
+      if (!code || !name || !/^\d{4,6}$/.test(code)) continue;
+      stocks.push({
+        symbol: `${code}.TW`,
+        name,
+        market: "TWSE",
+        industry: item.產業別?.trim() || "上市公司",
+        sector: "台股"
+      });
+    }
+
+    const tpex = results[1].status === "fulfilled" ? results[1].value : [];
+    for (const item of tpex) {
+      const code = item.SecuritiesCompanyCode?.trim();
+      const name = item.CompanyAbbreviation?.trim() || item.CompanyName?.trim();
+      if (!code || !name || !/^\d{4,6}$/.test(code)) continue;
+      stocks.push({
+        symbol: `${code}.TWO`,
+        name,
+        market: "TPEX",
+        industry: item.SecuritiesIndustryCode?.trim() || "上櫃公司",
+        sector: "台股"
+      });
+    }
+
+    return Array.from(new Map(stocks.map((stock) => [stock.symbol, stock])).values());
+  });
+
+  return stockUniversePromise;
+}
+
+async function searchOfficialStocks(query: string): Promise<StockProfile[]> {
+  const q = normalizeText(query);
+  if (!q) return COMMON_TW_STOCKS;
+  const universe = await loadOfficialStockUniverse();
+  return universe.filter((stock) => {
+    const name = normalizeText(stock.name);
+    const symbol = normalizeText(stock.symbol);
+    const code = symbol.replace(/\.(TW|TWO)$/, "");
+    return symbol.includes(q) || code === q || name.includes(q) || q.includes(name);
+  });
+}
+
+async function findOfficialBySymbol(symbol: string): Promise<StockProfile | undefined> {
+  const normalized = cleanSymbol(symbol);
+  const universe = await loadOfficialStockUniverse();
+  return universe.find((stock) => stock.symbol === normalized);
+}
+
+export async function yahooSearchStocks(query: string): Promise<StockProfile[]> {
+  const q = query.trim();
+  if (!q) return await loadOfficialStockUniverse();
+
+  const known = await searchOfficialStocks(q);
+  const url = `https://query2.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(q)}&lang=zh-TW&region=TW&quotesCount=10&newsCount=0`;
+
+  try {
+    const data = await fetchJson<YahooSearchResponse>(url);
+    const remote =
+      data.quotes
+        ?.filter((quote) => quote.quoteType === "EQUITY" && isTaiwanEquity(quote.symbol))
+        .map((quote) => stockFromSymbol(quote.symbol || "", quote.shortname || quote.longname))
+        .filter((stock) => stock.symbol) ?? [];
+
+    const merged = [...known, ...remote];
+    return Array.from(new Map(merged.map((stock) => [stock.symbol, stock])).values());
+  } catch {
+    if (known.length > 0) return known;
+    if (/^\d{4,6}$/.test(q)) return [stockFromSymbol(`${q}.TW`), stockFromSymbol(`${q}.TWO`)];
+    return [];
+  }
+}
+
+async function fetchChart(symbol: string, range = "2y", interval = "1d") {
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${range}&interval=${interval}&events=history&includeAdjustedClose=true&lang=zh-TW&region=TW`;
+  const data = await fetchJson<YahooChartResponse>(url);
+  const result = data.chart?.result?.[0];
+  if (!result || data.chart?.error) {
+    throw new Error(data.chart?.error?.description || `找不到 ${symbol} 的 Yahoo Finance K 線資料`);
+  }
+  return result;
+}
+
+export async function downloadPriceBars(symbol: string): Promise<PriceBar[]> {
+  const result = await fetchChart(cleanSymbol(symbol));
+  const timestamps = result.timestamp ?? [];
+  const quote = result.indicators?.quote?.[0];
+  if (!quote || timestamps.length === 0) {
+    throw new Error(`找不到 ${symbol} 的歷史價格資料`);
+  }
+
+  const bars: PriceBar[] = [];
+  for (let index = 0; index < timestamps.length; index += 1) {
+    const open = quote.open?.[index];
+    const high = quote.high?.[index];
+    const low = quote.low?.[index];
+    const close = quote.close?.[index];
+    if (open == null || high == null || low == null || close == null) continue;
+    const volume = quote.volume?.[index] ?? 0;
+    bars.push({
+      date: new Date(timestamps[index] * 1000).toISOString().slice(0, 10),
+      open,
+      high,
+      low,
+      close,
+      volume,
+      turnover: close * volume
+    });
+  }
+
+  if (bars.length < 80) {
+    throw new Error(`${symbol} 可用 K 線不足，無法進行完整分析`);
+  }
+  return bars;
+}
+
+export async function resolveStock(query: string): Promise<StockProfile> {
+  const input = cleanSymbol(query);
+  if (!input) throw new Error("請輸入股票代號或股票名稱");
+
+  if (input.endsWith(".TW") || input.endsWith(".TWO")) {
+    return (await findOfficialBySymbol(input)) ?? stockFromSymbol(input);
+  }
+
+  if (/^\d{4,6}$/.test(input)) {
+    const candidates = [`${input}.TW`, `${input}.TWO`];
+    for (const candidate of candidates) {
+      try {
+        const official = await findOfficialBySymbol(candidate);
+        if (official) return official;
+        const profile = stockFromSymbol(candidate);
+        await downloadPriceBars(candidate);
+        return profile;
+      } catch {
+        // Try the next market suffix.
+      }
+    }
+    throw new Error(`找不到 ${input} 的上市或上櫃價格資料`);
+  }
+
+  const officialResults = await searchOfficialStocks(query);
+  if (officialResults.length > 0) return officialResults[0];
+
+  const results = await yahooSearchStocks(query);
+  for (const stock of results) {
+    try {
+      await downloadPriceBars(stock.symbol);
+      return stock;
+    } catch {
+      // Keep searching until a candidate has valid chart data.
+    }
+  }
+  throw new Error(`找不到符合「${query}」的台股標的`);
+}
+
+export async function getStockProfile(query: string): Promise<StockProfile> {
+  return resolveStock(query);
+}
+
+function sentimentFromTitle(title: string) {
+  const positive = ["成長", "上修", "利多", "突破", "接單", "旺", "新高", "看好", "買超", "擴產", "AI"];
+  const negative = ["下修", "利空", "衰退", "虧損", "跌", "賣超", "警訊", "降評", "減產", "風險"];
+  const score = positive.reduce((sum, word) => sum + (title.includes(word) ? 1 : 0), 0) -
+    negative.reduce((sum, word) => sum + (title.includes(word) ? 1 : 0), 0);
+  return Math.max(-1, Math.min(1, score / 3));
+}
+
+export async function getStockNews(stock: StockProfile) {
+  const url = `https://query2.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(`${stock.symbol} ${stock.name}`)}&lang=zh-TW&region=TW&quotesCount=0&newsCount=6`;
+  try {
+    const data = await fetchJson<YahooSearchResponse>(url);
+    return (
+      data.news?.map((item) => ({
+        title: item.title || "未命名新聞",
+        source: item.publisher || "Yahoo Finance",
+        link: item.link || "",
+        publishedAt: item.providerPublishTime ? new Date(item.providerPublishTime * 1000).toISOString() : "",
+        sentiment: sentimentFromTitle(item.title || "")
+      })) ?? []
+    );
+  } catch {
+    return [];
+  }
+}
+
+export async function marketSnapshot() {
+  if (marketCache && Date.now() - marketCache.at < 60_000) return marketCache.data;
+
+  const symbols = ["^TWII", "^IXIC", "^GSPC", "^DJI", "^SOX", "DX-Y.NYB", "GC=F", "CL=F", "^VIX", "BTC-USD"];
+  const entries = await Promise.allSettled(
+    symbols.map(async (symbol) => {
+      const result = await fetchChart(symbol, "5d", "1d");
+      const meta = result.meta;
+      const price = meta?.regularMarketPrice ?? 0;
+      const prev = meta?.previousClose ?? meta?.chartPreviousClose ?? price;
+      const changePct = prev ? ((price - prev) / prev) * 100 : 0;
+      return { symbol, price, changePct };
+    })
+  );
+
+  const data = Object.fromEntries(
+    entries.map((entry, index) => [
+      symbols[index],
+      entry.status === "fulfilled" ? entry.value.changePct : 0
+    ])
+  );
+  marketCache = { at: Date.now(), data };
+  return data;
+}
