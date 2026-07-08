@@ -23,6 +23,19 @@ const COMMON_TW_STOCKS: StockProfile[] = [
 
 let stockUniversePromise: Promise<StockProfile[]> | null = null;
 let marketCache: { at: number; data: Record<string, number> } | null = null;
+let marketQuoteCache: { at: number; data: MarketQuote[] } | null = null;
+
+export type MarketQuote = {
+  symbol: string;
+  label: string;
+  group: "tw" | "us" | "futures" | "macro" | "crypto";
+  price: number;
+  previousClose: number;
+  change: number;
+  changePct: number;
+  source: string;
+  session: string;
+};
 
 type YahooQuote = {
   symbol?: string;
@@ -333,24 +346,76 @@ export async function getStockNews(stock: StockProfile) {
 export async function marketSnapshot() {
   if (marketCache && Date.now() - marketCache.at < 60_000) return marketCache.data;
 
-  const symbols = ["^TWII", "^IXIC", "^GSPC", "^DJI", "^SOX", "DX-Y.NYB", "GC=F", "CL=F", "^VIX", "BTC-USD"];
-  const entries = await Promise.allSettled(
-    symbols.map(async (symbol) => {
-      const result = await fetchChart(symbol, "5d", "1d");
-      const meta = result.meta;
-      const price = meta?.regularMarketPrice ?? 0;
-      const prev = meta?.previousClose ?? meta?.chartPreviousClose ?? price;
-      const changePct = prev ? ((price - prev) / prev) * 100 : 0;
-      return { symbol, price, changePct };
-    })
-  );
-
-  const data = Object.fromEntries(
-    entries.map((entry, index) => [
-      symbols[index],
-      entry.status === "fulfilled" ? entry.value.changePct : 0
-    ])
-  );
+  const quotes = await marketOverviewQuotes();
+  const data = Object.fromEntries(quotes.map((quote) => [quote.symbol, quote.changePct]));
   marketCache = { at: Date.now(), data };
+  return data;
+}
+
+const MARKET_SYMBOLS: Array<{ symbol: string; label: string; group: MarketQuote["group"] }> = [
+  { symbol: "^TWII", label: "台股加權", group: "tw" },
+  { symbol: "^IXIC", label: "Nasdaq", group: "us" },
+  { symbol: "^GSPC", label: "S&P 500", group: "us" },
+  { symbol: "^DJI", label: "道瓊", group: "us" },
+  { symbol: "^SOX", label: "費半", group: "us" },
+  { symbol: "NQ=F", label: "Nasdaq 100 期貨", group: "futures" },
+  { symbol: "ES=F", label: "S&P 500 期貨", group: "futures" },
+  { symbol: "YM=F", label: "道瓊期貨", group: "futures" },
+  { symbol: "RTY=F", label: "Russell 2000 期貨", group: "futures" },
+  { symbol: "DX-Y.NYB", label: "美元指數", group: "macro" },
+  { symbol: "GC=F", label: "黃金期貨", group: "macro" },
+  { symbol: "CL=F", label: "原油期貨", group: "macro" },
+  { symbol: "^VIX", label: "VIX", group: "macro" },
+  { symbol: "BTC-USD", label: "BTC", group: "crypto" }
+];
+
+function futuresSessionLabel(now = new Date()) {
+  const taipeiHour = Number(new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Taipei", hour: "2-digit", hour12: false }).format(now));
+  return taipeiHour >= 6 && taipeiHour < 18 ? "日盤 / 電子盤" : "夜盤 / 電子盤";
+}
+
+async function quoteFromChart(item: { symbol: string; label: string; group: MarketQuote["group"] }): Promise<MarketQuote> {
+  const result = await fetchChart(item.symbol, "5d", "1d");
+  const meta = result.meta;
+  const quote = result.indicators?.quote?.[0];
+  const closes = quote?.close?.filter((value): value is number => value != null) ?? [];
+  const price = meta?.regularMarketPrice ?? closes[closes.length - 1] ?? 0;
+  const previousClose = meta?.previousClose ?? meta?.chartPreviousClose ?? closes[closes.length - 2] ?? price;
+  const change = price - previousClose;
+  const changePct = previousClose ? (change / previousClose) * 100 : 0;
+  return {
+    symbol: item.symbol,
+    label: item.label,
+    group: item.group,
+    price,
+    previousClose,
+    change,
+    changePct,
+    source: "Yahoo Finance",
+    session: item.group === "futures" ? futuresSessionLabel() : "最新報價"
+  };
+}
+
+export async function marketOverviewQuotes(): Promise<MarketQuote[]> {
+  if (marketQuoteCache && Date.now() - marketQuoteCache.at < 60_000) return marketQuoteCache.data;
+
+  const entries = await Promise.allSettled(
+    MARKET_SYMBOLS.map((item) => quoteFromChart(item))
+  );
+  const data = entries
+    .map((entry, index) =>
+      entry.status === "fulfilled"
+        ? entry.value
+        : {
+            ...MARKET_SYMBOLS[index],
+            price: 0,
+            previousClose: 0,
+            change: 0,
+            changePct: 0,
+            source: "Yahoo Finance",
+            session: MARKET_SYMBOLS[index].group === "futures" ? futuresSessionLabel() : "資料暫缺"
+          }
+    );
+  marketQuoteCache = { at: Date.now(), data };
   return data;
 }
