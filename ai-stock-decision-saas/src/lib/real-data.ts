@@ -28,7 +28,7 @@ let marketQuoteCache: { at: number; data: MarketQuote[] } | null = null;
 export type MarketQuote = {
   symbol: string;
   label: string;
-  group: "tw" | "us" | "futures" | "macro" | "crypto";
+  group: "tw" | "asia" | "us" | "futures" | "macro" | "crypto";
   price: number;
   previousClose: number;
   change: number;
@@ -354,6 +354,9 @@ export async function marketSnapshot() {
 
 const MARKET_SYMBOLS: Array<{ symbol: string; label: string; group: MarketQuote["group"] }> = [
   { symbol: "^TWII", label: "台股加權", group: "tw" },
+  { symbol: "^N225", label: "日本日經 225", group: "asia" },
+  { symbol: "^KS11", label: "韓國 KOSPI", group: "asia" },
+  { symbol: "^KQ11", label: "韓國 KOSDAQ", group: "asia" },
   { symbol: "^IXIC", label: "Nasdaq", group: "us" },
   { symbol: "^GSPC", label: "S&P 500", group: "us" },
   { symbol: "^DJI", label: "道瓊", group: "us" },
