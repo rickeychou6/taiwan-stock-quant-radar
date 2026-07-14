@@ -1,0 +1,161 @@
+import Link from "next/link";
+import { ArrowDownRight, ArrowUpRight, ShieldCheck, Target, TrendingUp } from "lucide-react";
+import { MetricCard } from "@/components/MetricCard";
+import { runStockRecommendations, type StockRecommendation } from "@/lib/recommendation-engine";
+
+export const dynamic = "force-dynamic";
+
+function formatPrice(value: number) {
+  return `${value.toFixed(2)} 元`;
+}
+
+function formatPct(value: number) {
+  return `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
+}
+
+function recommendationTone(item: StockRecommendation) {
+  if (item.recommendation === "買入候選") return "border-emerald-400/50 bg-emerald-400/10 text-emerald-200";
+  if (item.recommendation === "等待回檔") return "border-amber-400/50 bg-amber-400/10 text-amber-200";
+  return "border-slate-500/50 bg-slate-500/10 text-slate-200";
+}
+
+function RecommendationCard({ item, rank }: { item: StockRecommendation; rank: number }) {
+  const isUp = item.changePct >= 0;
+
+  return (
+    <article className="glass rounded-3xl p-5">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-3">
+            <span className="grid h-9 w-9 place-items-center rounded-2xl bg-blue-600 text-sm font-black text-white">
+              {rank}
+            </span>
+            <div>
+              <h2 className="text-2xl font-black text-white">{item.name}</h2>
+              <p className="text-sm text-slate-400">{item.symbol} · {item.trendStage} · {item.holdingPeriod}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className={`rounded-2xl border px-4 py-2 text-sm font-black ${recommendationTone(item)}`}>
+          {item.recommendation}
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+        <MetricCard label="現價" value={formatPrice(item.price)} sub={formatPct(item.changePct)} tone={isUp ? "bull" : "bear"} />
+        <MetricCard label="AI 分數" value={item.finalScore} sub={`信心 ${item.confidence}%`} tone={item.finalScore >= 66 ? "bull" : item.finalScore >= 55 ? "warn" : "neutral"} />
+        <MetricCard label="買入區間" value={item.idealBuyPrice} sub="分批掛單區" tone="bull" />
+        <MetricCard label="停損價" value={formatPrice(item.stopLossPrice)} sub="跌破應停損" tone="bear" />
+        <MetricCard label="賣出目標" value={item.sellPrice} sub="第一 / 第二目標" tone="warn" />
+        <MetricCard label="3-5 天機率" value={`${item.probabilityUp3To5}%`} sub={`第 5 天 ${formatPct(item.forecastDay5Pct)}`} tone={item.probabilityUp3To5 >= 56 ? "bull" : "warn"} />
+      </div>
+
+      <div className="mt-5 grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+        <div className="rounded-2xl border border-slate-700/60 bg-slate-950/35 p-4">
+          <h3 className="flex items-center gap-2 text-lg font-black text-white">
+            <TrendingUp className="h-5 w-5 text-emerald-300" />
+            推薦原因
+          </h3>
+          <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-300">
+            {item.reasons.map((reason) => (
+              <li key={reason}>• {reason}</li>
+            ))}
+          </ul>
+          {item.warning ? <p className="mt-3 rounded-2xl bg-rose-500/10 p-3 text-sm text-rose-200">{item.warning}</p> : null}
+        </div>
+
+        <div className="rounded-2xl border border-slate-700/60 bg-slate-950/35 p-4">
+          <h3 className="flex items-center gap-2 text-lg font-black text-white">
+            <Target className="h-5 w-5 text-blue-300" />
+            交易規劃
+          </h3>
+          <div className="mt-3 space-y-3 text-sm text-slate-300">
+            <div className="flex items-center justify-between gap-4">
+              <span className="flex items-center gap-2"><ArrowUpRight className="h-4 w-4 text-emerald-300" />買入</span>
+              <span className="font-bold text-white">{item.buyPrice}</span>
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <span className="flex items-center gap-2"><ArrowDownRight className="h-4 w-4 text-rose-300" />停損</span>
+              <span className="font-bold text-white">{formatPrice(item.stopLossPrice)}</span>
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <span className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-amber-300" />報酬風險比</span>
+              <span className="font-bold text-white">1 : {item.riskReward.toFixed(2)}</span>
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <span>持股後建議</span>
+              <span className="font-bold text-white">{item.positionAdvice}</span>
+            </div>
+          </div>
+          <Link
+            href={`/dashboard?symbol=${encodeURIComponent(item.symbol)}`}
+            className="mt-4 inline-flex w-full justify-center rounded-2xl bg-blue-600 px-4 py-3 text-sm font-black text-white transition hover:bg-blue-500"
+          >
+            查看完整單股分析
+          </Link>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+export default async function RecommendationsPage() {
+  const report = await runStockRecommendations({ scanLimit: 10, outputLimit: 10, concurrency: 4 });
+  const buyRows = report.recommendations.filter((item) => item.recommendation === "買入候選");
+  const watchRows = report.recommendations.filter((item) => item.recommendation !== "買入候選");
+  const averageScore = report.recommendations.length
+    ? Math.round(report.recommendations.reduce((sum, item) => sum + item.finalScore, 0) / report.recommendations.length)
+    : 0;
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <p className="text-sm text-slate-400">Stock Recommendation Radar</p>
+        <h1 className="text-3xl font-black text-white">個股推薦雷達</h1>
+        <p className="mt-2 max-w-3xl text-slate-300">
+          系統會用真實 K 線、量價、布林、箱型、MACD、KD、RSI、ATR、資金熱度與消息面摘要做初步掃描，
+          再整理成買入候選、等待回檔與暫不買入。此頁僅供研究輔助，不構成投資建議。
+        </p>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <MetricCard label="本次掃描" value={`${report.success}/${report.scanned} 檔`} sub={report.failed ? `失敗 ${report.failed} 檔` : "全部完成"} tone={report.failed ? "warn" : "bull"} />
+        <MetricCard label="買入候選" value={`${report.buyCandidates} 檔`} sub="達到分數與風險條件" tone={report.buyCandidates ? "bull" : "warn"} />
+        <MetricCard label="平均 AI 分數" value={averageScore} sub="本頁入選清單平均" tone={averageScore >= 66 ? "bull" : averageScore >= 55 ? "warn" : "neutral"} />
+        <MetricCard label="更新時間" value={new Date(report.updatedAt).toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" })} sub="即時重新分析" />
+      </div>
+
+      {buyRows.length ? (
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-2xl font-black text-white">可優先研究的買入候選</h2>
+            <p className="mt-1 text-sm text-slate-400">同時通過 AI 分數、3-5 天機率與報酬風險比篩選。</p>
+          </div>
+          {buyRows.map((item, index) => <RecommendationCard key={item.symbol} item={item} rank={index + 1} />)}
+        </section>
+      ) : (
+        <div className="rounded-3xl border border-amber-400/30 bg-amber-400/10 p-5 text-amber-100">
+          目前沒有同時通過分數、上漲機率與報酬風險比的強買候選。系統已把最接近條件的股票列在下方，適合等待回檔或突破再確認。
+        </div>
+      )}
+
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-2xl font-black text-white">候選觀察清單</h2>
+          <p className="mt-1 text-sm text-slate-400">包含等待回檔與暫不買入，方便比較原因與價位。</p>
+        </div>
+        {watchRows.map((item, index) => <RecommendationCard key={item.symbol} item={item} rank={buyRows.length + index + 1} />)}
+      </section>
+
+      {report.errors.length ? (
+        <div className="rounded-3xl border border-rose-400/30 bg-rose-400/10 p-5">
+          <h2 className="font-black text-rose-100">未完成分析</h2>
+          <p className="mt-2 text-sm text-rose-100/80">
+            {report.errors.map((error) => `${error.symbol}: ${error.message}`).join("；")}
+          </p>
+        </div>
+      ) : null}
+    </div>
+  );
+}

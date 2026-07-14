@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { BarChart3, Briefcase, Gauge, Home, ListChecks, ShieldAlert, UserCircle } from "lucide-react";
+import { BarChart3, Briefcase, Gauge, Home, ListChecks, ShieldAlert, Sparkles, UserCircle } from "lucide-react";
 import { RiskNotice } from "@/components/RiskNotice";
 
 const navItems = [
   { href: "/", label: "首頁", icon: Home },
   { href: "/dashboard", label: "分析 Dashboard", icon: Gauge },
+  { href: "/recommendations", label: "個股推薦", icon: Sparkles },
   { href: "/watchlist", label: "自選股", icon: ListChecks },
   { href: "/portfolio", label: "持股管理", icon: Briefcase },
   { href: "/market", label: "市場總覽", icon: BarChart3 },
