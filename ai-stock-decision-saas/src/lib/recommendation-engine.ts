@@ -71,7 +71,8 @@ function clamp(value: number, min = 0, max = 100) {
 }
 
 function riskRewardOf(analysis: AnalysisResult) {
-  const risk = Math.max(0.01, analysis.price - analysis.stopLossPrice);
+  const risk = analysis.price - analysis.stopLossPrice;
+  if (risk <= 0) return 0;
   const reward = Math.max(0, analysis.takeProfit1 - analysis.price);
   return Number((reward / risk).toFixed(2));
 }
@@ -86,7 +87,11 @@ function buildReasons(analysis: AnalysisResult, riskReward: number) {
   reasons.push(
     `3-5 天上漲機率 ${analysis.postEntryForecast.probabilityUp3To5}%，預估第 5 天 ${analysis.postEntryForecast.day5Pct >= 0 ? "+" : ""}${analysis.postEntryForecast.day5Pct.toFixed(2)}%。`
   );
-  reasons.push(`目前報酬風險比約 1 : ${riskReward.toFixed(2)}，停損以 ${analysis.stopLossPrice.toFixed(2)} 元控管。`);
+  reasons.push(
+    riskReward > 0
+      ? `目前報酬風險比約 1 : ${riskReward.toFixed(2)}，停損以 ${analysis.stopLossPrice.toFixed(2)} 元控管。`
+      : `現價已低於或貼近停損線 ${analysis.stopLossPrice.toFixed(2)} 元，不列入買入候選。`
+  );
 
   return reasons;
 }
@@ -112,11 +117,14 @@ function transform(analysis: AnalysisResult): StockRecommendation {
   const recommendation = recommendationOf(analysis, riskReward);
   const probability = analysis.postEntryForecast.probabilityUp3To5;
   const forecast = analysis.postEntryForecast.day5Pct;
+  const actionPenalty =
+    analysis.action === "SELL" || analysis.action === "STOP_LOSS" ? -35 : analysis.action === "REDUCE" ? -18 : 0;
   const rankScore =
     analysis.finalScore +
     probability * 0.22 +
     clamp(riskReward, 0, 3) * 7 +
-    Math.max(-8, Math.min(10, forecast * 1.3));
+    Math.max(-8, Math.min(10, forecast * 1.3)) +
+    actionPenalty;
 
   return {
     symbol: analysis.symbol,
