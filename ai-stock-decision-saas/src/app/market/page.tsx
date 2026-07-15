@@ -33,7 +33,8 @@ function MarketQuoteCard({ quote }: { quote: MarketQuote }) {
 
 export default async function MarketPage() {
   const quotes = await marketOverviewQuotes();
-  const headline = quotes.filter((quote) => quote.group !== "futures");
+  const headline = quotes.filter((quote) => quote.group !== "futures" && quote.group !== "twfutures");
+  const twFutures = quotes.filter((quote) => quote.group === "twfutures");
   const futures = quotes.filter((quote) => quote.group === "futures");
 
   return (
@@ -41,12 +42,46 @@ export default async function MarketPage() {
       <div>
         <p className="text-sm text-slate-400">Market Overview</p>
         <h1 className="text-3xl font-black text-white">市場總覽</h1>
-        <p className="mt-2 text-slate-300">資料來源：Yahoo Finance 真實報價。顯示最新點數、漲跌點與漲跌百分比。</p>
+        <p className="mt-2 text-slate-300">資料來源：TWSE MIS、TAIFEX 官方即時行情與 Yahoo Finance。顯示最新點數、漲跌點與漲跌百分比。</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {headline.map((quote) => <MarketQuoteCard key={quote.symbol} quote={quote} />)}
       </div>
+
+      {twFutures.length > 0 ? (
+        <div className="glass rounded-3xl p-5">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-sm text-slate-400">TAIFEX Taiwan Index Futures</p>
+              <h2 className="text-xl font-black text-white">台指期日 / 夜盤</h2>
+            </div>
+            <p className="text-sm text-slate-400">免費官方即時行情，依成交量自動選取近月活躍合約。</p>
+          </div>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            {twFutures.map((quote) => (
+              <div key={quote.symbol} className="glass rounded-2xl p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm text-slate-400">{quote.label}</p>
+                    <p className="mt-1 text-xs text-slate-500">{quote.symbol}</p>
+                  </div>
+                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${quote.change >= 0 ? "bg-emerald-400/15 text-emerald-300" : "bg-rose-400/15 text-rose-300"}`}>
+                    {formatPct(quote.changePct)}
+                  </span>
+                </div>
+                <p className={`mt-4 text-4xl font-black tracking-tight ${quote.change >= 0 ? "text-emerald-300" : "text-rose-300"}`}>
+                  {formatNumber(quote.price)}
+                </p>
+                <p className={`mt-2 text-base font-bold ${quote.change >= 0 ? "text-emerald-300" : "text-rose-300"}`}>
+                  {formatChange(quote.change)} 點 / {formatPct(quote.changePct)}
+                </p>
+                <p className="mt-3 text-xs text-slate-400">{quote.session} · {quote.source}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <div className="glass rounded-3xl p-5">
         <h2 className="text-xl font-black text-white">美股期貨日 / 夜盤</h2>

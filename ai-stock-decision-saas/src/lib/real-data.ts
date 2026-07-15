@@ -30,7 +30,7 @@ let marketQuoteCache: { at: number; data: MarketQuote[] } | null = null;
 export type MarketQuote = {
   symbol: string;
   label: string;
-  group: "tw" | "asia" | "us" | "futures" | "macro" | "crypto";
+  group: "tw" | "twfutures" | "asia" | "us" | "futures" | "macro" | "crypto";
   price: number;
   previousClose: number;
   change: number;
@@ -117,6 +117,27 @@ type RealtimeQuote = {
   source: string;
 };
 
+type TaifexQuoteItem = {
+  SymbolID?: string;
+  DispCName?: string;
+  Status?: string;
+  CTotalVolume?: string;
+  CLastPrice?: string;
+  CRefPrice?: string;
+  CDiff?: string;
+  CDiffRate?: string;
+  CDate?: string;
+  CTime?: string;
+};
+
+type TaifexQuoteResponse = {
+  RtCode?: string;
+  RtMsg?: string;
+  RtData?: {
+    QuoteList?: TaifexQuoteItem[];
+  };
+};
+
 async function fetchJson<T>(url: string): Promise<T> {
   const response = await fetch(url, {
     cache: "no-store",
@@ -127,6 +148,25 @@ async function fetchJson<T>(url: string): Promise<T> {
   });
   if (!response.ok) {
     throw new Error(`資料來源回應失敗：${response.status}`);
+  }
+  return response.json() as Promise<T>;
+}
+
+async function fetchTaifexJson<T>(url: string, body: unknown): Promise<T> {
+  const response = await fetch(url, {
+    method: "POST",
+    cache: "no-store",
+    headers: {
+      "User-Agent": USER_AGENT,
+      Accept: "application/json, text/plain, */*",
+      "Content-Type": "application/json",
+      Origin: "https://mis.taifex.com.tw",
+      Referer: "https://mis.taifex.com.tw/futures/"
+    },
+    body: JSON.stringify(body)
+  });
+  if (!response.ok) {
+    throw new Error(`TAIFEX 即時資料來源回應失敗：${response.status}`);
   }
   return response.json() as Promise<T>;
 }
@@ -199,6 +239,13 @@ function twseMisChannel(symbol: string) {
 function formatMisDate(raw?: string) {
   if (!raw || !/^\d{8}$/.test(raw)) return undefined;
   return `${raw.slice(0, 4)}-${raw.slice(4, 6)}-${raw.slice(6, 8)}`;
+}
+
+function formatMarketTime(date?: string, time?: string) {
+  const day = formatMisDate(date);
+  if (!time || !/^\d{6}$/.test(time)) return day || "";
+  const clock = `${time.slice(0, 2)}:${time.slice(2, 4)}:${time.slice(4, 6)}`;
+  return day ? `${day} ${clock}` : clock;
 }
 
 async function fetchTaiwanRealtimeQuote(symbol: string): Promise<RealtimeQuote | null> {
@@ -497,6 +544,48 @@ export async function marketSnapshot() {
   return data;
 }
 
+function taifexActiveContract(items: TaifexQuoteItem[], sessionSuffix: "-F" | "-M") {
+  return items
+    .filter((item) => item.SymbolID?.startsWith("TXF") && item.SymbolID.endsWith(sessionSuffix))
+    .map((item) => ({
+      item,
+      volume: parseTaiwanNumber(item.CTotalVolume) ?? 0,
+      price: parseTaiwanNumber(item.CLastPrice) ?? 0
+    }))
+    .filter((row) => row.price > 0)
+    .sort((a, b) => b.volume - a.volume || a.item.SymbolID!.localeCompare(b.item.SymbolID!))[0]?.item;
+}
+
+function taifexQuoteToMarketQuote(item: TaifexQuoteItem, label: string, session: string): MarketQuote {
+  const price = parseTaiwanNumber(item.CLastPrice) ?? 0;
+  const previousClose = parseTaiwanNumber(item.CRefPrice) ?? price;
+  const change = parseTaiwanNumber(item.CDiff) ?? price - previousClose;
+  const changePct = parseTaiwanNumber(item.CDiffRate) ?? (previousClose ? (change / previousClose) * 100 : 0);
+  return {
+    symbol: item.SymbolID || label,
+    label,
+    group: "twfutures",
+    price,
+    previousClose,
+    change,
+    changePct,
+    source: "TAIFEX 官方即時行情",
+    session: `${session} · ${formatMarketTime(item.CDate, item.CTime)}`
+  };
+}
+
+async function taifexIndexFuturesQuotes(): Promise<MarketQuote[]> {
+  const data = await fetchTaifexJson<TaifexQuoteResponse>("https://mis.taifex.com.tw/futures/api/getQuoteList", {});
+  const items = data.RtData?.QuoteList ?? [];
+  const day = taifexActiveContract(items, "-F");
+  const night = taifexActiveContract(items, "-M");
+  const rows: MarketQuote[] = [];
+
+  if (day) rows.push(taifexQuoteToMarketQuote(day, "台指期日盤", "日盤"));
+  if (night) rows.push(taifexQuoteToMarketQuote(night, "台指期夜盤", "夜盤"));
+  return rows;
+}
+
 const MARKET_SYMBOLS: Array<{ symbol: string; label: string; group: MarketQuote["group"] }> = [
   { symbol: "^TWII", label: "台股加權", group: "tw" },
   { symbol: "^N225", label: "日本日經 225", group: "asia" },
@@ -567,10 +656,11 @@ async function quoteFromChart(item: { symbol: string; label: string; group: Mark
 export async function marketOverviewQuotes(): Promise<MarketQuote[]> {
   if (marketQuoteCache && Date.now() - marketQuoteCache.at < 15_000) return marketQuoteCache.data;
 
-  const entries = await Promise.allSettled(
-    MARKET_SYMBOLS.map((item) => quoteFromChart(item))
-  );
-  const data = entries
+  const [marketEntries, twFutureEntries] = await Promise.all([
+    Promise.allSettled(MARKET_SYMBOLS.map((item) => quoteFromChart(item))),
+    taifexIndexFuturesQuotes().catch(() => [])
+  ]);
+  const data = marketEntries
     .map((entry, index) =>
       entry.status === "fulfilled"
         ? entry.value
@@ -583,7 +673,8 @@ export async function marketOverviewQuotes(): Promise<MarketQuote[]> {
             source: "Yahoo Finance",
             session: MARKET_SYMBOLS[index].group === "futures" ? futuresSessionLabel() : "資料暫缺"
           }
-    );
+    )
+    .flatMap((quote, index) => (index === 1 ? [...twFutureEntries, quote] : [quote]));
   marketQuoteCache = { at: Date.now(), data };
   return data;
 }
