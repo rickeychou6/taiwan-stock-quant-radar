@@ -15,6 +15,8 @@ function formatPct(value: number) {
 
 function recommendationTone(item: StockRecommendation) {
   if (item.recommendation === "買入候選") return "border-emerald-400/50 bg-emerald-400/10 text-emerald-200";
+  if (item.recommendation === "可小量試單") return "border-blue-400/50 bg-blue-400/10 text-blue-100";
+  if (item.recommendation === "接近買點") return "border-cyan-400/50 bg-cyan-400/10 text-cyan-100";
   if (item.recommendation === "等待回檔") return "border-amber-400/50 bg-amber-400/10 text-amber-200";
   return "border-slate-500/50 bg-slate-500/10 text-slate-200";
 }
@@ -72,7 +74,7 @@ function RecommendationCard({ item, rank }: { item: StockRecommendation; rank: n
           </h3>
           <div className="mt-3 space-y-3 text-sm text-slate-300">
             <div className="flex items-center justify-between gap-4">
-              <span className="flex items-center gap-2"><ArrowUpRight className="h-4 w-4 text-emerald-300" />買入</span>
+              <span className="flex items-center gap-2"><ArrowUpRight className="h-4 w-4 text-emerald-300" />買入規劃</span>
               <span className="font-bold text-white">{item.buyPrice}</span>
             </div>
             <div className="flex items-center justify-between gap-4">
@@ -101,9 +103,10 @@ function RecommendationCard({ item, rank }: { item: StockRecommendation; rank: n
 }
 
 export default async function RecommendationsPage() {
-  const report = await runStockRecommendations({ scanLimit: 10, outputLimit: 10, concurrency: 4 });
-  const buyRows = report.recommendations.filter((item) => item.recommendation === "買入候選");
-  const watchRows = report.recommendations.filter((item) => item.recommendation !== "買入候選");
+  const report = await runStockRecommendations({ scanLimit: 18, outputLimit: 14, concurrency: 5 });
+  const buyRows = report.recommendations.filter((item) => item.recommendation === "買入候選" || item.recommendation === "可小量試單");
+  const nearRows = report.recommendations.filter((item) => item.recommendation === "接近買點" || item.recommendation === "等待回檔");
+  const avoidRows = report.recommendations.filter((item) => item.recommendation === "暫不買入");
   const averageScore = report.recommendations.length
     ? Math.round(report.recommendations.reduce((sum, item) => sum + item.finalScore, 0) / report.recommendations.length)
     : 0;
@@ -115,13 +118,13 @@ export default async function RecommendationsPage() {
         <h1 className="text-3xl font-black text-white">個股推薦雷達</h1>
         <p className="mt-2 max-w-3xl text-slate-300">
           系統會用真實 K 線、量價、布林、箱型、MACD、KD、RSI、ATR、資金熱度與消息面摘要做初步掃描，
-          再整理成買入候選、等待回檔與暫不買入。此頁僅供研究輔助，不構成投資建議。
+          再整理成買入候選、可小量試單、接近買點、等待回檔與暫不買入。此頁僅供研究輔助，不構成投資建議。
         </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard label="本次掃描" value={`${report.success}/${report.scanned} 檔`} sub={report.failed ? `失敗 ${report.failed} 檔` : "全部完成"} tone={report.failed ? "warn" : "bull"} />
-        <MetricCard label="買入候選" value={`${report.buyCandidates} 檔`} sub="達到分數與風險條件" tone={report.buyCandidates ? "bull" : "warn"} />
+        <MetricCard label="可買/試單" value={`${report.buyCandidates} 檔`} sub="買入候選 + 可小量試單" tone={report.buyCandidates ? "bull" : "warn"} />
         <MetricCard label="平均 AI 分數" value={averageScore} sub="本頁入選清單平均" tone={averageScore >= 66 ? "bull" : averageScore >= 55 ? "warn" : "neutral"} />
         <MetricCard label="更新時間" value={new Date(report.updatedAt).toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" })} sub="即時重新分析" />
       </div>
@@ -129,24 +132,36 @@ export default async function RecommendationsPage() {
       {buyRows.length ? (
         <section className="space-y-4">
           <div>
-            <h2 className="text-2xl font-black text-white">可優先研究的買入候選</h2>
-            <p className="mt-1 text-sm text-slate-400">同時通過 AI 分數、3-5 天機率與報酬風險比篩選。</p>
+            <h2 className="text-2xl font-black text-white">現在可優先看的標的</h2>
+            <p className="mt-1 text-sm text-slate-400">買入候選可分批，試單候選只適合小量，不追高、不重倉。</p>
           </div>
           {buyRows.map((item, index) => <RecommendationCard key={item.symbol} item={item} rank={index + 1} />)}
         </section>
       ) : (
         <div className="rounded-3xl border border-amber-400/30 bg-amber-400/10 p-5 text-amber-100">
-          目前沒有同時通過分數、上漲機率與報酬風險比的強買候選。系統已把最接近條件的股票列在下方，適合等待回檔或突破再確認。
+          目前沒有達到「買入候選 / 可小量試單」的標的。這代表現在盤面不適合硬買，請看下方「接近買點」等待價格或量能條件。
         </div>
       )}
 
-      <section className="space-y-4">
-        <div>
-          <h2 className="text-2xl font-black text-white">候選觀察清單</h2>
-          <p className="mt-1 text-sm text-slate-400">包含等待回檔與暫不買入，方便比較原因與價位。</p>
-        </div>
-        {watchRows.map((item, index) => <RecommendationCard key={item.symbol} item={item} rank={buyRows.length + index + 1} />)}
-      </section>
+      {nearRows.length ? (
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-2xl font-black text-white">接近買點 / 等待回檔</h2>
+            <p className="mt-1 text-sm text-slate-400">這些不是立即重倉買進，適合設警示、等回測或突破確認。</p>
+          </div>
+          {nearRows.map((item, index) => <RecommendationCard key={item.symbol} item={item} rank={buyRows.length + index + 1} />)}
+        </section>
+      ) : null}
+
+      {avoidRows.length ? (
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-2xl font-black text-white">暫不買入</h2>
+            <p className="mt-1 text-sm text-slate-400">破線、停損或條件不足的標的放在最後，避免你誤買弱勢股。</p>
+          </div>
+          {avoidRows.map((item, index) => <RecommendationCard key={item.symbol} item={item} rank={buyRows.length + nearRows.length + index + 1} />)}
+        </section>
+      ) : null}
 
       {report.errors.length ? (
         <div className="rounded-3xl border border-rose-400/30 bg-rose-400/10 p-5">

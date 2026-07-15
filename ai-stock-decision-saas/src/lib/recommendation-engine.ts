@@ -8,7 +8,7 @@ export type StockRecommendation = {
   changePct: number;
   finalScore: number;
   action: Action;
-  recommendation: "買入候選" | "等待回檔" | "暫不買入";
+  recommendation: "買入候選" | "可小量試單" | "接近買點" | "等待回檔" | "暫不買入";
   confidence: number;
   trendStage: string;
   buyPrice: string;
@@ -115,13 +115,25 @@ function buildReasons(analysis: AnalysisResult, riskReward: number) {
 function recommendationOf(analysis: AnalysisResult, riskReward: number) {
   const upProbability = analysis.postEntryForecast.probabilityUp3To5;
   const action = analysis.action;
-  const positiveAction = action === "BUY" || action === "HOLD" || action === "WATCH";
+  const blocked = action === "SELL" || action === "STOP_LOSS" || riskReward <= 0 || analysis.price <= analysis.stopLossPrice;
+  const weakTrend = analysis.trendStage === "破線" || analysis.trendStage === "轉弱";
+  const forecastPositive = analysis.postEntryForecast.day5Pct >= 0;
 
-  if (analysis.finalScore >= 66 && upProbability >= 56 && riskReward >= 1.05 && positiveAction) {
+  if (blocked) return "暫不買入" as const;
+
+  if (analysis.finalScore >= 62 && upProbability >= 55 && riskReward >= 1.15 && forecastPositive) {
     return "買入候選" as const;
   }
 
-  if (analysis.finalScore >= 55 && upProbability >= 50 && action !== "SELL" && action !== "STOP_LOSS") {
+  if (analysis.finalScore >= 48 && upProbability >= 52 && riskReward >= 1.2 && forecastPositive && !weakTrend) {
+    return "可小量試單" as const;
+  }
+
+  if (analysis.finalScore >= 45 && upProbability >= 48 && riskReward >= 1.5) {
+    return "接近買點" as const;
+  }
+
+  if (analysis.finalScore >= 50 && upProbability >= 48) {
     return "等待回檔" as const;
   }
 
@@ -217,7 +229,7 @@ export async function runStockRecommendations(options?: {
     .filter((row): row is StockRecommendation => Boolean(row))
     .sort((a, b) => {
       if (a.recommendation !== b.recommendation) {
-        const weight = { 買入候選: 3, 等待回檔: 2, 暫不買入: 1 };
+        const weight = { 買入候選: 5, 可小量試單: 4, 接近買點: 3, 等待回檔: 2, 暫不買入: 1 };
         return weight[b.recommendation] - weight[a.recommendation];
       }
       return b.rankScore - a.rankScore;
@@ -229,7 +241,7 @@ export async function runStockRecommendations(options?: {
     scanned: targets.length,
     success: rows.filter(Boolean).length,
     failed: errors.length,
-    buyCandidates: recommendations.filter((item) => item.recommendation === "買入候選").length,
+    buyCandidates: recommendations.filter((item) => item.recommendation === "買入候選" || item.recommendation === "可小量試單").length,
     recommendations,
     errors
   };
