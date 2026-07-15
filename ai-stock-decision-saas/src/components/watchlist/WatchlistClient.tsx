@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Plus, RefreshCw, Trash2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Bell, Plus, RefreshCw, Trash2, Volume2 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MetricCard } from "@/components/MetricCard";
 import type { AnalysisResult } from "@/lib/types";
 import { pct, price } from "@/lib/utils";
@@ -19,7 +19,18 @@ type WatchRow = {
   error?: string;
 };
 
+type AlertEvent = {
+  key: string;
+  symbol: string;
+  name: string;
+  type: "買點" | "第一目標" | "第二目標" | "停損";
+  message: string;
+  tone: "bull" | "bear" | "warn";
+  createdAt: string;
+};
+
 const STORAGE_KEY = "ai-stock-watchlist-v2";
+const ALERT_SOUND_KEY = "ai-stock-watchlist-alert-sound";
 
 const DEFAULT_ITEMS: WatchItem[] = [
   { id: "2330.TW", symbol: "2330.TW", note: "權值股觀察" },
@@ -45,12 +56,99 @@ function watchTone(row: WatchRow) {
   return "warn" as const;
 }
 
+function parseBuyRange(value: string) {
+  const numbers = value.match(/\d+(?:\.\d+)?/g)?.map(Number).filter(Number.isFinite) ?? [];
+  if (numbers.length >= 2) return { low: Math.min(numbers[0], numbers[1]), high: Math.max(numbers[0], numbers[1]) };
+  if (numbers.length === 1) return { low: numbers[0], high: numbers[0] };
+  return null;
+}
+
+function alertEventsFor(row: WatchRow): AlertEvent[] {
+  if (!row.analysis) return [];
+  const analysis = row.analysis;
+  const now = new Date().toISOString();
+  const rows: AlertEvent[] = [];
+  const buyRange = parseBuyRange(analysis.buyPrice);
+  const inBuyRange = buyRange ? analysis.price >= buyRange.low && analysis.price <= buyRange.high : false;
+
+  if (analysis.action === "BUY" || inBuyRange) {
+    rows.push({
+      key: `${analysis.symbol}-BUY-${analysis.price.toFixed(2)}`,
+      symbol: analysis.symbol,
+      name: analysis.name,
+      type: "買點",
+      message: `${analysis.name} 觸發買點，現價 ${price(analysis.price)}，建議買點 ${analysis.buyPrice}`,
+      tone: "bull",
+      createdAt: now
+    });
+  }
+
+  if (analysis.price <= analysis.stopLossPrice || analysis.action === "STOP_LOSS" || analysis.action === "SELL") {
+    rows.push({
+      key: `${analysis.symbol}-STOP-${analysis.stopLossPrice.toFixed(2)}`,
+      symbol: analysis.symbol,
+      name: analysis.name,
+      type: "停損",
+      message: `${analysis.name} 觸發停損/賣出警示，現價 ${price(analysis.price)}，停損價 ${price(analysis.stopLossPrice)}`,
+      tone: "bear",
+      createdAt: now
+    });
+  } else if (analysis.price >= analysis.takeProfit2) {
+    rows.push({
+      key: `${analysis.symbol}-TP2-${analysis.takeProfit2.toFixed(2)}`,
+      symbol: analysis.symbol,
+      name: analysis.name,
+      type: "第二目標",
+      message: `${analysis.name} 已達第二目標，現價 ${price(analysis.price)}，建議分批獲利。`,
+      tone: "warn",
+      createdAt: now
+    });
+  } else if (analysis.price >= analysis.takeProfit1) {
+    rows.push({
+      key: `${analysis.symbol}-TP1-${analysis.takeProfit1.toFixed(2)}`,
+      symbol: analysis.symbol,
+      name: analysis.name,
+      type: "第一目標",
+      message: `${analysis.name} 已達第一目標，現價 ${price(analysis.price)}，第一目標 ${price(analysis.takeProfit1)}`,
+      tone: "warn",
+      createdAt: now
+    });
+  }
+
+  return rows;
+}
+
+function playAlarm() {
+  const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  if (!AudioContextClass) return;
+  const context = new AudioContextClass();
+  const gain = context.createGain();
+  gain.gain.value = 0.05;
+  gain.connect(context.destination);
+
+  [0, 0.18, 0.36].forEach((offset) => {
+    const oscillator = context.createOscillator();
+    oscillator.type = "sine";
+    oscillator.frequency.value = 880;
+    oscillator.connect(gain);
+    oscillator.start(context.currentTime + offset);
+    oscillator.stop(context.currentTime + offset + 0.12);
+  });
+
+  window.setTimeout(() => void context.close(), 900);
+}
+
 export function WatchlistClient() {
   const [items, setItems] = useState<WatchItem[]>(DEFAULT_ITEMS);
   const [rows, setRows] = useState<WatchRow[]>([]);
   const [symbol, setSymbol] = useState("");
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
+  const [alertsEnabled, setAlertsEnabled] = useState(false);
+  const [autoCheck, setAutoCheck] = useState(true);
+  const [alertEvents, setAlertEvents] = useState<AlertEvent[]>([]);
+  const alertedKeysRef = useRef<Record<string, number>>({});
+  const rowsRef = useRef<WatchRow[]>([]);
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -61,11 +159,16 @@ export function WatchlistClient() {
     } catch {
       localStorage.removeItem(STORAGE_KEY);
     }
+    setAlertsEnabled(localStorage.getItem(ALERT_SOUND_KEY) === "enabled");
   }, []);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   }, [items]);
+
+  useEffect(() => {
+    rowsRef.current = rows;
+  }, [rows]);
 
   const totalScore = useMemo(() => {
     const valid = rows.filter((row) => row.analysis);
@@ -84,7 +187,10 @@ export function WatchlistClient() {
         }
       })
     )
-      .then(setRows)
+      .then((nextRows) => {
+        setRows(nextRows);
+        inspectAlerts(nextRows);
+      })
       .finally(() => setLoading(false));
   }
 
@@ -92,6 +198,48 @@ export function WatchlistClient() {
     loadRows(items);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items]);
+
+  useEffect(() => {
+    if (!alertsEnabled || !autoCheck) return;
+    const timer = window.setInterval(() => loadRows(items), 60_000);
+    return () => window.clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [alertsEnabled, autoCheck, items]);
+
+  async function enableAlerts() {
+    playAlarm();
+    if ("Notification" in window && Notification.permission === "default") {
+      await Notification.requestPermission();
+    }
+    if ("vibrate" in navigator) navigator.vibrate([120, 80, 120]);
+    localStorage.setItem(ALERT_SOUND_KEY, "enabled");
+    setAlertsEnabled(true);
+    inspectAlerts(rowsRef.current);
+  }
+
+  function inspectAlerts(nextRows: WatchRow[]) {
+    if (!alertsEnabled && localStorage.getItem(ALERT_SOUND_KEY) !== "enabled") return;
+    const now = Date.now();
+    const freshEvents = nextRows.flatMap(alertEventsFor).filter((event) => {
+      const lastTime = alertedKeysRef.current[event.key] ?? 0;
+      return now - lastTime > 10 * 60_000;
+    });
+    if (!freshEvents.length) return;
+
+    for (const event of freshEvents) {
+      alertedKeysRef.current[event.key] = now;
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification(`台股警示：${event.type}`, {
+          body: event.message,
+          tag: event.key
+        });
+      }
+    }
+
+    playAlarm();
+    if ("vibrate" in navigator) navigator.vibrate([250, 120, 250, 120, 250]);
+    setAlertEvents((current) => [...freshEvents, ...current].slice(0, 12));
+  }
 
   function addItem() {
     const nextSymbol = normalizeSymbol(symbol);
@@ -160,6 +308,56 @@ export function WatchlistClient() {
         </div>
       </section>
 
+      <section className="glass rounded-3xl p-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h2 className="flex items-center gap-2 text-xl font-black text-white">
+              <Bell className="h-5 w-5 text-amber-300" />
+              買賣點警示
+            </h2>
+            <p className="mt-2 text-sm text-slate-300">
+              頁面開著時會每 60 秒檢查自選股；觸發買點、停損或目標賣出價時，手機可跳通知、震動並播放警示音。
+            </p>
+            <p className="mt-1 text-xs text-slate-400">SMS 簡訊需串接簡訊商，通常會收費；目前先使用免費瀏覽器通知與聲音。</p>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <button
+              type="button"
+              onClick={enableAlerts}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-amber-500 px-5 py-3 font-black text-slate-950 transition hover:bg-amber-400"
+            >
+              <Volume2 className="h-4 w-4" />
+              {alertsEnabled ? "警示音已啟用" : "啟用手機警示音"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setAutoCheck((value) => !value)}
+              className="rounded-2xl border border-slate-700 px-5 py-3 font-black text-slate-100 transition hover:bg-slate-800"
+            >
+              自動檢查：{autoCheck ? "開" : "關"}
+            </button>
+          </div>
+        </div>
+        {alertEvents.length ? (
+          <div className="mt-4 space-y-2">
+            {alertEvents.map((event) => (
+              <div
+                key={`${event.key}-${event.createdAt}`}
+                className={`rounded-2xl border px-4 py-3 text-sm ${
+                  event.tone === "bull"
+                    ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-100"
+                    : event.tone === "bear"
+                      ? "border-rose-400/40 bg-rose-400/10 text-rose-100"
+                      : "border-amber-400/40 bg-amber-400/10 text-amber-100"
+                }`}
+              >
+                <span className="font-black">{event.type}</span> · {event.message}
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </section>
+
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard label="自選股數" value={`${items.length} 檔`} />
         <MetricCard label="平均 AI 分數" value={totalScore || "-"} tone={totalScore >= 70 ? "bull" : totalScore >= 55 ? "warn" : "neutral"} />
@@ -195,6 +393,7 @@ export function WatchlistClient() {
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <MetricCard label="現價 / 漲跌" value={price(row.analysis.price)} sub={pct(row.analysis.changePct)} tone={row.analysis.changePct >= 0 ? "bull" : "bear"} />
                 <MetricCard label="AI 決策" value={row.analysis.action} sub={`分數 ${row.analysis.finalScore}`} tone={watchTone(row)} />
+                <MetricCard label="警示狀態" value={alertEventsFor(row).map((event) => event.type).join("、") || "未觸發"} sub="買點 / 停損 / 目標價" tone={alertEventsFor(row).some((event) => event.tone === "bear") ? "bear" : alertEventsFor(row).length ? "warn" : "neutral"} />
                 <MetricCard label="建議買點" value={row.analysis.buyPrice} sub={row.analysis.trendStage} />
                 <MetricCard label="賣出目標" value={`${price(row.analysis.takeProfit1)} / ${price(row.analysis.takeProfit2)}`} tone="bull" />
                 <MetricCard label="停損價" value={price(row.analysis.stopLossPrice)} sub="跌破應降低風險" tone="bear" />
