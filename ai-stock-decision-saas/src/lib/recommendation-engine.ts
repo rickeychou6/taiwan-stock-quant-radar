@@ -86,8 +86,9 @@ function clamp(value: number, min = 0, max = 100) {
 }
 
 function riskRewardOf(analysis: AnalysisResult) {
-  const risk = analysis.price - analysis.stopLossPrice;
-  if (risk <= 0) return 0;
+  const rawRisk = analysis.price - analysis.stopLossPrice;
+  if (rawRisk <= 0) return 0;
+  const risk = Math.max(rawRisk, analysis.price * 0.01);
   const reward = Math.max(0, analysis.takeProfit1 - analysis.price);
   return Number((reward / risk).toFixed(2));
 }
