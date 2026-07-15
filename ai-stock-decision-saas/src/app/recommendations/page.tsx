@@ -103,7 +103,7 @@ function RecommendationCard({ item, rank }: { item: StockRecommendation; rank: n
 }
 
 export default async function RecommendationsPage() {
-  const report = await runStockRecommendations({ scanLimit: 18, outputLimit: 14, concurrency: 5 });
+  const report = await runStockRecommendations({ scanLimit: 30, outputLimit: 18, concurrency: 5 });
   const buyRows = report.recommendations.filter((item) => item.recommendation === "買入候選" || item.recommendation === "可小量試單");
   const nearRows = report.recommendations.filter((item) => item.recommendation === "接近買點" || item.recommendation === "等待回檔");
   const avoidRows = report.recommendations.filter((item) => item.recommendation === "暫不買入");
@@ -117,16 +117,20 @@ export default async function RecommendationsPage() {
         <p className="text-sm text-slate-400">Stock Recommendation Radar</p>
         <h1 className="text-3xl font-black text-white">個股推薦雷達</h1>
         <p className="mt-2 max-w-3xl text-slate-300">
-          系統會用真實 K 線、量價、布林、箱型、MACD、KD、RSI、ATR、資金熱度與消息面摘要做初步掃描，
-          再整理成買入候選、可小量試單、接近買點、等待回檔與暫不買入。此頁僅供研究輔助，不構成投資建議。
+          系統會先用 TWSE/TPEX 官方全市場日行情做初選，不鎖定你查過或提供過的股票；接著對入選標的跑真實 K 線、
+          量價、布林、箱型、MACD、KD、RSI、ATR、資金熱度與消息面摘要，最後依完整分析分數排序。此頁僅供研究輔助，不構成投資建議。
         </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard label="本次掃描" value={`${report.success}/${report.scanned} 檔`} sub={report.failed ? `失敗 ${report.failed} 檔` : "全部完成"} tone={report.failed ? "warn" : "bull"} />
+        <MetricCard label="全市場初選" value={`${report.qualifiedCount}/${report.universeCount} 檔`} sub="上市 / 上櫃官方日行情" tone="bull" />
+        <MetricCard label="完整分析" value={`${report.success}/${report.analysisTargets} 檔`} sub={report.failed ? `失敗 ${report.failed} 檔` : "依分數排序完成"} tone={report.failed ? "warn" : "bull"} />
         <MetricCard label="可買/試單" value={`${report.buyCandidates} 檔`} sub="買入候選 + 可小量試單" tone={report.buyCandidates ? "bull" : "warn"} />
-        <MetricCard label="平均 AI 分數" value={averageScore} sub="本頁入選清單平均" tone={averageScore >= 66 ? "bull" : averageScore >= 55 ? "warn" : "neutral"} />
         <MetricCard label="更新時間" value={new Date(report.updatedAt).toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" })} sub="即時重新分析" />
+      </div>
+
+      <div className="rounded-3xl border border-blue-400/20 bg-blue-500/10 p-4 text-sm leading-6 text-blue-100">
+        {report.source}。本頁平均 AI 分數 {averageScore}，排名會依完整分析後的 rankScore、AI 分數與 3-5 天上漲機率由高到低排列。
       </div>
 
       {buyRows.length ? (

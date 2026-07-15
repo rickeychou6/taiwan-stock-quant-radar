@@ -26,6 +26,7 @@ const COMMON_TW_STOCKS: StockProfile[] = [
 let stockUniversePromise: Promise<StockProfile[]> | null = null;
 let marketCache: { at: number; data: Record<string, number> } | null = null;
 let marketQuoteCache: { at: number; data: MarketQuote[] } | null = null;
+let recommendationUniverseCache: { at: number; data: WholeMarketRecommendationUniverse } | null = null;
 
 export type MarketQuote = {
   symbol: string;
@@ -37,6 +38,24 @@ export type MarketQuote = {
   changePct: number;
   source: string;
   session: string;
+};
+
+export type MarketScanCandidate = StockProfile & {
+  price: number;
+  change: number;
+  changePct: number;
+  tradeValue: number;
+  volume: number;
+  setupScore: number;
+  quoteDate: string;
+  source: string;
+};
+
+export type WholeMarketRecommendationUniverse = {
+  source: string;
+  universeCount: number;
+  qualifiedCount: number;
+  candidates: MarketScanCandidate[];
 };
 
 type YahooQuote = {
@@ -136,6 +155,32 @@ type TaifexQuoteResponse = {
   RtData?: {
     QuoteList?: TaifexQuoteItem[];
   };
+};
+
+type TwseDayAllQuote = {
+  Date?: string;
+  Code?: string;
+  Name?: string;
+  TradeVolume?: string;
+  TradeValue?: string;
+  OpeningPrice?: string;
+  HighestPrice?: string;
+  LowestPrice?: string;
+  ClosingPrice?: string;
+  Change?: string;
+};
+
+type TpexDailyCloseQuote = {
+  Date?: string;
+  SecuritiesCompanyCode?: string;
+  CompanyName?: string;
+  Close?: string;
+  Change?: string;
+  Open?: string;
+  High?: string;
+  Low?: string;
+  TradingShares?: string;
+  TransactionAmount?: string;
 };
 
 async function fetchJson<T>(url: string): Promise<T> {
@@ -375,6 +420,190 @@ async function findOfficialBySymbol(symbol: string): Promise<StockProfile | unde
   const normalized = cleanSymbol(symbol);
   const universe = await loadOfficialStockUniverse();
   return universe.find((stock) => stock.symbol === normalized);
+}
+
+function commonStockCode(code?: string) {
+  return Boolean(code && /^\d{4}$/.test(code) && !code.startsWith("00"));
+}
+
+function scanSetupScore(row: {
+  price: number;
+  changePct: number;
+  tradeValue: number;
+  volume: number;
+  open: number;
+  high: number;
+  low: number;
+}) {
+  const range = row.high - row.low;
+  const closePosition = range > 0 ? (row.price - row.low) / range : 0.5;
+  const valueMillions = row.tradeValue / 1_000_000;
+  const liquidityScore = Math.min(30, Math.max(0, Math.log10(Math.max(1, valueMillions)) * 8));
+  const volumeScore = Math.min(16, Math.max(0, Math.log10(Math.max(1, row.volume / 1000)) * 2.5));
+  const momentumScore = Math.max(-18, Math.min(24, row.changePct * 3.2));
+  const closeStrengthScore = (closePosition - 0.5) * 18;
+  const affordableBonus = row.price <= 100 ? 12 : row.price <= 150 ? 5 : 0;
+  const pennyPenalty = row.price < 10 ? 10 : 0;
+  const overheatPenalty = row.changePct >= 9.4 ? 12 : row.changePct >= 7.5 ? 5 : 0;
+
+  return Number((50 + liquidityScore + volumeScore + momentumScore + closeStrengthScore + affordableBonus - pennyPenalty - overheatPenalty).toFixed(2));
+}
+
+function quoteChangePct(price: number, change: number) {
+  const previous = price - change;
+  return previous > 0 ? (change / previous) * 100 : 0;
+}
+
+function profileForQuote(
+  profileMap: Map<string, StockProfile>,
+  symbol: string,
+  name: string,
+  market: "TWSE" | "TPEX"
+): StockProfile {
+  const known = profileMap.get(symbol);
+  if (known) return known;
+  return {
+    symbol,
+    name,
+    market,
+    industry: market === "TWSE" ? "上市公司" : "上櫃公司",
+    sector: "台股",
+    aliases: [name]
+  };
+}
+
+function buildMarketScanCandidate(
+  profileMap: Map<string, StockProfile>,
+  input: {
+    symbol: string;
+    name: string;
+    market: "TWSE" | "TPEX";
+    price?: number;
+    change?: number;
+    open?: number;
+    high?: number;
+    low?: number;
+    volume?: number;
+    tradeValue?: number;
+    quoteDate?: string;
+    source: string;
+  }
+): MarketScanCandidate | null {
+  const price = input.price ?? 0;
+  const change = input.change ?? 0;
+  const open = input.open ?? price;
+  const high = input.high ?? price;
+  const low = input.low ?? price;
+  const volume = input.volume ?? 0;
+  const tradeValue = input.tradeValue ?? 0;
+  if (!Number.isFinite(price) || price <= 0 || volume <= 0 || tradeValue <= 0) return null;
+
+  const profile = profileForQuote(profileMap, input.symbol, input.name, input.market);
+  const changePct = quoteChangePct(price, change);
+  return {
+    ...profile,
+    price,
+    change,
+    changePct,
+    tradeValue,
+    volume,
+    setupScore: scanSetupScore({ price, changePct, tradeValue, volume, open, high, low }),
+    quoteDate: input.quoteDate || "",
+    source: input.source
+  };
+}
+
+function mergeMarketCandidates(candidates: MarketScanCandidate[], limit: number) {
+  const qualified = candidates.filter((item) => item.price >= 10 && item.tradeValue >= 8_000_000);
+  const byScore = [...qualified].sort((a, b) => b.setupScore - a.setupScore || b.tradeValue - a.tradeValue);
+  const lowPrice = byScore.filter((item) => item.price <= 100).slice(0, Math.max(10, Math.ceil(limit * 0.4)));
+  const liquidMomentum = byScore.slice(0, limit * 2);
+  const merged = new Map<string, MarketScanCandidate>();
+
+  for (const item of [...lowPrice, ...liquidMomentum]) {
+    if (!merged.has(item.symbol)) merged.set(item.symbol, item);
+    if (merged.size >= limit) break;
+  }
+
+  return {
+    qualifiedCount: qualified.length,
+    candidates: Array.from(merged.values()).sort((a, b) => b.setupScore - a.setupScore || b.tradeValue - a.tradeValue)
+  };
+}
+
+export async function loadWholeMarketRecommendationUniverse(limit = 60): Promise<WholeMarketRecommendationUniverse> {
+  const safeLimit = Math.max(12, Math.min(120, Math.round(limit)));
+  if (recommendationUniverseCache && Date.now() - recommendationUniverseCache.at < 60_000) {
+    const cached = recommendationUniverseCache.data;
+    return { ...cached, candidates: cached.candidates.slice(0, safeLimit) };
+  }
+
+  const [twseResult, tpexResult, universeResult] = await Promise.allSettled([
+    fetchJson<TwseDayAllQuote[]>("https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL"),
+    fetchJson<TpexDailyCloseQuote[]>("https://www.tpex.org.tw/openapi/v1/tpex_mainboard_daily_close_quotes"),
+    loadOfficialStockUniverse()
+  ]);
+  const profiles = universeResult.status === "fulfilled" ? universeResult.value : COMMON_TW_STOCKS;
+  const profileMap = new Map(profiles.map((stock) => [stock.symbol, stock]));
+  const rows: MarketScanCandidate[] = [];
+
+  if (twseResult.status === "fulfilled") {
+    for (const item of twseResult.value) {
+      const code = item.Code?.trim();
+      if (!commonStockCode(code)) continue;
+      const candidate = buildMarketScanCandidate(profileMap, {
+        symbol: `${code}.TW`,
+        name: item.Name?.trim() || code!,
+        market: "TWSE",
+        price: parseTaiwanNumber(item.ClosingPrice),
+        change: parseTaiwanNumber(item.Change),
+        open: parseTaiwanNumber(item.OpeningPrice),
+        high: parseTaiwanNumber(item.HighestPrice),
+        low: parseTaiwanNumber(item.LowestPrice),
+        volume: parseTaiwanNumber(item.TradeVolume),
+        tradeValue: parseTaiwanNumber(item.TradeValue),
+        quoteDate: item.Date,
+        source: "TWSE 官方全市場日行情"
+      });
+      if (candidate) rows.push(candidate);
+    }
+  }
+
+  if (tpexResult.status === "fulfilled") {
+    for (const item of tpexResult.value) {
+      const code = item.SecuritiesCompanyCode?.trim();
+      if (!commonStockCode(code)) continue;
+      const candidate = buildMarketScanCandidate(profileMap, {
+        symbol: `${code}.TWO`,
+        name: item.CompanyName?.trim() || code!,
+        market: "TPEX",
+        price: parseTaiwanNumber(item.Close),
+        change: parseTaiwanNumber(item.Change),
+        open: parseTaiwanNumber(item.Open),
+        high: parseTaiwanNumber(item.High),
+        low: parseTaiwanNumber(item.Low),
+        volume: parseTaiwanNumber(item.TradingShares),
+        tradeValue: parseTaiwanNumber(item.TransactionAmount),
+        quoteDate: item.Date,
+        source: "TPEX 官方全市場日行情"
+      });
+      if (candidate) rows.push(candidate);
+    }
+  }
+
+  if (rows.length === 0) throw new Error("無法取得 TWSE/TPEX 全市場日行情");
+
+  const deduped = Array.from(new Map(rows.map((item) => [item.symbol, item])).values());
+  const merged = mergeMarketCandidates(deduped, 120);
+  const data: WholeMarketRecommendationUniverse = {
+    source: "TWSE/TPEX 官方全市場日行情",
+    universeCount: deduped.length,
+    qualifiedCount: merged.qualifiedCount,
+    candidates: merged.candidates
+  };
+  recommendationUniverseCache = { at: Date.now(), data };
+
+  return { ...data, candidates: data.candidates.slice(0, safeLimit) };
 }
 
 export async function yahooSearchStocks(query: string): Promise<StockProfile[]> {

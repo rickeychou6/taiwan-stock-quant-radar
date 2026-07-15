@@ -7,8 +7,8 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const symbols = searchParams.get("symbols")?.split(",").map((symbol) => decodeURIComponent(symbol.trim()));
-    const scanLimit = Number(searchParams.get("scanLimit") || 10);
-    const outputLimit = Number(searchParams.get("limit") || 10);
+    const scanLimit = Number(searchParams.get("scanLimit") || 30);
+    const outputLimit = Number(searchParams.get("limit") || 18);
 
     const report = await runStockRecommendations({
       symbols,

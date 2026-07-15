@@ -1,4 +1,5 @@
 import { runRealFullAnalysis } from "@/lib/real-analysis-engine";
+import { loadWholeMarketRecommendationUniverse } from "@/lib/real-data";
 import type { Action, AnalysisResult } from "@/lib/types";
 
 export type StockRecommendation = {
@@ -29,6 +30,10 @@ export type StockRecommendation = {
 
 export type RecommendationReport = {
   updatedAt: string;
+  source: string;
+  universeCount: number;
+  qualifiedCount: number;
+  analysisTargets: number;
   scanned: number;
   success: number;
   failed: number;
@@ -208,13 +213,34 @@ export async function runStockRecommendations(options?: {
   outputLimit?: number;
   concurrency?: number;
 }): Promise<RecommendationReport> {
-  const symbols = (options?.symbols?.length ? options.symbols : DEFAULT_RECOMMENDATION_CANDIDATES)
-    .map((symbol) => symbol.trim())
+  const customSymbols = options?.symbols
+    ?.map((symbol) => symbol.trim())
     .filter(Boolean);
-  const scanLimit = Math.max(1, Math.min(options?.scanLimit ?? 16, symbols.length));
-  const outputLimit = Math.max(1, Math.min(options?.outputLimit ?? 12, scanLimit));
-  const targets = symbols.slice(0, scanLimit);
+  const outputLimit = Math.max(1, Math.min(options?.outputLimit ?? 14, 30));
+  const requestedScanLimit = Math.max(outputLimit, Math.min(options?.scanLimit ?? 28, 48));
+  let source = "使用者指定清單";
+  let universeCount = customSymbols?.length ?? 0;
+  let qualifiedCount = customSymbols?.length ?? 0;
+  let targets = customSymbols?.slice(0, requestedScanLimit) ?? [];
   const errors: { symbol: string; message: string }[] = [];
+
+  if (!customSymbols?.length) {
+    try {
+      const universe = await loadWholeMarketRecommendationUniverse(Math.max(requestedScanLimit * 3, 72));
+      source = `${universe.source}，先全市場初選，再完整分析前 ${requestedScanLimit} 檔`;
+      universeCount = universe.universeCount;
+      qualifiedCount = universe.qualifiedCount;
+      targets = universe.candidates.slice(0, requestedScanLimit).map((stock) => stock.symbol);
+    } catch (error) {
+      source = "TWSE/TPEX 全市場資料暫時失敗，已改用備援候選池";
+      universeCount = DEFAULT_RECOMMENDATION_CANDIDATES.length;
+      qualifiedCount = DEFAULT_RECOMMENDATION_CANDIDATES.length;
+      targets = DEFAULT_RECOMMENDATION_CANDIDATES.slice(0, requestedScanLimit);
+      errors.push({ symbol: "MARKET", message: error instanceof Error ? error.message : "全市場初選失敗" });
+    }
+  }
+
+  targets = Array.from(new Set(targets)).slice(0, requestedScanLimit);
 
   const rows = await runLimited(targets, options?.concurrency ?? 4, async (symbol) => {
     try {
@@ -227,17 +253,15 @@ export async function runStockRecommendations(options?: {
 
   const recommendations = rows
     .filter((row): row is StockRecommendation => Boolean(row))
-    .sort((a, b) => {
-      if (a.recommendation !== b.recommendation) {
-        const weight = { 買入候選: 5, 可小量試單: 4, 接近買點: 3, 等待回檔: 2, 暫不買入: 1 };
-        return weight[b.recommendation] - weight[a.recommendation];
-      }
-      return b.rankScore - a.rankScore;
-    })
+    .sort((a, b) => b.rankScore - a.rankScore || b.finalScore - a.finalScore || b.probabilityUp3To5 - a.probabilityUp3To5)
     .slice(0, outputLimit);
 
   return {
     updatedAt: new Date().toISOString(),
+    source,
+    universeCount,
+    qualifiedCount,
+    analysisTargets: targets.length,
     scanned: targets.length,
     success: rows.filter(Boolean).length,
     failed: errors.length,
