@@ -25,7 +25,7 @@ function MarketQuoteCard({ quote }: { quote: MarketQuote }) {
     <MetricCard
       label={quote.label}
       value={formatNumber(quote.price)}
-      sub={`${formatChange(quote.change)} 點 / ${formatPct(quote.changePct)} · ${quote.symbol}`}
+      sub={`${formatChange(quote.change)} 點 / ${formatPct(quote.changePct)} · ${quote.session} · ${quote.source}`}
       tone={quoteTone(quote)}
     />
   );

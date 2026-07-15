@@ -17,6 +17,8 @@ const COMMON_TW_STOCKS: StockProfile[] = [
   { symbol: "6285.TW", name: "啟碁", market: "TWSE", industry: "網通", sector: "科技" },
   { symbol: "4976.TW", name: "佳凌", market: "TWSE", industry: "光學", sector: "科技" },
   { symbol: "5274.TWO", name: "信驊", market: "TPEX", industry: "IC 設計", sector: "科技" },
+  { symbol: "8071.TWO", name: "能率網通", market: "TPEX", industry: "網通通路", sector: "科技", aliases: ["能率網通股份有限公司"] },
+  { symbol: "5392.TWO", name: "能率", market: "TPEX", industry: "電子零組件", sector: "科技", aliases: ["能率創新股份有限公司", "能率創新"] },
   { symbol: "3017.TW", name: "奇鋐", market: "TWSE", industry: "散熱", sector: "科技" },
   { symbol: "8046.TWO", name: "南電", market: "TPEX", industry: "IC 載板", sector: "科技" }
 ];
@@ -79,6 +81,42 @@ type YahooChartResponse = {
   };
 };
 
+type TwseMisItem = {
+  c?: string;
+  ch?: string;
+  n?: string;
+  z?: string;
+  pz?: string;
+  y?: string;
+  o?: string;
+  h?: string;
+  l?: string;
+  v?: string;
+  tv?: string;
+  d?: string;
+  t?: string;
+};
+
+type TwseMisResponse = {
+  msgArray?: TwseMisItem[];
+  rtcode?: string;
+  rtmessage?: string;
+};
+
+type RealtimeQuote = {
+  price: number;
+  previousClose: number;
+  change: number;
+  changePct: number;
+  open?: number;
+  high?: number;
+  low?: number;
+  volume?: number;
+  date?: string;
+  time?: string;
+  source: string;
+};
+
 async function fetchJson<T>(url: string): Promise<T> {
   const response = await fetch(url, {
     cache: "no-store",
@@ -89,6 +127,21 @@ async function fetchJson<T>(url: string): Promise<T> {
   });
   if (!response.ok) {
     throw new Error(`資料來源回應失敗：${response.status}`);
+  }
+  return response.json() as Promise<T>;
+}
+
+async function fetchRealtimeJson<T>(url: string): Promise<T> {
+  const response = await fetch(url, {
+    cache: "no-store",
+    headers: {
+      "User-Agent": USER_AGENT,
+      Accept: "application/json, text/javascript, */*; q=0.01",
+      Referer: "https://mis.twse.com.tw/stock/index.jsp"
+    }
+  });
+  if (!response.ok) {
+    throw new Error(`即時資料來源回應失敗：${response.status}`);
   }
   return response.json() as Promise<T>;
 }
@@ -128,6 +181,59 @@ function stockFromSymbol(symbol: string, name?: string): StockProfile {
   };
 }
 
+function parseTaiwanNumber(value?: string) {
+  if (!value || value === "-" || value === "--") return undefined;
+  const parsed = Number(value.replace(/,/g, ""));
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function twseMisChannel(symbol: string) {
+  const normalized = cleanSymbol(symbol);
+  if (normalized === "^TWII") return "tse_t00.tw";
+  const code = normalized.replace(/\.(TW|TWO)$/, "");
+  if (!/^\d{4,6}$/.test(code)) return undefined;
+  if (normalized.endsWith(".TWO")) return `otc_${code}.tw`;
+  return `tse_${code}.tw`;
+}
+
+function formatMisDate(raw?: string) {
+  if (!raw || !/^\d{8}$/.test(raw)) return undefined;
+  return `${raw.slice(0, 4)}-${raw.slice(4, 6)}-${raw.slice(6, 8)}`;
+}
+
+async function fetchTaiwanRealtimeQuote(symbol: string): Promise<RealtimeQuote | null> {
+  const channel = twseMisChannel(symbol);
+  if (!channel) return null;
+
+  try {
+    const url = `https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=${encodeURIComponent(channel)}&json=1&delay=0&_=${Date.now()}`;
+    const data = await fetchRealtimeJson<TwseMisResponse>(url);
+    const item = data.msgArray?.[0];
+    if (!item) return null;
+
+    const price = parseTaiwanNumber(item.z) ?? parseTaiwanNumber(item.pz);
+    const previousClose = parseTaiwanNumber(item.y);
+    if (price == null || previousClose == null || price <= 0 || previousClose <= 0) return null;
+
+    const change = price - previousClose;
+    return {
+      price,
+      previousClose,
+      change,
+      changePct: (change / previousClose) * 100,
+      open: parseTaiwanNumber(item.o),
+      high: parseTaiwanNumber(item.h),
+      low: parseTaiwanNumber(item.l),
+      volume: parseTaiwanNumber(item.v) ?? parseTaiwanNumber(item.tv),
+      date: formatMisDate(item.d),
+      time: item.t,
+      source: "TWSE MIS 即時報價"
+    };
+  } catch {
+    return null;
+  }
+}
+
 function isTaiwanEquity(symbol?: string) {
   return Boolean(symbol?.toUpperCase().endsWith(".TW") || symbol?.toUpperCase().endsWith(".TWO"));
 }
@@ -165,7 +271,8 @@ async function loadOfficialStockUniverse(): Promise<StockProfile[]> {
         name,
         market: "TWSE",
         industry: item.產業別?.trim() || "上市公司",
-        sector: "台股"
+        sector: "台股",
+        aliases: [item.公司名稱?.trim(), item.公司簡稱?.trim()].filter((value): value is string => Boolean(value))
       });
     }
 
@@ -179,7 +286,8 @@ async function loadOfficialStockUniverse(): Promise<StockProfile[]> {
         name,
         market: "TPEX",
         industry: item.SecuritiesIndustryCode?.trim() || "上櫃公司",
-        sector: "台股"
+        sector: "台股",
+        aliases: [item.CompanyName?.trim(), item.CompanyAbbreviation?.trim()].filter((value): value is string => Boolean(value))
       });
     }
 
@@ -193,12 +301,27 @@ async function searchOfficialStocks(query: string): Promise<StockProfile[]> {
   const q = normalizeText(query);
   if (!q) return COMMON_TW_STOCKS;
   const universe = await loadOfficialStockUniverse();
-  return universe.filter((stock) => {
+  const scored = universe.map((stock) => {
     const name = normalizeText(stock.name);
     const symbol = normalizeText(stock.symbol);
     const code = symbol.replace(/\.(TW|TWO)$/, "");
-    return symbol.includes(q) || code === q || name.includes(q) || q.includes(name);
+    const aliases = (stock.aliases ?? []).map(normalizeText);
+    const names = [name, ...aliases];
+
+    let score = 0;
+    if (symbol === q || code === q) score = 120;
+    else if (names.some((value) => value === q)) score = 110;
+    else if (names.some((value) => value.startsWith(q))) score = 90;
+    else if (names.some((value) => value.includes(q))) score = 70;
+    else if (symbol.includes(q)) score = 50;
+
+    return { stock, score };
   });
+
+  return scored
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score || a.stock.symbol.localeCompare(b.stock.symbol))
+    .map((item) => item.stock);
 }
 
 async function findOfficialBySymbol(symbol: string): Promise<StockProfile | undefined> {
@@ -242,7 +365,8 @@ async function fetchChart(symbol: string, range = "2y", interval = "1d") {
 }
 
 export async function downloadPriceBars(symbol: string): Promise<PriceBar[]> {
-  const result = await fetchChart(cleanSymbol(symbol));
+  const normalized = cleanSymbol(symbol);
+  const result = await fetchChart(normalized);
   const timestamps = result.timestamp ?? [];
   const quote = result.indicators?.quote?.[0];
   if (!quote || timestamps.length === 0) {
@@ -271,6 +395,27 @@ export async function downloadPriceBars(symbol: string): Promise<PriceBar[]> {
   if (bars.length < 80) {
     throw new Error(`${symbol} 可用 K 線不足，無法進行完整分析`);
   }
+
+  const realtime = await fetchTaiwanRealtimeQuote(normalized);
+  const last = bars[bars.length - 1];
+  if (realtime?.date && realtime.price > 0 && realtime.date >= last.date) {
+    const intradayBar = {
+      date: realtime.date,
+      open: realtime.open ?? last.open,
+      high: Math.max(realtime.high ?? realtime.price, last.high, realtime.price),
+      low: Math.min(realtime.low ?? realtime.price, last.low, realtime.price),
+      close: realtime.price,
+      volume: realtime.volume && realtime.volume > 0 ? realtime.volume : last.volume,
+      turnover: realtime.price * (realtime.volume && realtime.volume > 0 ? realtime.volume : last.volume)
+    };
+
+    if (realtime.date === last.date) {
+      bars[bars.length - 1] = intradayBar;
+    } else {
+      bars.push(intradayBar);
+    }
+  }
+
   return bars;
 }
 
@@ -344,7 +489,7 @@ export async function getStockNews(stock: StockProfile) {
 }
 
 export async function marketSnapshot() {
-  if (marketCache && Date.now() - marketCache.at < 60_000) return marketCache.data;
+  if (marketCache && Date.now() - marketCache.at < 15_000) return marketCache.data;
 
   const quotes = await marketOverviewQuotes();
   const data = Object.fromEntries(quotes.map((quote) => [quote.symbol, quote.changePct]));
@@ -378,7 +523,27 @@ function futuresSessionLabel(now = new Date()) {
 }
 
 async function quoteFromChart(item: { symbol: string; label: string; group: MarketQuote["group"] }): Promise<MarketQuote> {
-  const result = await fetchChart(item.symbol, "5d", "1d");
+  const realtime = await fetchTaiwanRealtimeQuote(item.symbol);
+  if (realtime) {
+    return {
+      symbol: item.symbol,
+      label: item.label,
+      group: item.group,
+      price: realtime.price,
+      previousClose: realtime.previousClose,
+      change: realtime.change,
+      changePct: realtime.changePct,
+      source: realtime.source,
+      session: realtime.time ? `即時 ${realtime.time}` : "即時報價"
+    };
+  }
+
+  let result: Awaited<ReturnType<typeof fetchChart>>;
+  try {
+    result = await fetchChart(item.symbol, "1d", "1m");
+  } catch {
+    result = await fetchChart(item.symbol, "5d", "1d");
+  }
   const meta = result.meta;
   const quote = result.indicators?.quote?.[0];
   const closes = quote?.close?.filter((value): value is number => value != null) ?? [];
@@ -400,7 +565,7 @@ async function quoteFromChart(item: { symbol: string; label: string; group: Mark
 }
 
 export async function marketOverviewQuotes(): Promise<MarketQuote[]> {
-  if (marketQuoteCache && Date.now() - marketQuoteCache.at < 60_000) return marketQuoteCache.data;
+  if (marketQuoteCache && Date.now() - marketQuoteCache.at < 15_000) return marketQuoteCache.data;
 
   const entries = await Promise.allSettled(
     MARKET_SYMBOLS.map((item) => quoteFromChart(item))

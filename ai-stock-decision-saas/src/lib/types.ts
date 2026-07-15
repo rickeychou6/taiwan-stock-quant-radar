@@ -18,6 +18,7 @@ export type StockProfile = {
   market: "TWSE" | "TPEX" | "US";
   industry: string;
   sector: string;
+  aliases?: string[];
 };
 
 export type ScoreBlock = {
