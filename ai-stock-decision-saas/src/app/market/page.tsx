@@ -1,5 +1,11 @@
 import { MetricCard } from "@/components/MetricCard";
-import { marketMarginOverview, marketOverviewQuotes, type MarketMarginWarning, type MarketQuote } from "@/lib/real-data";
+import {
+  marketMarginOverview,
+  marketOverviewQuotes,
+  type MarketMarginOverview,
+  type MarketMarginWarning,
+  type MarketQuote
+} from "@/lib/real-data";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +52,151 @@ function warningClass(warning: MarketMarginWarning) {
   return "border-emerald-400/25 bg-emerald-400/10 text-emerald-100";
 }
 
+function buildMarketStress({
+  twii,
+  twFutures,
+  vix,
+  marginOverview
+}: {
+  twii?: MarketQuote;
+  twFutures: MarketQuote[];
+  vix?: MarketQuote;
+  marginOverview: MarketMarginOverview;
+}) {
+  let riskPoints = 0;
+  const warnings: MarketMarginWarning[] = [];
+  const addWarning = (
+    points: number,
+    id: string,
+    label: string,
+    severity: MarketMarginWarning["severity"],
+    message: string,
+    triggeredValue: string
+  ) => {
+    riskPoints += points;
+    warnings.push({ id, label, severity, message, triggeredValue });
+  };
+
+  if (twii) {
+    if (twii.changePct <= -5 || twii.change <= -1500) {
+      addWarning(
+        50,
+        "twii-crash",
+        "加權指數急跌",
+        "danger",
+        "指數已進入急跌壓力，融資水位即使不擁擠，也可能因停損、斷頭與風控賣壓而連鎖砍倉。",
+        `${formatChange(twii.change)} 點 / ${formatPct(twii.changePct)}`
+      );
+    } else if (twii.changePct <= -3 || twii.change <= -800) {
+      addWarning(
+        34,
+        "twii-heavy-selloff",
+        "大盤重跌",
+        "danger",
+        "大盤跌幅已超過短線正常波動，應先看風險控管，不應只看融資水位是否安全。",
+        `${formatChange(twii.change)} 點 / ${formatPct(twii.changePct)}`
+      );
+    } else if (twii.changePct <= -1.5 || twii.change <= -350) {
+      addWarning(
+        18,
+        "twii-risk-off",
+        "大盤轉弱",
+        "warn",
+        "大盤明顯轉弱，買進訊號需降權，持股要提高停損與減碼紀律。",
+        `${formatChange(twii.change)} 點 / ${formatPct(twii.changePct)}`
+      );
+    }
+  }
+
+  const weakestFuture = twFutures
+    .filter((quote) => Number.isFinite(quote.changePct))
+    .sort((a, b) => a.changePct - b.changePct)[0];
+  if (weakestFuture?.changePct <= -4) {
+    addWarning(
+      25,
+      "tw-futures-crash",
+      "台指期同步重跌",
+      "danger",
+      "台指期同步重跌，代表現貨與期貨風險同向放大，隔日沖或融資部位容易被迫處理。",
+      `${weakestFuture.label} ${formatPct(weakestFuture.changePct)}`
+    );
+  } else if (weakestFuture?.changePct <= -2) {
+    addWarning(
+      14,
+      "tw-futures-weak",
+      "台指期偏弱",
+      "warn",
+      "台指期偏弱，短線多方承接力不足時，融資減少可能是被迫降槓桿。",
+      `${weakestFuture.label} ${formatPct(weakestFuture.changePct)}`
+    );
+  }
+
+  if (vix && (vix.price >= 25 || vix.changePct >= 15)) {
+    addWarning(
+      18,
+      "vix-risk-spike",
+      "波動率急升",
+      "danger",
+      "VIX 急升代表國際風險情緒升高，台股融資安全分數必須降權。",
+      `${formatNumber(vix.price)} / ${formatPct(vix.changePct)}`
+    );
+  } else if (vix && (vix.price >= 18 || vix.changePct >= 8)) {
+    addWarning(
+      9,
+      "vix-risk-watch",
+      "波動率升溫",
+      "warn",
+      "VIX 升溫時，個股買點要更靠近支撐，避免追價。",
+      `${formatNumber(vix.price)} / ${formatPct(vix.changePct)}`
+    );
+  }
+
+  if (twii && twii.changePct <= -2 && marginOverview.balanceChange < 0) {
+    addWarning(
+      twii.changePct <= -4 ? 22 : 12,
+      "margin-deleveraging",
+      "融資下降不等於安全",
+      twii.changePct <= -4 ? "danger" : "warn",
+      "大盤急跌時融資餘額下降，常常不是籌碼健康，而是停損、追繳或被迫降槓桿，不能解讀成利多。",
+      `${formatShares(marginOverview.balanceChange)} / ${formatMoney(marginOverview.changeAmount, true)}`
+    );
+  }
+
+  if (marginOverview.safety.level === "危險" || marginOverview.safety.level === "警戒") {
+    addWarning(
+      marginOverview.safety.level === "危險" ? 24 : 14,
+      "margin-level-risk",
+      "融資水位本身偏熱",
+      marginOverview.safety.level === "危險" ? "danger" : "warn",
+      "融資水位本身已偏熱，若大盤同步走弱，賣壓會更容易擴散。",
+      `${marginOverview.safety.level} / ${marginOverview.safety.score} 分`
+    );
+  }
+
+  const level =
+    riskPoints >= 60 ? "危險" : riskPoints >= 35 ? "警戒" : riskPoints >= 18 ? "注意" : "安全";
+  const summary =
+    level === "危險"
+      ? "大盤急跌風險已覆蓋融資水位，短線優先避險、減碼與控管停損。"
+      : level === "警戒"
+        ? "市場賣壓偏重，融資水位不能單獨當作可買依據。"
+        : level === "注意"
+          ? "市場轉弱，買進訊號需降權，等待止跌或回到支撐再評估。"
+          : "大盤壓力未達覆蓋門檻，仍需搭配個股分數與風險報酬比。";
+
+  if (warnings.length === 0) {
+    warnings.push({
+      id: "market-stress-safe",
+      label: "大盤壓力正常",
+      severity: "info",
+      message: "大盤跌幅、台指期與波動率尚未觸發風險覆蓋條件。",
+      triggeredValue: "未觸發"
+    });
+  }
+
+  return { level, summary, warnings };
+}
+
 function MarketQuoteCard({ quote }: { quote: MarketQuote }) {
   return (
     <MetricCard
@@ -62,6 +213,9 @@ export default async function MarketPage() {
   const headline = quotes.filter((quote) => quote.group !== "futures" && quote.group !== "twfutures");
   const twFutures = quotes.filter((quote) => quote.group === "twfutures");
   const futures = quotes.filter((quote) => quote.group === "futures");
+  const twii = quotes.find((quote) => quote.symbol === "^TWII");
+  const vix = quotes.find((quote) => quote.symbol === "^VIX");
+  const marketStress = buildMarketStress({ twii, twFutures, vix, marginOverview });
 
   return (
     <div className="space-y-6">
@@ -86,11 +240,38 @@ export default async function MarketPage() {
           </p>
         </div>
 
+        <div className={`mt-4 rounded-2xl border p-4 ${warningClass({
+          id: "market-stress",
+          label: marketStress.level,
+          severity: marketStress.level === "危險" || marketStress.level === "警戒" ? "danger" : marketStress.level === "注意" ? "warn" : "info",
+          message: marketStress.summary,
+          triggeredValue: marketStress.level
+        })}`}>
+          <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-sm font-bold opacity-80">今日大盤風險覆蓋判斷</p>
+              <p className="mt-1 text-2xl font-black">{marketStress.level}</p>
+            </div>
+            <p className="max-w-3xl text-sm leading-6 opacity-90">{marketStress.summary}</p>
+          </div>
+          <div className="mt-3 grid gap-2 lg:grid-cols-2">
+            {marketStress.warnings.map((warning) => (
+              <div key={warning.id} className="rounded-xl border border-current/20 bg-black/10 p-3">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="font-bold">{warning.label}</p>
+                  <p className="text-xs font-bold opacity-80">{warning.triggeredValue}</p>
+                </div>
+                <p className="mt-1 text-xs leading-5 opacity-85">{warning.message}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard
-            label="融資安全狀態"
+            label="融資水位狀態"
             value={marginOverview.safety.level}
-            sub={`${marginOverview.safety.score} 分 · ${marginOverview.safety.summary}`}
+            sub={`${marginOverview.safety.score} 分 · 僅看融資水位：${marginOverview.safety.summary}`}
             tone={safetyTone(marginOverview.safety.level)}
           />
           <MetricCard
