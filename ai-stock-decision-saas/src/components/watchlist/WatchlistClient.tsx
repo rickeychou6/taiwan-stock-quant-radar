@@ -51,9 +51,15 @@ async function fetchAnalysis(symbol: string) {
 
 function watchTone(row: WatchRow) {
   if (!row.analysis) return "neutral" as const;
-  if (row.analysis.action === "BUY" || row.analysis.finalScore >= 70) return "bull" as const;
+  if (row.analysis.entrySignal.label === "應買" || row.analysis.entrySignal.label === "可買") return "bull" as const;
+  if (row.analysis.entrySignal.label === "小量試單" || row.analysis.entrySignal.label === "等待" || row.analysis.entrySignal.label === "觀望") return "warn" as const;
+  if (row.analysis.entrySignal.label === "不買" || row.analysis.entrySignal.label === "觀察") return "bear" as const;
   if (row.analysis.action === "SELL" || row.analysis.action === "STOP_LOSS" || row.analysis.finalScore < 45) return "bear" as const;
   return "warn" as const;
+}
+
+function isBuyableEntry(analysis: AnalysisResult) {
+  return analysis.entrySignal.label === "應買" || analysis.entrySignal.label === "可買" || analysis.entrySignal.label === "小量試單";
 }
 
 function parseBuyRange(value: string) {
@@ -71,13 +77,13 @@ function alertEventsFor(row: WatchRow): AlertEvent[] {
   const buyRange = parseBuyRange(analysis.buyPrice);
   const inBuyRange = buyRange ? analysis.price >= buyRange.low && analysis.price <= buyRange.high : false;
 
-  if (analysis.action === "BUY" || inBuyRange) {
+  if (isBuyableEntry(analysis) && (analysis.action === "BUY" || inBuyRange)) {
     rows.push({
       key: `${analysis.symbol}-BUY-${analysis.price.toFixed(2)}`,
       symbol: analysis.symbol,
       name: analysis.name,
       type: "買點",
-      message: `${analysis.name} 觸發買點，現價 ${price(analysis.price)}，建議買點 ${analysis.buyPrice}`,
+      message: `${analysis.name} 觸發${analysis.entrySignal.label}，現價 ${price(analysis.price)}，建議買點 ${analysis.buyPrice}`,
       tone: "bull",
       createdAt: now
     });
@@ -175,6 +181,19 @@ export function WatchlistClient() {
     if (!valid.length) return 0;
     return Math.round(valid.reduce((sum, row) => sum + (row.analysis?.finalScore ?? 0), 0) / valid.length);
   }, [rows]);
+  const buyableCount = useMemo(() => rows.filter((row) => row.analysis && isBuyableEntry(row.analysis)).length, [rows]);
+  const avoidCount = useMemo(
+    () =>
+      rows.filter(
+        (row) =>
+          row.analysis &&
+          (row.analysis.entrySignal.label === "不買" ||
+            row.analysis.entrySignal.label === "觀察" ||
+            row.analysis.action === "STOP_LOSS" ||
+            row.analysis.action === "SELL")
+      ).length,
+    [rows]
+  );
 
   function loadRows(targets = items) {
     setLoading(true);
@@ -361,8 +380,8 @@ export function WatchlistClient() {
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard label="自選股數" value={`${items.length} 檔`} />
         <MetricCard label="平均 AI 分數" value={totalScore || "-"} tone={totalScore >= 70 ? "bull" : totalScore >= 55 ? "warn" : "neutral"} />
-        <MetricCard label="可研究買進" value={`${rows.filter((row) => row.analysis?.action === "BUY").length} 檔`} tone="bull" />
-        <MetricCard label="需停損/避開" value={`${rows.filter((row) => row.analysis?.action === "STOP_LOSS" || row.analysis?.action === "SELL").length} 檔`} tone="bear" />
+        <MetricCard label="可買 / 試單" value={`${buyableCount} 檔`} sub="依分析頁進場建議" tone={buyableCount ? "bull" : "warn"} />
+        <MetricCard label="需避開 / 觀察" value={`${avoidCount} 檔`} sub="不買、觀察、停損或賣出" tone={avoidCount ? "bear" : "neutral"} />
       </section>
 
       {loading ? <div className="glass rounded-3xl p-6 text-slate-300">自選股分析中...</div> : null}
@@ -392,8 +411,11 @@ export function WatchlistClient() {
             ) : row.analysis ? (
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <MetricCard label="現價 / 漲跌" value={price(row.analysis.price)} sub={pct(row.analysis.changePct)} tone={row.analysis.changePct >= 0 ? "bull" : "bear"} />
-                <MetricCard label="AI 決策" value={row.analysis.action} sub={`分數 ${row.analysis.finalScore}`} tone={watchTone(row)} />
+                <MetricCard label="進場建議" value={row.analysis.entrySignal.label} sub={row.analysis.entrySignal.reason} tone={watchTone(row)} />
+                <MetricCard label="今日 AI 決策" value={row.analysis.action} sub={`分數 ${row.analysis.finalScore} / 信心 ${row.analysis.confidence}%`} tone={watchTone(row)} />
+                <MetricCard label="模型可靠度" value={row.analysis.modelCalibration.reliability} sub={`5 日正確率 ${row.analysis.modelCalibration.directionAccuracy5Day}%`} tone={row.analysis.modelCalibration.reliability === "高" ? "bull" : row.analysis.modelCalibration.reliability === "中" ? "warn" : "bear"} />
                 <MetricCard label="警示狀態" value={alertEventsFor(row).map((event) => event.type).join("、") || "未觸發"} sub="買點 / 停損 / 目標價" tone={alertEventsFor(row).some((event) => event.tone === "bear") ? "bear" : alertEventsFor(row).length ? "warn" : "neutral"} />
+                <MetricCard label="支撐價位" value={row.analysis.supportPriceRange} sub={`核心支撐 ${price(row.analysis.supportPrice)}`} tone="warn" />
                 <MetricCard label="建議買點" value={row.analysis.buyPrice} sub={row.analysis.trendStage} />
                 <MetricCard label="賣出目標" value={`${price(row.analysis.takeProfit1)} / ${price(row.analysis.takeProfit2)}`} tone="bull" />
                 <MetricCard label="停損價" value={price(row.analysis.stopLossPrice)} sub="跌破應降低風險" tone="bear" />
