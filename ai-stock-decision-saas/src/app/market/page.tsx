@@ -52,6 +52,75 @@ function warningClass(warning: MarketMarginWarning) {
   return "border-emerald-400/25 bg-emerald-400/10 text-emerald-100";
 }
 
+function marginWaterLevelText(level: string) {
+  if (level === "安全") return "水位不擁擠";
+  if (level === "注意") return "水位升溫";
+  if (level === "警戒") return "水位偏高";
+  if (level === "危險") return "水位過熱";
+  return "資料不足";
+}
+
+function marginWaterExplanation(level: string) {
+  if (level === "安全") return "只代表融資總量沒有過熱，不代表今天大盤安全。";
+  if (level === "注意") return "融資水位開始升溫，追價部位要降低。";
+  if (level === "警戒") return "融資籌碼偏熱，跌破支撐容易放大賣壓。";
+  if (level === "危險") return "融資過熱，可能形成泡沫與多殺多風險。";
+  return "官方資料不足，不能用融資判斷安全。";
+}
+
+function buildFinalSafetyDecision({
+  marketStressLevel,
+  marginLevel
+}: {
+  marketStressLevel: string;
+  marginLevel: string;
+}) {
+  if (marketStressLevel === "危險") {
+    return {
+      label: "不安全",
+      action: "先避險，不建議新買",
+      tone: "danger" as const,
+      explanation: "大盤急跌或期貨同步轉弱時，融資下降常是去槓桿，不是利多。"
+    };
+  }
+  if (marketStressLevel === "警戒") {
+    return {
+      label: "不安全偏高",
+      action: "等待止跌，不追價",
+      tone: "danger" as const,
+      explanation: "市場賣壓偏重，融資水位不能單獨當作買進依據。"
+    };
+  }
+  if (marginLevel === "危險" || marginLevel === "警戒") {
+    return {
+      label: "不安全",
+      action: "降低部位，避開高融資股",
+      tone: "danger" as const,
+      explanation: "融資水位本身偏高，容易形成泡沫，遇到下跌會放大多殺多。"
+    };
+  }
+  if (marketStressLevel === "注意" || marginLevel === "注意") {
+    return {
+      label: "需觀察",
+      action: "只看支撐，不追高",
+      tone: "warn" as const,
+      explanation: "市場或融資已有升溫訊號，可以觀察，但買進要更接近支撐並縮小部位。"
+    };
+  }
+  return {
+    label: "相對安全",
+    action: "可依個股條件評估",
+    tone: "info" as const,
+    explanation: "大盤壓力與融資水位都未觸發警戒，但仍要看個股趨勢、支撐與風險報酬比。"
+  };
+}
+
+function finalSafetyClass(tone: "danger" | "warn" | "info") {
+  if (tone === "danger") return "border-rose-400/35 bg-rose-500/15 text-rose-50";
+  if (tone === "warn") return "border-amber-400/35 bg-amber-400/15 text-amber-50";
+  return "border-emerald-400/30 bg-emerald-400/15 text-emerald-50";
+}
+
 function buildMarketStress({
   twii,
   twFutures,
@@ -216,6 +285,10 @@ export default async function MarketPage() {
   const twii = quotes.find((quote) => quote.symbol === "^TWII");
   const vix = quotes.find((quote) => quote.symbol === "^VIX");
   const marketStress = buildMarketStress({ twii, twFutures, vix, marginOverview });
+  const finalSafety = buildFinalSafetyDecision({
+    marketStressLevel: marketStress.level,
+    marginLevel: marginOverview.safety.level
+  });
 
   return (
     <div className="space-y-6">
@@ -233,11 +306,36 @@ export default async function MarketPage() {
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-sm text-slate-400">Market Margin Financing</p>
-            <h2 className="text-xl font-black text-white">大盤融資水位</h2>
+            <h2 className="text-xl font-black text-white">大盤安全判斷與融資水位</h2>
           </div>
           <p className="text-sm text-slate-400">
             {marginOverview.date || "最新官方資料"} · {marginOverview.source}
           </p>
+        </div>
+
+        <div className={`mt-4 rounded-3xl border p-5 ${finalSafetyClass(finalSafety.tone)}`}>
+          <p className="text-sm font-bold opacity-80">結論：現在大盤是否安全？</p>
+          <div className="mt-2 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-4xl font-black tracking-tight">{finalSafety.label}</p>
+              <p className="mt-2 text-xl font-black">{finalSafety.action}</p>
+            </div>
+            <p className="max-w-2xl text-sm leading-6 opacity-90">{finalSafety.explanation}</p>
+          </div>
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            <div className="rounded-2xl border border-current/20 bg-black/10 p-3">
+              <p className="text-xs font-bold opacity-70">融資過高代表什麼</p>
+              <p className="mt-1 text-sm font-bold">泡沫燃料，跌時會放大賣壓</p>
+            </div>
+            <div className="rounded-2xl border border-current/20 bg-black/10 p-3">
+              <p className="text-xs font-bold opacity-70">大跌時融資下降代表什麼</p>
+              <p className="mt-1 text-sm font-bold">多半是去槓桿，不是安全訊號</p>
+            </div>
+            <div className="rounded-2xl border border-current/20 bg-black/10 p-3">
+              <p className="text-xs font-bold opacity-70">進場原則</p>
+              <p className="mt-1 text-sm font-bold">先等止跌，再看支撐與個股分數</p>
+            </div>
+          </div>
         </div>
 
         <div className={`mt-4 rounded-2xl border p-4 ${warningClass({
@@ -270,8 +368,8 @@ export default async function MarketPage() {
         <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard
             label="融資水位狀態"
-            value={marginOverview.safety.level}
-            sub={`${marginOverview.safety.score} 分 · 僅看融資水位：${marginOverview.safety.summary}`}
+            value={marginWaterLevelText(marginOverview.safety.level)}
+            sub={`${marginOverview.safety.score} 分 · ${marginWaterExplanation(marginOverview.safety.level)}`}
             tone={safetyTone(marginOverview.safety.level)}
           />
           <MetricCard
