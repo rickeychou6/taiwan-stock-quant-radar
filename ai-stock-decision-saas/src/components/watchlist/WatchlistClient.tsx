@@ -42,6 +42,13 @@ function normalizeSymbol(value: string) {
   return value.trim();
 }
 
+function money(value: number) {
+  if (!Number.isFinite(value) || value <= 0) return "-";
+  if (value >= 100_000_000) return `${(value / 100_000_000).toFixed(2)} 億元`;
+  if (value >= 10_000) return `${(value / 10_000).toFixed(0)} 萬元`;
+  return `${Math.round(value).toLocaleString()} 元`;
+}
+
 async function fetchAnalysis(symbol: string) {
   const response = await fetch(`/api/analysis/${encodeURIComponent(symbol)}`, { cache: "no-store" });
   const payload = await response.json();
@@ -414,6 +421,8 @@ export function WatchlistClient() {
                 <MetricCard label="進場建議" value={row.analysis.entrySignal.label} sub={row.analysis.entrySignal.reason} tone={watchTone(row)} />
                 <MetricCard label="今日 AI 決策" value={row.analysis.action} sub={`分數 ${row.analysis.finalScore} / 信心 ${row.analysis.confidence}%`} tone={watchTone(row)} />
                 <MetricCard label="模型可靠度" value={row.analysis.modelCalibration.reliability} sub={`5 日正確率 ${row.analysis.modelCalibration.directionAccuracy5Day}%`} tone={row.analysis.modelCalibration.reliability === "高" ? "bull" : row.analysis.modelCalibration.reliability === "中" ? "warn" : "bear"} />
+                <MetricCard label="融資金額" value={money(row.analysis.margin.marginAmount)} sub={`佔比 ${row.analysis.margin.marginUtilizationPct.toFixed(2)}%`} tone={row.analysis.margin.marginUtilizationPct >= 30 || row.analysis.margin.marginChangePct >= 5 ? "bear" : row.analysis.margin.marginUtilizationPct >= 20 || row.analysis.margin.marginChange > 0 ? "warn" : "neutral"} />
+                <MetricCard label="融資增減" value={`${row.analysis.margin.marginChange >= 0 ? "+" : ""}${row.analysis.margin.marginChange.toLocaleString()} 張`} sub={pct(row.analysis.margin.marginChangePct)} tone={row.analysis.margin.marginChange <= 0 ? "bull" : row.analysis.margin.marginChangePct >= 5 ? "bear" : "warn"} />
                 <MetricCard label="警示狀態" value={alertEventsFor(row).map((event) => event.type).join("、") || "未觸發"} sub="買點 / 停損 / 目標價" tone={alertEventsFor(row).some((event) => event.tone === "bear") ? "bear" : alertEventsFor(row).length ? "warn" : "neutral"} />
                 <MetricCard label="支撐價位" value={row.analysis.supportPriceRange} sub={`核心支撐 ${price(row.analysis.supportPrice)}`} tone="warn" />
                 <MetricCard label="建議買點" value={row.analysis.buyPrice} sub={row.analysis.trendStage} />

@@ -148,6 +148,30 @@ export function runFullAnalysis(symbolOrName: string): AnalysisResult {
   const support = supportBelowPrice.length ? Math.max(...supportBelowPrice) : Math.min(close - atr14 * 0.5, ...supportLevels);
   const resistance = Math.max(boxHigh, bbUpper);
   const stage = detectStage(close, ma20, ma60, ma120, rsi14);
+  const margin = {
+    available: true,
+    source: "本機種子範例融資資料",
+    date: prices[prices.length - 1]?.date || "",
+    marginBuy: 780,
+    marginSell: 1400,
+    marginCashRepayment: 0,
+    marginPreviousBalance: 28500,
+    marginBalance: 27880,
+    marginChange: mockChipData.marginDelta,
+    marginChangePct: -2.18,
+    marginLimit: 520000,
+    marginUtilizationPct: 5.36,
+    marginAmount: 27880 * 1000 * close,
+    marginAmountToTurnoverPct: 68.5,
+    shortSell: 120,
+    shortCover: 80,
+    shortPreviousBalance: 460,
+    shortBalance: 500,
+    shortUtilizationPct: 0.1,
+    shortToMarginPct: 1.79,
+    note: "",
+    warning: "此為範例資料，正式分析會使用 TWSE/TPEX 官方融資融券資料。"
+  };
 
   let technicalScore = 50;
   const technicalReasons: string[] = [];
@@ -283,6 +307,7 @@ export function runFullAnalysis(symbolOrName: string): AnalysisResult {
     takeProfit1: Number(takeProfit1.toFixed(2)),
     takeProfit2: Number(takeProfit2.toFixed(2)),
     holdingPeriod,
+    margin,
     entrySignal,
     postEntryForecast: forecast,
     modelCalibration,

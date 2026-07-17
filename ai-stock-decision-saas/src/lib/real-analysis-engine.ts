@@ -1,5 +1,5 @@
 import { atr, bollinger, ema, macd, obv, rsi, sma, stochastic } from "@/lib/indicators";
-import { downloadPriceBars, getStockNews, marketSnapshot, resolveStock } from "@/lib/real-data";
+import { downloadPriceBars, fetchMarginTrading, getStockNews, marketSnapshot, resolveStock } from "@/lib/real-data";
 import { buildEntrySignal } from "@/lib/entry-advice";
 import type { Action, AnalysisResult, PriceBar, RiskLevel, ScoreBlock, TrendStage } from "@/lib/types";
 
@@ -18,6 +18,13 @@ function clamp(value: number, min = 0, max = 100) {
 
 function priceRange(low: number, high: number) {
   return `${low.toFixed(2)} ~ ${Math.max(low, high).toFixed(2)} 元`;
+}
+
+function money(value: number) {
+  if (!Number.isFinite(value) || value <= 0) return "0 元";
+  if (value >= 100_000_000) return `${(value / 100_000_000).toFixed(2)} 億元`;
+  if (value >= 10_000) return `${(value / 10_000).toFixed(0)} 萬元`;
+  return `${Math.round(value).toLocaleString()} 元`;
 }
 
 function scoreBlock(label: string, score: number, weight: number, explanation: string[]): ScoreBlock {
@@ -262,6 +269,8 @@ export async function runRealFullAnalysis(symbolOrName: string): Promise<Analysi
   const volumeRatio = volumeMa20 ? lastValid(volumes) / volumeMa20 : 1;
   const vwapDenominator = prices.slice(-20).reduce((sum, p) => sum + p.volume, 0);
   const vwap = vwapDenominator ? prices.slice(-20).reduce((sum, p) => sum + p.close * p.volume, 0) / vwapDenominator : close;
+  const averageTurnover20 = prices.slice(-20).reduce((sum, p) => sum + p.turnover, 0) / Math.max(1, Math.min(20, prices.length));
+  const margin = await fetchMarginTrading(stock.symbol, close, averageTurnover20);
   const breakout = close > boxHigh && volumeRatio >= 1.2;
   const stage = detectStage(close, ma20, ma60, ma120, rsi14, bbWidth, breakout);
 
@@ -292,11 +301,35 @@ export async function runRealFullAnalysis(symbolOrName: string): Promise<Analysi
   technicalReasons.push(`箱型區間 ${boxLow.toFixed(2)} ~ ${boxHigh.toFixed(2)}，VWAP 約 ${vwap.toFixed(2)}。`);
   technicalReasons.push(`Bollinger 開口 ${bbWidth.toFixed(2)}%，RSI ${rsi14.toFixed(1)}，KD ${k.toFixed(1)}/${d.toFixed(1)}。`);
 
-  const chipScore = 50;
-  const chipReasons = [
-    "目前 MVP 尚未串接法人、融資融券與借券正式 API，此分數保持中性。",
-    "下一階段可接 TWSE/TPEX 三大法人、融資融券與借券公開資料。"
-  ];
+  let chipScore = 50;
+  const chipReasons: string[] = [];
+  if (margin.available) {
+    if (margin.marginUtilizationPct <= 5) chipScore += 6;
+    else if (margin.marginUtilizationPct <= 15) chipScore += 2;
+    else if (margin.marginUtilizationPct >= 30) chipScore -= 10;
+    else if (margin.marginUtilizationPct >= 20) chipScore -= 5;
+
+    if (margin.marginChange < 0) chipScore += 4;
+    else if (margin.marginChangePct >= 5) chipScore -= 8;
+    else if (margin.marginChange > 0) chipScore -= 3;
+
+    if (margin.marginAmountToTurnoverPct >= 250) chipScore -= 6;
+    else if (margin.marginAmountToTurnoverPct >= 120) chipScore -= 3;
+
+    chipReasons.push(
+      `融資餘額 ${margin.marginBalance.toLocaleString()} 張，估算融資金額 ${money(margin.marginAmount)}，融資使用率/佔比 ${margin.marginUtilizationPct.toFixed(2)}%。`
+    );
+    chipReasons.push(
+      `融資今日增減 ${margin.marginChange >= 0 ? "+" : ""}${margin.marginChange.toLocaleString()} 張（${margin.marginChangePct >= 0 ? "+" : ""}${margin.marginChangePct.toFixed(2)}%），資買 ${margin.marginBuy.toLocaleString()} 張、資賣 ${margin.marginSell.toLocaleString()} 張。`
+    );
+    chipReasons.push(
+      `融資金額約為 20 日均成交值的 ${margin.marginAmountToTurnoverPct.toFixed(2)}%，券資比 ${margin.shortToMarginPct.toFixed(2)}%。${margin.note ? `註記：${margin.note}` : ""}`
+    );
+  } else {
+    chipScore -= 4;
+    chipReasons.push(`${margin.warning} 籌碼面先保守降權，避免把未知當利多。`);
+  }
+  chipReasons.push("法人、借券與大戶持股仍維持預留，未串接前不使用模擬數字。");
 
   const turnoverRecent = prices.slice(-5).reduce((sum, p) => sum + p.turnover, 0) / 5;
   const turnoverPast = prices.slice(-25, -5).reduce((sum, p) => sum + p.turnover, 0) / 20 || turnoverRecent;
@@ -399,6 +432,7 @@ export async function runRealFullAnalysis(symbolOrName: string): Promise<Analysi
     takeProfit1: Number(takeProfit1.toFixed(2)),
     takeProfit2: Number(takeProfit2.toFixed(2)),
     holdingPeriod,
+    margin,
     entrySignal,
     postEntryForecast: forecast,
     modelCalibration,
@@ -415,7 +449,7 @@ export async function runRealFullAnalysis(symbolOrName: string): Promise<Analysi
     backtest,
     prices,
     explanation: {
-      summary: `${stock.name} 目前 AI 綜合分數 ${Math.round(finalScore)}，決策為 ${decision.action}，進場建議為「${entrySignal.label}」，3-5 天持股建議為 ${forecast.positionAdvice}。模型近似歷史校準 5 日方向正確率 ${modelCalibration.directionAccuracy5Day}%，平均誤差 ${modelCalibration.averageForecastErrorPct}%。資料來源為 Yahoo Finance 真實 K 線與新聞，未串接的法人/基本面不使用模擬數字。`,
+      summary: `${stock.name} 目前 AI 綜合分數 ${Math.round(finalScore)}，決策為 ${decision.action}，進場建議為「${entrySignal.label}」，3-5 天持股建議為 ${forecast.positionAdvice}。融資使用率 ${margin.marginUtilizationPct.toFixed(2)}%，融資增減 ${margin.marginChange >= 0 ? "+" : ""}${margin.marginChange.toLocaleString()} 張。模型近似歷史校準 5 日方向正確率 ${modelCalibration.directionAccuracy5Day}%，平均誤差 ${modelCalibration.averageForecastErrorPct}%。資料來源為 Yahoo Finance 真實 K 線、TWSE/TPEX 融資融券與新聞，未串接的法人/基本面不使用模擬數字。`,
       technical: technicalReasons,
       chip: chipReasons,
       capital: capitalReasons,

@@ -9,6 +9,13 @@ import { ScoreRing } from "@/components/ScoreRing";
 import { SearchBox } from "@/components/SearchBox";
 import { pct, price } from "@/lib/utils";
 
+function money(value: number) {
+  if (!Number.isFinite(value) || value <= 0) return "-";
+  if (value >= 100_000_000) return `${(value / 100_000_000).toFixed(2)} 億元`;
+  if (value >= 10_000) return `${(value / 10_000).toFixed(0)} 萬元`;
+  return `${Math.round(value).toLocaleString()} 元`;
+}
+
 export function DashboardClient() {
   const params = useSearchParams();
   const symbol = params.get("symbol") || "2330.TW";
@@ -75,6 +82,14 @@ export function DashboardClient() {
         : data.entrySignal.label === "不買"
           ? "bear"
           : "neutral";
+  const marginTone =
+    !data.margin.available
+      ? "neutral"
+      : data.margin.marginUtilizationPct >= 30 || data.margin.marginChangePct >= 5
+        ? "bear"
+        : data.margin.marginUtilizationPct >= 20 || data.margin.marginChange > 0
+          ? "warn"
+          : "bull";
 
   return (
     <div className="space-y-6">
@@ -114,6 +129,49 @@ export function DashboardClient() {
         <MetricCard label="停損價" value={price(data.stopLossPrice)} sub="跌破代表判斷錯誤" tone="bear" />
         <MetricCard label="目標價" value={`${price(data.takeProfit1)} / ${price(data.takeProfit2)}`} sub={data.holdingPeriod} tone="bull" />
       </section>
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <MetricCard
+          label="融資金額"
+          value={money(data.margin.marginAmount)}
+          sub={`融資餘額 ${data.margin.marginBalance.toLocaleString()} 張`}
+          tone={marginTone}
+        />
+        <MetricCard
+          label="融資佔比"
+          value={`${data.margin.marginUtilizationPct.toFixed(2)}%`}
+          sub="融資餘額 / 融資限額"
+          tone={marginTone}
+        />
+        <MetricCard
+          label="融資增減"
+          value={`${data.margin.marginChange >= 0 ? "+" : ""}${data.margin.marginChange.toLocaleString()} 張`}
+          sub={pct(data.margin.marginChangePct)}
+          tone={data.margin.marginChange <= 0 ? "bull" : data.margin.marginChangePct >= 5 ? "bear" : "warn"}
+        />
+        <MetricCard
+          label="融資金額 / 均成交值"
+          value={`${data.margin.marginAmountToTurnoverPct.toFixed(2)}%`}
+          sub={`券資比 ${data.margin.shortToMarginPct.toFixed(2)}%`}
+          tone={data.margin.marginAmountToTurnoverPct >= 250 ? "bear" : data.margin.marginAmountToTurnoverPct >= 120 ? "warn" : "neutral"}
+        />
+      </section>
+
+      {data.margin.available ? (
+        <section className="rounded-3xl border border-slate-700/70 bg-slate-950/35 p-4 text-sm leading-6 text-slate-300">
+          <p className="font-bold text-white">融資資料來源</p>
+          <p className="mt-1">
+            {data.margin.source}{data.margin.date ? `，資料日 ${data.margin.date}` : ""}。資買 {data.margin.marginBuy.toLocaleString()} 張、
+            資賣 {data.margin.marginSell.toLocaleString()} 張、現償 {data.margin.marginCashRepayment.toLocaleString()} 張。
+            {data.margin.note ? ` 註記：${data.margin.note}` : ""}
+          </p>
+        </section>
+      ) : (
+        <section className="rounded-3xl border border-amber-400/20 bg-amber-400/10 p-4 text-sm leading-6 text-amber-100">
+          <p className="font-bold text-white">融資資料暫缺</p>
+          <p className="mt-1">{data.margin.warning}</p>
+        </section>
+      )}
 
       <section className="rounded-3xl border border-amber-400/20 bg-amber-400/10 p-4 text-sm leading-6 text-amber-50">
         <p className="font-bold text-white">進場建議規則</p>

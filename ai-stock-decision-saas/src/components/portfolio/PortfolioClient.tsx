@@ -39,6 +39,13 @@ function numberValue(value: string, fallback = 0) {
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
 }
 
+function money(value: number) {
+  if (!Number.isFinite(value) || value <= 0) return "-";
+  if (value >= 100_000_000) return `${(value / 100_000_000).toFixed(2)} 億元`;
+  if (value >= 10_000) return `${(value / 10_000).toFixed(0)} 萬元`;
+  return `${Math.round(value).toLocaleString()} 元`;
+}
+
 function personalizedAdvice(row: PortfolioRow) {
   const analysis = row.analysis;
   if (!analysis || row.item.cost <= 0) return { label: "待分析", detail: "請先輸入成本並完成分析。", tone: "neutral" as const };
@@ -55,6 +62,12 @@ function personalizedAdvice(row: PortfolioRow) {
   }
   if (pnl <= -8) {
     return { label: "降低部位", detail: "帳面虧損已擴大，若反彈無量應降低風險。", tone: "bear" as const };
+  }
+  if (analysis.margin.marginUtilizationPct >= 30 && analysis.margin.marginChangePct >= 5) {
+    return { label: "減碼觀察", detail: `融資使用率 ${analysis.margin.marginUtilizationPct.toFixed(2)}% 且今日增加 ${pct(analysis.margin.marginChangePct)}，籌碼偏熱。`, tone: "bear" as const };
+  }
+  if (analysis.margin.marginUtilizationPct >= 20 && analysis.margin.marginChange > 0) {
+    return { label: "續抱但控風險", detail: `融資佔比 ${analysis.margin.marginUtilizationPct.toFixed(2)}%，且融資仍增加，避免加碼追高。`, tone: "warn" as const };
   }
   return { label: analysis.postEntryForecast.positionAdvice, detail: analysis.postEntryForecast.reason, tone: analysis.finalScore >= 60 ? "warn" as const : "neutral" as const };
 }
@@ -253,16 +266,18 @@ export function PortfolioClient() {
                   {row.error}
                 </div>
               ) : analysis ? (
-                <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+                <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                   <MetricCard label="現價" value={price(analysis.price)} sub={pct(analysis.changePct)} tone={analysis.changePct >= 0 ? "bull" : "bear"} />
                   <MetricCard label="成本 / 損益" value={`${price(row.item.cost)} / ${pct(pnl)}`} tone={pnl >= 0 ? "bull" : "bear"} />
                   <MetricCard label="個人化建議" value={advice.label} sub={advice.detail} tone={advice.tone} />
                   <MetricCard label="建議賣出價" value={suggestedSellPrice(row)} sub="依第一/第二目標或停損線" tone="warn" />
+                  <MetricCard label="融資金額" value={money(analysis.margin.marginAmount)} sub={`佔比 ${analysis.margin.marginUtilizationPct.toFixed(2)}%`} tone={analysis.margin.marginUtilizationPct >= 30 || analysis.margin.marginChangePct >= 5 ? "bear" : analysis.margin.marginUtilizationPct >= 20 || analysis.margin.marginChange > 0 ? "warn" : "neutral"} />
+                  <MetricCard label="融資增減" value={`${analysis.margin.marginChange >= 0 ? "+" : ""}${analysis.margin.marginChange.toLocaleString()} 張`} sub={pct(analysis.margin.marginChangePct)} tone={analysis.margin.marginChange <= 0 ? "bull" : analysis.margin.marginChangePct >= 5 ? "bear" : "warn"} />
                   <MetricCard label="停損價" value={price(analysis.stopLossPrice)} sub="跌破代表判斷錯誤" tone="bear" />
                   <MetricCard label="AI 分數" value={analysis.finalScore} sub={analysis.action} tone={analysis.finalScore >= 70 ? "bull" : analysis.finalScore < 45 ? "bear" : "warn"} />
                   <Link
                     href={`/dashboard?symbol=${encodeURIComponent(analysis.symbol)}`}
-                    className="rounded-2xl bg-blue-600 px-4 py-3 text-center font-black text-white transition hover:bg-blue-500 md:col-span-2 xl:col-span-6"
+                    className="rounded-2xl bg-blue-600 px-4 py-3 text-center font-black text-white transition hover:bg-blue-500 md:col-span-2 xl:col-span-4"
                   >
                     查看完整分析
                   </Link>

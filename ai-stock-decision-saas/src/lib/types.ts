@@ -29,6 +29,31 @@ export type ScoreBlock = {
   explanation: string[];
 };
 
+export type MarginInfo = {
+  available: boolean;
+  source: string;
+  date: string;
+  marginBuy: number;
+  marginSell: number;
+  marginCashRepayment: number;
+  marginPreviousBalance: number;
+  marginBalance: number;
+  marginChange: number;
+  marginChangePct: number;
+  marginLimit: number;
+  marginUtilizationPct: number;
+  marginAmount: number;
+  marginAmountToTurnoverPct: number;
+  shortSell: number;
+  shortCover: number;
+  shortPreviousBalance: number;
+  shortBalance: number;
+  shortUtilizationPct: number;
+  shortToMarginPct: number;
+  note: string;
+  warning: string;
+};
+
 export type AnalysisResult = {
   symbol: string;
   name: string;
@@ -47,6 +72,7 @@ export type AnalysisResult = {
   takeProfit1: number;
   takeProfit2: number;
   holdingPeriod: string;
+  margin: MarginInfo;
   entrySignal: {
     label: EntryAdviceLabel;
     reason: string;

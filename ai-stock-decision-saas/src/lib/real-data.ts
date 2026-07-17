@@ -1,4 +1,4 @@
-import type { PriceBar, StockProfile } from "@/lib/types";
+import type { MarginInfo, PriceBar, StockProfile } from "@/lib/types";
 
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36";
@@ -27,6 +27,11 @@ let stockUniversePromise: Promise<StockProfile[]> | null = null;
 let marketCache: { at: number; data: Record<string, number> } | null = null;
 let marketQuoteCache: { at: number; data: MarketQuote[] } | null = null;
 let recommendationUniverseCache: { at: number; data: WholeMarketRecommendationUniverse } | null = null;
+let marginMapsCache: {
+  at: number;
+  twse: Map<string, Record<string, string>>;
+  tpex: Map<string, Record<string, string>>;
+} | null = null;
 
 export type MarketQuote = {
   symbol: string;
@@ -183,6 +188,28 @@ type TpexDailyCloseQuote = {
   TransactionAmount?: string;
 };
 
+type TpexMarginBalance = Record<string, string> & {
+  Date?: string;
+  SecuritiesCompanyCode?: string;
+  CompanyName?: string;
+  MarginPurchaseBalancePreviousDay?: string;
+  MarginPurchase?: string;
+  MarginSales?: string;
+  CashRedemption?: string;
+  MarginPurchaseBalance?: string;
+  MarginPurchaseUtilizationRate?: string;
+  MarginPurchaseQuota?: string;
+  ShortSaleBalancePreviousDay?: string;
+  ShortSale?: string;
+  ShortConvering?: string;
+  StockRedemption?: string;
+  ShortSaleBalance?: string;
+  ShortSaleUtilizationRate?: string;
+  ShortSaleQuota?: string;
+  Offsetting?: string;
+  Note?: string;
+};
+
 async function fetchJson<T>(url: string): Promise<T> {
   const response = await fetch(url, {
     cache: "no-store",
@@ -270,6 +297,90 @@ function parseTaiwanNumber(value?: string) {
   if (!value || value === "-" || value === "--") return undefined;
   const parsed = Number(value.replace(/,/g, ""));
   return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function parseNumberOrZero(value?: string) {
+  return parseTaiwanNumber(value) ?? 0;
+}
+
+function stockCode(symbol: string) {
+  return cleanSymbol(symbol).replace(/\.(TW|TWO)$/, "");
+}
+
+function rocDateToIso(raw?: string) {
+  if (!raw || !/^\d{7}$/.test(raw)) return "";
+  const year = Number(raw.slice(0, 3)) + 1911;
+  return `${year}-${raw.slice(3, 5)}-${raw.slice(5, 7)}`;
+}
+
+function blankMarginInfo(symbol: string, warning: string): MarginInfo {
+  return {
+    available: false,
+    source: symbol.endsWith(".TWO") ? "TPEX 上櫃融資融券 OpenAPI" : "TWSE 上市融資融券 OpenAPI",
+    date: "",
+    marginBuy: 0,
+    marginSell: 0,
+    marginCashRepayment: 0,
+    marginPreviousBalance: 0,
+    marginBalance: 0,
+    marginChange: 0,
+    marginChangePct: 0,
+    marginLimit: 0,
+    marginUtilizationPct: 0,
+    marginAmount: 0,
+    marginAmountToTurnoverPct: 0,
+    shortSell: 0,
+    shortCover: 0,
+    shortPreviousBalance: 0,
+    shortBalance: 0,
+    shortUtilizationPct: 0,
+    shortToMarginPct: 0,
+    note: "",
+    warning
+  };
+}
+
+function completeMarginInfo(input: Omit<MarginInfo, "available" | "marginChange" | "marginChangePct" | "marginAmount" | "marginAmountToTurnoverPct" | "shortToMarginPct" | "warning"> & {
+  price: number;
+  averageTurnover: number;
+  warning?: string;
+}): MarginInfo {
+  const marginChange = input.marginBalance - input.marginPreviousBalance;
+  const marginChangePct = input.marginPreviousBalance > 0 ? (marginChange / input.marginPreviousBalance) * 100 : 0;
+  const marginAmount = input.marginBalance * 1000 * input.price;
+  const marginAmountToTurnoverPct = input.averageTurnover > 0 ? (marginAmount / input.averageTurnover) * 100 : 0;
+  const shortToMarginPct = input.marginBalance > 0 ? (input.shortBalance / input.marginBalance) * 100 : 0;
+  const marginUtilizationPct =
+    input.marginUtilizationPct > 0
+      ? input.marginUtilizationPct
+      : input.marginLimit > 0
+        ? (input.marginBalance / input.marginLimit) * 100
+        : 0;
+
+  return {
+    available: true,
+    source: input.source,
+    date: input.date,
+    marginBuy: input.marginBuy,
+    marginSell: input.marginSell,
+    marginCashRepayment: input.marginCashRepayment,
+    marginPreviousBalance: input.marginPreviousBalance,
+    marginBalance: input.marginBalance,
+    marginChange,
+    marginChangePct,
+    marginLimit: input.marginLimit,
+    marginUtilizationPct,
+    marginAmount,
+    marginAmountToTurnoverPct,
+    shortSell: input.shortSell,
+    shortCover: input.shortCover,
+    shortPreviousBalance: input.shortPreviousBalance,
+    shortBalance: input.shortBalance,
+    shortUtilizationPct: input.shortUtilizationPct,
+    shortToMarginPct,
+    note: input.note,
+    warning: input.warning ?? ""
+  };
 }
 
 function twseMisChannel(symbol: string) {
@@ -604,6 +715,96 @@ export async function loadWholeMarketRecommendationUniverse(limit = 60): Promise
   recommendationUniverseCache = { at: Date.now(), data };
 
   return { ...data, candidates: data.candidates.slice(0, safeLimit) };
+}
+
+async function loadMarginMaps() {
+  if (marginMapsCache && Date.now() - marginMapsCache.at < 10 * 60_000) return marginMapsCache;
+
+  const [twseResult, tpexResult] = await Promise.allSettled([
+    fetchJson<Record<string, string>[]>("https://openapi.twse.com.tw/v1/exchangeReport/MI_MARGN"),
+    fetchJson<TpexMarginBalance[]>("https://www.tpex.org.tw/openapi/v1/tpex_mainboard_margin_balance")
+  ]);
+
+  const twse = new Map<string, Record<string, string>>();
+  if (twseResult.status === "fulfilled") {
+    for (const row of twseResult.value) {
+      const code = row["股票代號"]?.trim();
+      if (code) twse.set(code, row);
+    }
+  }
+
+  const tpex = new Map<string, Record<string, string>>();
+  if (tpexResult.status === "fulfilled") {
+    for (const row of tpexResult.value) {
+      const code = row.SecuritiesCompanyCode?.trim();
+      if (code) tpex.set(code, row);
+    }
+  }
+
+  marginMapsCache = { at: Date.now(), twse, tpex };
+  return marginMapsCache;
+}
+
+export async function fetchMarginTrading(symbol: string, price: number, averageTurnover: number): Promise<MarginInfo> {
+  const normalized = cleanSymbol(symbol);
+  const code = stockCode(normalized);
+  if (!/^\d{4,6}$/.test(code) || (!normalized.endsWith(".TW") && !normalized.endsWith(".TWO"))) {
+    return blankMarginInfo(normalized, "非台股標的，沒有融資融券資料。");
+  }
+
+  try {
+    const maps = await loadMarginMaps();
+
+    if (normalized.endsWith(".TWO")) {
+      const row = maps.tpex.get(code) as TpexMarginBalance | undefined;
+      if (!row) return blankMarginInfo(normalized, "TPEX 官方融資融券資料暫無此股票。");
+
+      return completeMarginInfo({
+        source: "TPEX 上櫃融資融券 OpenAPI",
+        date: rocDateToIso(row.Date),
+        marginBuy: parseNumberOrZero(row.MarginPurchase),
+        marginSell: parseNumberOrZero(row.MarginSales),
+        marginCashRepayment: parseNumberOrZero(row.CashRedemption),
+        marginPreviousBalance: parseNumberOrZero(row.MarginPurchaseBalancePreviousDay),
+        marginBalance: parseNumberOrZero(row.MarginPurchaseBalance),
+        marginLimit: parseNumberOrZero(row.MarginPurchaseQuota),
+        marginUtilizationPct: parseNumberOrZero(row.MarginPurchaseUtilizationRate),
+        shortSell: parseNumberOrZero(row.ShortSale),
+        shortCover: parseNumberOrZero(row.ShortConvering),
+        shortPreviousBalance: parseNumberOrZero(row.ShortSaleBalancePreviousDay),
+        shortBalance: parseNumberOrZero(row.ShortSaleBalance),
+        shortUtilizationPct: parseNumberOrZero(row.ShortSaleUtilizationRate),
+        note: row.Note?.trim() || "",
+        price,
+        averageTurnover
+      });
+    }
+
+    const row = maps.twse.get(code);
+    if (!row) return blankMarginInfo(normalized, "TWSE 官方融資融券資料暫無此股票。");
+
+    return completeMarginInfo({
+      source: "TWSE 上市融資融券 OpenAPI",
+      date: "",
+      marginBuy: parseNumberOrZero(row["融資買進"]),
+      marginSell: parseNumberOrZero(row["融資賣出"]),
+      marginCashRepayment: parseNumberOrZero(row["融資現金償還"]),
+      marginPreviousBalance: parseNumberOrZero(row["融資前日餘額"]),
+      marginBalance: parseNumberOrZero(row["融資今日餘額"]),
+      marginLimit: parseNumberOrZero(row["融資限額"]),
+      marginUtilizationPct: 0,
+      shortSell: parseNumberOrZero(row["融券賣出"]),
+      shortCover: parseNumberOrZero(row["融券買進"]),
+      shortPreviousBalance: parseNumberOrZero(row["融券前日餘額"]),
+      shortBalance: parseNumberOrZero(row["融券今日餘額"]),
+      shortUtilizationPct: 0,
+      note: row["註記"]?.trim() || "",
+      price,
+      averageTurnover
+    });
+  } catch {
+    return blankMarginInfo(normalized, "官方融資融券資料暫時抓取失敗，分析已降權處理。");
+  }
 }
 
 export async function yahooSearchStocks(query: string): Promise<StockProfile[]> {

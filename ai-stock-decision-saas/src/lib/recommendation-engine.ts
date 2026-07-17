@@ -12,6 +12,11 @@ export type StockRecommendation = {
   recommendation: "買入候選" | "可小量試單" | "接近買點" | "等待回檔" | "暫不買入";
   entryAdvice: AnalysisResult["entrySignal"]["label"];
   entryRule: string;
+  marginAmount: number;
+  marginUtilizationPct: number;
+  marginChange: number;
+  marginChangePct: number;
+  marginAmountToTurnoverPct: number;
   confidence: number;
   trendStage: string;
   buyPrice: string;
@@ -121,6 +126,11 @@ function buildReasons(analysis: AnalysisResult, riskReward: number) {
   reasons.push(
     `進場建議：${analysis.entrySignal.label}。套用規則：${analysis.entrySignal.rule}，距核心支撐 ${analysis.entrySignal.supportDistancePct.toFixed(2)}%，風險報酬比 1 : ${analysis.entrySignal.riskReward.toFixed(2)}。`
   );
+  reasons.push(
+    analysis.margin.available
+      ? `融資條件：融資餘額 ${analysis.margin.marginBalance.toLocaleString()} 張，估算金額 ${(analysis.margin.marginAmount / 100_000_000).toFixed(2)} 億元，使用率/佔比 ${analysis.margin.marginUtilizationPct.toFixed(2)}%，今日增減 ${analysis.margin.marginChange >= 0 ? "+" : ""}${analysis.margin.marginChange.toLocaleString()} 張。`
+      : `融資條件：${analysis.margin.warning}`
+  );
 
   return reasons;
 }
@@ -187,6 +197,10 @@ function transform(analysis: AnalysisResult): StockRecommendation {
           : analysis.entrySignal.label === "觀察" || analysis.entrySignal.label === "不買"
             ? -12
             : 0;
+  const marginPenalty =
+    (analysis.margin.marginUtilizationPct >= 30 ? 8 : analysis.margin.marginUtilizationPct >= 20 ? 4 : 0) +
+    (analysis.margin.marginChangePct >= 5 ? 6 : analysis.margin.marginChange > 0 ? 2 : 0) +
+    (analysis.margin.marginAmountToTurnoverPct >= 250 ? 5 : analysis.margin.marginAmountToTurnoverPct >= 120 ? 2 : 0);
   const rankScore =
     analysis.finalScore +
     probability * 0.22 +
@@ -194,7 +208,8 @@ function transform(analysis: AnalysisResult): StockRecommendation {
     Math.max(-8, Math.min(10, forecast * 1.3)) +
     actionPenalty -
     calibrationPenalty +
-    entryBonus;
+    entryBonus -
+    marginPenalty;
 
   return {
     symbol: analysis.symbol,
@@ -206,6 +221,11 @@ function transform(analysis: AnalysisResult): StockRecommendation {
     recommendation,
     entryAdvice: analysis.entrySignal.label,
     entryRule: analysis.entrySignal.rule,
+    marginAmount: analysis.margin.marginAmount,
+    marginUtilizationPct: analysis.margin.marginUtilizationPct,
+    marginChange: analysis.margin.marginChange,
+    marginChangePct: analysis.margin.marginChangePct,
+    marginAmountToTurnoverPct: analysis.margin.marginAmountToTurnoverPct,
     confidence: analysis.confidence,
     trendStage: analysis.trendStage,
     buyPrice: analysis.buyPrice,
