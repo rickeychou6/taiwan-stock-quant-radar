@@ -90,6 +90,14 @@ export function DashboardClient() {
         : data.margin.marginUtilizationPct >= 20 || data.margin.marginChange > 0
           ? "warn"
           : "bull";
+  const marginSafetyTone =
+    data.marginSafety.level === "安全"
+      ? "bull"
+      : data.marginSafety.level === "危險"
+        ? "bear"
+        : data.marginSafety.level === "資料不足"
+          ? "neutral"
+          : "warn";
 
   return (
     <div className="space-y-6">
@@ -130,7 +138,13 @@ export function DashboardClient() {
         <MetricCard label="目標價" value={`${price(data.takeProfit1)} / ${price(data.takeProfit2)}`} sub={data.holdingPeriod} tone="bull" />
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <MetricCard
+          label="融資水位安全"
+          value={data.marginSafety.level}
+          sub={`${data.marginSafety.score} 分，${data.marginSafety.summary}`}
+          tone={marginSafetyTone}
+        />
         <MetricCard
           label="融資金額"
           value={money(data.margin.marginAmount)}
@@ -155,6 +169,44 @@ export function DashboardClient() {
           sub={`券資比 ${data.margin.shortToMarginPct.toFixed(2)}%`}
           tone={data.margin.marginAmountToTurnoverPct >= 250 ? "bear" : data.margin.marginAmountToTurnoverPct >= 120 ? "warn" : "neutral"}
         />
+      </section>
+
+      <section className="rounded-3xl border border-slate-700/70 bg-slate-950/35 p-4 text-sm leading-6 text-slate-300">
+        <p className="font-bold text-white">融資水位警示</p>
+        <div className="mt-3 grid gap-3 lg:grid-cols-2">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-slate-500">目前觸發</p>
+            <div className="mt-2 space-y-2">
+              {data.marginSafety.warnings.map((item) => (
+                <div
+                  key={item.id}
+                  className={`rounded-2xl border px-3 py-2 ${
+                    item.severity === "danger"
+                      ? "border-rose-400/40 bg-rose-500/10 text-rose-100"
+                      : item.severity === "warn"
+                        ? "border-amber-400/40 bg-amber-500/10 text-amber-100"
+                        : "border-emerald-400/30 bg-emerald-500/10 text-emerald-100"
+                  }`}
+                >
+                  <p className="font-bold">{item.label}：{item.triggeredValue}</p>
+                  <p className="text-xs opacity-90">{item.message}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-slate-500">警示選項</p>
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              {data.marginSafety.alertOptions.map((option) => (
+                <div key={option.id} className="rounded-2xl border border-slate-700/70 bg-slate-900/45 p-3">
+                  <p className="font-bold text-white">{option.label}</p>
+                  <p className="mt-1 text-xs text-slate-300">{option.threshold}</p>
+                  <p className="mt-1 text-xs text-slate-500">{option.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </section>
 
       {data.margin.available ? (

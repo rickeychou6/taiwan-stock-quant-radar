@@ -46,6 +46,13 @@ function money(value: number) {
   return `${Math.round(value).toLocaleString()} 元`;
 }
 
+function marginSafetyTone(level: AnalysisResult["marginSafety"]["level"]) {
+  if (level === "安全") return "bull" as const;
+  if (level === "危險") return "bear" as const;
+  if (level === "資料不足") return "neutral" as const;
+  return "warn" as const;
+}
+
 function personalizedAdvice(row: PortfolioRow) {
   const analysis = row.analysis;
   if (!analysis || row.item.cost <= 0) return { label: "待分析", detail: "請先輸入成本並完成分析。", tone: "neutral" as const };
@@ -63,11 +70,11 @@ function personalizedAdvice(row: PortfolioRow) {
   if (pnl <= -8) {
     return { label: "降低部位", detail: "帳面虧損已擴大，若反彈無量應降低風險。", tone: "bear" as const };
   }
-  if (analysis.margin.marginUtilizationPct >= 30 && analysis.margin.marginChangePct >= 5) {
-    return { label: "減碼觀察", detail: `融資使用率 ${analysis.margin.marginUtilizationPct.toFixed(2)}% 且今日增加 ${pct(analysis.margin.marginChangePct)}，籌碼偏熱。`, tone: "bear" as const };
+  if (analysis.marginSafety.level === "危險") {
+    return { label: "減碼觀察", detail: `融資水位危險：${analysis.marginSafety.summary}`, tone: "bear" as const };
   }
-  if (analysis.margin.marginUtilizationPct >= 20 && analysis.margin.marginChange > 0) {
-    return { label: "續抱但控風險", detail: `融資佔比 ${analysis.margin.marginUtilizationPct.toFixed(2)}%，且融資仍增加，避免加碼追高。`, tone: "warn" as const };
+  if (analysis.marginSafety.level === "警戒") {
+    return { label: "續抱但控風險", detail: `融資水位警戒：${analysis.marginSafety.summary}`, tone: "warn" as const };
   }
   return { label: analysis.postEntryForecast.positionAdvice, detail: analysis.postEntryForecast.reason, tone: analysis.finalScore >= 60 ? "warn" as const : "neutral" as const };
 }
@@ -271,6 +278,7 @@ export function PortfolioClient() {
                   <MetricCard label="成本 / 損益" value={`${price(row.item.cost)} / ${pct(pnl)}`} tone={pnl >= 0 ? "bull" : "bear"} />
                   <MetricCard label="個人化建議" value={advice.label} sub={advice.detail} tone={advice.tone} />
                   <MetricCard label="建議賣出價" value={suggestedSellPrice(row)} sub="依第一/第二目標或停損線" tone="warn" />
+                  <MetricCard label="融資水位" value={analysis.marginSafety.level} sub={`${analysis.marginSafety.score} 分，警示 ${analysis.marginSafety.warnings.filter((item) => item.severity !== "info").length} 項`} tone={marginSafetyTone(analysis.marginSafety.level)} />
                   <MetricCard label="融資金額" value={money(analysis.margin.marginAmount)} sub={`佔比 ${analysis.margin.marginUtilizationPct.toFixed(2)}%`} tone={analysis.margin.marginUtilizationPct >= 30 || analysis.margin.marginChangePct >= 5 ? "bear" : analysis.margin.marginUtilizationPct >= 20 || analysis.margin.marginChange > 0 ? "warn" : "neutral"} />
                   <MetricCard label="融資增減" value={`${analysis.margin.marginChange >= 0 ? "+" : ""}${analysis.margin.marginChange.toLocaleString()} 張`} sub={pct(analysis.margin.marginChangePct)} tone={analysis.margin.marginChange <= 0 ? "bull" : analysis.margin.marginChangePct >= 5 ? "bear" : "warn"} />
                   <MetricCard label="停損價" value={price(analysis.stopLossPrice)} sub="跌破代表判斷錯誤" tone="bear" />

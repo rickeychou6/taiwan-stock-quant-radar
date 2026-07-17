@@ -17,6 +17,10 @@ export type StockRecommendation = {
   marginChange: number;
   marginChangePct: number;
   marginAmountToTurnoverPct: number;
+  marginSafetyLevel: AnalysisResult["marginSafety"]["level"];
+  marginSafetyScore: number;
+  marginSafetySummary: string;
+  marginWarningsCount: number;
   confidence: number;
   trendStage: string;
   buyPrice: string;
@@ -131,6 +135,9 @@ function buildReasons(analysis: AnalysisResult, riskReward: number) {
       ? `融資條件：融資餘額 ${analysis.margin.marginBalance.toLocaleString()} 張，估算金額 ${(analysis.margin.marginAmount / 100_000_000).toFixed(2)} 億元，使用率/佔比 ${analysis.margin.marginUtilizationPct.toFixed(2)}%，今日增減 ${analysis.margin.marginChange >= 0 ? "+" : ""}${analysis.margin.marginChange.toLocaleString()} 張。`
       : `融資條件：${analysis.margin.warning}`
   );
+  reasons.push(
+    `融資水位安全：${analysis.marginSafety.level}（${analysis.marginSafety.score} 分）。${analysis.marginSafety.summary}`
+  );
 
   return reasons;
 }
@@ -200,7 +207,8 @@ function transform(analysis: AnalysisResult): StockRecommendation {
   const marginPenalty =
     (analysis.margin.marginUtilizationPct >= 30 ? 8 : analysis.margin.marginUtilizationPct >= 20 ? 4 : 0) +
     (analysis.margin.marginChangePct >= 5 ? 6 : analysis.margin.marginChange > 0 ? 2 : 0) +
-    (analysis.margin.marginAmountToTurnoverPct >= 250 ? 5 : analysis.margin.marginAmountToTurnoverPct >= 120 ? 2 : 0);
+    (analysis.margin.marginAmountToTurnoverPct >= 250 ? 5 : analysis.margin.marginAmountToTurnoverPct >= 120 ? 2 : 0) +
+    (analysis.marginSafety.level === "危險" ? 8 : analysis.marginSafety.level === "警戒" ? 4 : analysis.marginSafety.level === "注意" ? 1 : 0);
   const rankScore =
     analysis.finalScore +
     probability * 0.22 +
@@ -226,6 +234,10 @@ function transform(analysis: AnalysisResult): StockRecommendation {
     marginChange: analysis.margin.marginChange,
     marginChangePct: analysis.margin.marginChangePct,
     marginAmountToTurnoverPct: analysis.margin.marginAmountToTurnoverPct,
+    marginSafetyLevel: analysis.marginSafety.level,
+    marginSafetyScore: analysis.marginSafety.score,
+    marginSafetySummary: analysis.marginSafety.summary,
+    marginWarningsCount: analysis.marginSafety.warnings.filter((item) => item.severity !== "info").length,
     confidence: analysis.confidence,
     trendStage: analysis.trendStage,
     buyPrice: analysis.buyPrice,

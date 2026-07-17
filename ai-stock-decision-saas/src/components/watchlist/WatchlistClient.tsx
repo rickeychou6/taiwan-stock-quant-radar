@@ -23,7 +23,7 @@ type AlertEvent = {
   key: string;
   symbol: string;
   name: string;
-  type: "買點" | "第一目標" | "第二目標" | "停損";
+  type: "買點" | "第一目標" | "第二目標" | "停損" | "融資警示";
   message: string;
   tone: "bull" | "bear" | "warn";
   createdAt: string;
@@ -62,6 +62,14 @@ function watchTone(row: WatchRow) {
   if (row.analysis.entrySignal.label === "小量試單" || row.analysis.entrySignal.label === "等待" || row.analysis.entrySignal.label === "觀望") return "warn" as const;
   if (row.analysis.entrySignal.label === "不買" || row.analysis.entrySignal.label === "觀察") return "bear" as const;
   if (row.analysis.action === "SELL" || row.analysis.action === "STOP_LOSS" || row.analysis.finalScore < 45) return "bear" as const;
+  return "warn" as const;
+}
+
+function marginSafetyTone(row: WatchRow) {
+  if (!row.analysis) return "neutral" as const;
+  if (row.analysis.marginSafety.level === "安全") return "bull" as const;
+  if (row.analysis.marginSafety.level === "危險") return "bear" as const;
+  if (row.analysis.marginSafety.level === "資料不足") return "neutral" as const;
   return "warn" as const;
 }
 
@@ -124,6 +132,19 @@ function alertEventsFor(row: WatchRow): AlertEvent[] {
       type: "第一目標",
       message: `${analysis.name} 已達第一目標，現價 ${price(analysis.price)}，第一目標 ${price(analysis.takeProfit1)}`,
       tone: "warn",
+      createdAt: now
+    });
+  }
+
+  if (analysis.marginSafety.level === "危險" || analysis.marginSafety.level === "警戒") {
+    const riskWarning = analysis.marginSafety.warnings.find((item) => item.severity === "danger") ?? analysis.marginSafety.warnings.find((item) => item.severity === "warn");
+    rows.push({
+      key: `${analysis.symbol}-MARGIN-${analysis.marginSafety.level}-${analysis.marginSafety.score}`,
+      symbol: analysis.symbol,
+      name: analysis.name,
+      type: "融資警示",
+      message: `${analysis.name} 融資水位${analysis.marginSafety.level}：${riskWarning?.message ?? analysis.marginSafety.summary}`,
+      tone: analysis.marginSafety.level === "危險" ? "bear" : "warn",
       createdAt: now
     });
   }
@@ -421,6 +442,7 @@ export function WatchlistClient() {
                 <MetricCard label="進場建議" value={row.analysis.entrySignal.label} sub={row.analysis.entrySignal.reason} tone={watchTone(row)} />
                 <MetricCard label="今日 AI 決策" value={row.analysis.action} sub={`分數 ${row.analysis.finalScore} / 信心 ${row.analysis.confidence}%`} tone={watchTone(row)} />
                 <MetricCard label="模型可靠度" value={row.analysis.modelCalibration.reliability} sub={`5 日正確率 ${row.analysis.modelCalibration.directionAccuracy5Day}%`} tone={row.analysis.modelCalibration.reliability === "高" ? "bull" : row.analysis.modelCalibration.reliability === "中" ? "warn" : "bear"} />
+                <MetricCard label="融資水位" value={row.analysis.marginSafety.level} sub={`${row.analysis.marginSafety.score} 分，警示 ${row.analysis.marginSafety.warnings.filter((item) => item.severity !== "info").length} 項`} tone={marginSafetyTone(row)} />
                 <MetricCard label="融資金額" value={money(row.analysis.margin.marginAmount)} sub={`佔比 ${row.analysis.margin.marginUtilizationPct.toFixed(2)}%`} tone={row.analysis.margin.marginUtilizationPct >= 30 || row.analysis.margin.marginChangePct >= 5 ? "bear" : row.analysis.margin.marginUtilizationPct >= 20 || row.analysis.margin.marginChange > 0 ? "warn" : "neutral"} />
                 <MetricCard label="融資增減" value={`${row.analysis.margin.marginChange >= 0 ? "+" : ""}${row.analysis.margin.marginChange.toLocaleString()} 張`} sub={pct(row.analysis.margin.marginChangePct)} tone={row.analysis.margin.marginChange <= 0 ? "bull" : row.analysis.margin.marginChangePct >= 5 ? "bear" : "warn"} />
                 <MetricCard label="警示狀態" value={alertEventsFor(row).map((event) => event.type).join("、") || "未觸發"} sub="買點 / 停損 / 目標價" tone={alertEventsFor(row).some((event) => event.tone === "bear") ? "bear" : alertEventsFor(row).length ? "warn" : "neutral"} />

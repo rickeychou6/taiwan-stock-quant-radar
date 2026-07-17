@@ -2,6 +2,8 @@ export type Action = "BUY" | "SELL" | "HOLD" | "WATCH" | "REDUCE" | "STOP_LOSS";
 export type RiskLevel = "LOW" | "MEDIUM" | "HIGH";
 export type TrendStage = "初升段" | "主升段" | "末升段" | "盤整" | "轉弱" | "破線";
 export type EntryAdviceLabel = "應買" | "可買" | "小量試單" | "等待" | "觀望" | "觀察" | "不買";
+export type MarginSafetyLevel = "安全" | "注意" | "警戒" | "危險" | "資料不足";
+export type AlertSeverity = "info" | "warn" | "danger";
 
 export type PriceBar = {
   date: string;
@@ -54,6 +56,27 @@ export type MarginInfo = {
   warning: string;
 };
 
+export type MarginSafety = {
+  level: MarginSafetyLevel;
+  score: number;
+  summary: string;
+  warnings: Array<{
+    id: string;
+    label: string;
+    severity: AlertSeverity;
+    message: string;
+    triggeredValue: string;
+  }>;
+  alertOptions: Array<{
+    id: string;
+    label: string;
+    severity: AlertSeverity;
+    threshold: string;
+    description: string;
+    enabled: boolean;
+  }>;
+};
+
 export type AnalysisResult = {
   symbol: string;
   name: string;
@@ -73,6 +96,7 @@ export type AnalysisResult = {
   takeProfit2: number;
   holdingPeriod: string;
   margin: MarginInfo;
+  marginSafety: MarginSafety;
   entrySignal: {
     label: EntryAdviceLabel;
     reason: string;

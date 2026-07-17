@@ -28,6 +28,13 @@ function recommendationTone(item: StockRecommendation) {
   return "border-slate-500/50 bg-slate-500/10 text-slate-200";
 }
 
+function safetyTone(level: StockRecommendation["marginSafetyLevel"]) {
+  if (level === "安全") return "bull";
+  if (level === "危險") return "bear";
+  if (level === "資料不足") return "neutral";
+  return "warn";
+}
+
 function RecommendationCard({ item, rank }: { item: StockRecommendation; rank: number }) {
   const isUp = item.changePct >= 0;
 
@@ -55,6 +62,7 @@ function RecommendationCard({ item, rank }: { item: StockRecommendation; rank: n
         <MetricCard label="現價" value={formatPrice(item.price)} sub={formatPct(item.changePct)} tone={isUp ? "bull" : "bear"} />
         <MetricCard label="AI 分數" value={item.finalScore} sub={`信心 ${item.confidence}%`} tone={item.finalScore >= 66 ? "bull" : item.finalScore >= 55 ? "warn" : "neutral"} />
         <MetricCard label="進場建議" value={item.entryAdvice} sub={item.entryRule} tone={item.entryAdvice === "應買" || item.entryAdvice === "可買" ? "bull" : item.entryAdvice === "不買" || item.entryAdvice === "觀察" ? "bear" : "warn"} />
+        <MetricCard label="融資水位" value={item.marginSafetyLevel} sub={`${item.marginSafetyScore} 分，警示 ${item.marginWarningsCount} 項`} tone={safetyTone(item.marginSafetyLevel)} />
         <MetricCard label="融資金額" value={formatMoney(item.marginAmount)} sub={`佔比 ${item.marginUtilizationPct.toFixed(2)}%`} tone={item.marginUtilizationPct >= 30 || item.marginChangePct >= 5 ? "bear" : item.marginUtilizationPct >= 20 || item.marginChange > 0 ? "warn" : "neutral"} />
         <MetricCard label="融資增減" value={`${item.marginChange >= 0 ? "+" : ""}${item.marginChange.toLocaleString()} 張`} sub={formatPct(item.marginChangePct)} tone={item.marginChange <= 0 ? "bull" : item.marginChangePct >= 5 ? "bear" : "warn"} />
         <MetricCard label="買入區間" value={item.idealBuyPrice} sub="分批掛單區" tone="bull" />

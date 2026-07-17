@@ -1,6 +1,7 @@
 import { atr, bollinger, ema, macd, obv, rsi, sma, stochastic } from "@/lib/indicators";
 import { generatePrices, getStock, mockChipData, mockFundamental, mockMacro, mockNews } from "@/lib/mock-data";
 import { buildEntrySignal } from "@/lib/entry-advice";
+import { buildMarginSafety } from "@/lib/margin-safety";
 import type { Action, AnalysisResult, PriceBar, RiskLevel, ScoreBlock, TrendStage } from "@/lib/types";
 
 type PositionAdvice = AnalysisResult["postEntryForecast"]["positionAdvice"];
@@ -172,6 +173,11 @@ export function runFullAnalysis(symbolOrName: string): AnalysisResult {
     note: "",
     warning: "此為範例資料，正式分析會使用 TWSE/TPEX 官方融資融券資料。"
   };
+  const marginSafety = buildMarginSafety({
+    margin,
+    priceChangePct: previousClose ? ((close - previousClose) / previousClose) * 100 : 0,
+    trendWeak: stage === "轉弱" || stage === "破線" || close < ma20
+  });
 
   let technicalScore = 50;
   const technicalReasons: string[] = [];
@@ -308,6 +314,7 @@ export function runFullAnalysis(symbolOrName: string): AnalysisResult {
     takeProfit2: Number(takeProfit2.toFixed(2)),
     holdingPeriod,
     margin,
+    marginSafety,
     entrySignal,
     postEntryForecast: forecast,
     modelCalibration,
