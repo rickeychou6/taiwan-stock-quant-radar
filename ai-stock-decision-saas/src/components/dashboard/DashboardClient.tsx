@@ -94,6 +94,39 @@ export function DashboardClient() {
         <MetricCard label="3-5 天上漲機率" value={`${data.postEntryForecast.probabilityUp3To5}%`} sub={`下跌機率 ${data.postEntryForecast.probabilityDown3To5}%`} />
       </section>
 
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <MetricCard
+          label="模型校準樣本"
+          value={`${data.modelCalibration.sampleSize} 筆`}
+          sub={`可靠度 ${data.modelCalibration.reliability}`}
+          tone={data.modelCalibration.reliability === "高" ? "bull" : data.modelCalibration.reliability === "中" ? "warn" : "bear"}
+        />
+        <MetricCard
+          label="3 / 5 日方向正確率"
+          value={`${data.modelCalibration.directionAccuracy3Day}% / ${data.modelCalibration.directionAccuracy5Day}%`}
+          sub="用歷史真實走勢滾動驗證"
+          tone={data.modelCalibration.directionAccuracy5Day >= 57 ? "bull" : data.modelCalibration.directionAccuracy5Day >= 52 ? "warn" : "bear"}
+        />
+        <MetricCard
+          label="第 5 日平均誤差"
+          value={pct(data.modelCalibration.averageForecastErrorPct)}
+          sub={`偏差 ${pct(data.modelCalibration.forecastBiasPct)}`}
+          tone={data.modelCalibration.averageForecastErrorPct <= 3.2 ? "bull" : data.modelCalibration.averageForecastErrorPct <= 4.6 ? "warn" : "bear"}
+        />
+        <MetricCard
+          label="資料品質"
+          value={data.dataQuality.latestPriceDate || "-"}
+          sub={`${data.dataQuality.priceBars} 根 K 線`}
+          tone={data.dataQuality.warning.includes("降低") ? "warn" : "neutral"}
+        />
+      </section>
+
+      <section className="rounded-3xl border border-blue-400/20 bg-blue-500/10 p-4 text-sm leading-6 text-blue-100">
+        <p className="font-bold text-white">模型自我修正</p>
+        <p className="mt-1">{data.modelCalibration.correction}</p>
+        <p className="mt-1">資料來源：{data.dataQuality.priceSource}。{data.dataQuality.warning}</p>
+      </section>
+
       <KLineChart data={data.prices} supportPrice={data.supportPrice} />
 
       <section className="grid gap-4 lg:grid-cols-2">

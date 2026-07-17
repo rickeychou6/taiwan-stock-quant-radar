@@ -55,6 +55,22 @@ export type AnalysisResult = {
     positionAdvice: "續抱" | "賣出" | "減碼" | "觀望";
     reason: string;
   };
+  modelCalibration: {
+    sampleSize: number;
+    directionAccuracy3Day: number;
+    directionAccuracy5Day: number;
+    averageForecastErrorPct: number;
+    forecastBiasPct: number;
+    averageActual5DayPct: number;
+    reliability: "高" | "中" | "低";
+    correction: string;
+  };
+  dataQuality: {
+    priceSource: string;
+    latestPriceDate: string;
+    priceBars: number;
+    warning: string;
+  };
   scores: {
     technical: ScoreBlock;
     chip: ScoreBlock;

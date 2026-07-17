@@ -118,6 +118,108 @@ function macroScoreFromSnapshot(snapshot: Record<string, number>) {
   return 50 + composite * 4.8;
 }
 
+function valueAt(values: number[], index: number) {
+  const value = values[index];
+  return Number.isFinite(value) ? value : 0;
+}
+
+function rollingModelCalibration(prices: PriceBar[]) {
+  const closes = prices.map((p) => p.close);
+  const highs = prices.map((p) => p.high);
+  const lows = prices.map((p) => p.low);
+  const volumes = prices.map((p) => p.volume);
+  const ma5Series = sma(closes, 5);
+  const ma10Series = sma(closes, 10);
+  const ma20Series = sma(closes, 20);
+  const ma60Series = sma(closes, 60);
+  const ma120Series = sma(closes, 120);
+  const rsiSeries = rsi(closes);
+  const kdSeries = stochastic(prices);
+  const macdSeries = macd(closes);
+  const atrSeries = atr(prices);
+  const bbSeries = bollinger(closes);
+  const volumeMa20Series = sma(volumes, 20);
+  const rows: Array<{ predicted3: number; predicted5: number; actual3: number; actual5: number }> = [];
+
+  for (let index = 140; index < prices.length - 5; index += 1) {
+    const close = closes[index];
+    if (!Number.isFinite(close) || close <= 0) continue;
+
+    const ma5 = valueAt(ma5Series, index);
+    const ma10 = valueAt(ma10Series, index);
+    const ma20 = valueAt(ma20Series, index);
+    const ma60 = valueAt(ma60Series, index);
+    const ma120 = valueAt(ma120Series, index);
+    const rsi14 = valueAt(rsiSeries, index);
+    const k = valueAt(kdSeries.k, index);
+    const d = valueAt(kdSeries.d, index);
+    const macdHist = valueAt(macdSeries.hist, index);
+    const atr14 = valueAt(atrSeries, index);
+    const bbUpper = valueAt(bbSeries.upper, index);
+    const bbMid = valueAt(bbSeries.mid, index);
+    const bbLower = valueAt(bbSeries.lower, index);
+    const boxHigh = Math.max(...highs.slice(Math.max(0, index - 20), index));
+    const volumeMa20 = valueAt(volumeMa20Series, index);
+    const volumeRatio = volumeMa20 ? volumes[index] / volumeMa20 : 1;
+    const bbWidth = bbMid ? ((bbUpper - bbLower) / bbMid) * 100 : 0;
+    const breakout = close > boxHigh && volumeRatio >= 1.2;
+    const stage = detectStage(close, ma20, ma60, ma120, rsi14, bbWidth, breakout);
+
+    let score = 50;
+    if (close > ma5 && ma5 > ma10 && ma10 > ma20) score += 12;
+    if (close > ma60 && ma60 > ma120) score += 10;
+    if (macdHist > 0) score += 7;
+    if (rsi14 > 50 && rsi14 < 72) score += 6;
+    if (k > d && k < 85) score += 5;
+    if (close >= bbMid && close <= bbUpper * 1.03) score += 5;
+    if (volumeRatio >= 1.25) score += 5;
+    if (breakout) score += 10;
+    if (close < ma20) score -= 12;
+    if (rsi14 > 78) score -= 6;
+    if (close > bbUpper * 1.04) score -= 5;
+
+    const forecast = forecastAfterEntry(score, stage, close ? (atr14 / close) * 100 : 0, 0);
+    const actual3 = ((closes[index + 3] - close) / close) * 100;
+    const actual5 = ((closes[index + 5] - close) / close) * 100;
+    if (![forecast.day3Pct, forecast.day5Pct, actual3, actual5].every(Number.isFinite)) continue;
+    rows.push({ predicted3: forecast.day3Pct, predicted5: forecast.day5Pct, actual3, actual5 });
+  }
+
+  const sample = rows.slice(-220);
+  const sampleSize = sample.length;
+  const direction3 = sample.filter((row) => (row.predicted3 >= 0 && row.actual3 >= 0) || (row.predicted3 < 0 && row.actual3 < 0)).length;
+  const direction5 = sample.filter((row) => (row.predicted5 >= 0 && row.actual5 >= 0) || (row.predicted5 < 0 && row.actual5 < 0)).length;
+  const avgError = sampleSize ? sample.reduce((sum, row) => sum + Math.abs(row.predicted5 - row.actual5), 0) / sampleSize : 0;
+  const bias = sampleSize ? sample.reduce((sum, row) => sum + (row.predicted5 - row.actual5), 0) / sampleSize : 0;
+  const avgActual5 = sampleSize ? sample.reduce((sum, row) => sum + row.actual5, 0) / sampleSize : 0;
+  const accuracy5 = sampleSize ? (direction5 / sampleSize) * 100 : 0;
+  const reliability: AnalysisResult["modelCalibration"]["reliability"] =
+    sampleSize >= 120 && accuracy5 >= 57 && avgError <= 3.2
+      ? "高"
+      : sampleSize >= 60 && accuracy5 >= 52 && avgError <= 4.6
+        ? "中"
+        : "低";
+  const correction =
+    sampleSize < 60
+      ? "歷史驗證樣本不足，降低模型信心。"
+      : bias > 0.8
+        ? `模型過去平均偏樂觀 ${bias.toFixed(2)}%，已要求交易判斷更保守。`
+        : bias < -0.8
+          ? `模型過去平均偏保守 ${Math.abs(bias).toFixed(2)}%，但仍以風險控管優先。`
+          : "模型過去預估偏差尚可，維持目前權重。";
+
+  return {
+    sampleSize,
+    directionAccuracy3Day: Math.round(sampleSize ? (direction3 / sampleSize) * 100 : 0),
+    directionAccuracy5Day: Math.round(accuracy5),
+    averageForecastErrorPct: Number(avgError.toFixed(2)),
+    forecastBiasPct: Number(bias.toFixed(2)),
+    averageActual5DayPct: Number(avgActual5.toFixed(2)),
+    reliability,
+    correction
+  };
+}
+
 export async function runRealFullAnalysis(symbolOrName: string): Promise<AnalysisResult> {
   const stock = await resolveStock(symbolOrName);
   const [prices, news, macro] = await Promise.all([
@@ -254,8 +356,15 @@ export async function runRealFullAnalysis(symbolOrName: string): Promise<Analysi
   const decision = decisionFromScore(finalScore, close, stopLoss);
   const backtest = similarPatternBacktest(prices, finalScore);
   const forecast = forecastAfterEntry(finalScore, stage, atrPct, backtest.bias);
+  const modelCalibration = rollingModelCalibration(prices);
+  const confidencePenalty =
+    (modelCalibration.reliability === "低" ? 10 : modelCalibration.reliability === "中" ? 4 : 0) +
+    Math.max(0, modelCalibration.averageForecastErrorPct - 3) * 2 +
+    Math.max(0, modelCalibration.forecastBiasPct) * 1.5;
+  const calibratedConfidence = clamp(decision.confidence - confidencePenalty + Math.max(0, modelCalibration.directionAccuracy5Day - 55) * 0.2);
   const holdingPeriod = finalScore >= 75 ? "短線 3-7 天，波段 1-4 週" : finalScore >= 55 ? "短線 1-5 天，等待確認" : "觀望或降低持股";
   technicalReasons.push(`核心支撐約 ${support.toFixed(2)}，支撐觀察區 ${priceRange(supportLow, supportHigh)}。`);
+  const latestPriceDate = prices[prices.length - 1]?.date || "";
 
   return {
     symbol: stock.symbol,
@@ -264,7 +373,7 @@ export async function runRealFullAnalysis(symbolOrName: string): Promise<Analysi
     changePct: previousClose ? ((close - previousClose) / previousClose) * 100 : 0,
     finalScore: Math.round(finalScore),
     action: decision.action,
-    confidence: Math.round(decision.confidence),
+    confidence: Math.round(calibratedConfidence),
     riskLevel: decision.riskLevel,
     trendStage: stage,
     supportPrice: Number(support.toFixed(2)),
@@ -276,11 +385,21 @@ export async function runRealFullAnalysis(symbolOrName: string): Promise<Analysi
     takeProfit2: Number(takeProfit2.toFixed(2)),
     holdingPeriod,
     postEntryForecast: forecast,
+    modelCalibration,
+    dataQuality: {
+      priceSource: "Yahoo Finance 歷史日 K + TWSE/TPEX MIS 盤中校正",
+      latestPriceDate,
+      priceBars: prices.length,
+      warning:
+        prices[prices.length - 1]?.volume === 0
+          ? "最新 K 線量能為 0，可能是停牌、休市或資料源尚未完整更新，請降低信任度。"
+          : "資料使用公開免費來源，若遇到除權息、停牌或盤中延遲，仍需用券商報價交叉確認。"
+    },
     scores,
     backtest,
     prices,
     explanation: {
-      summary: `${stock.name} 目前 AI 綜合分數 ${Math.round(finalScore)}，決策為 ${decision.action}，3-5 天持股建議為 ${forecast.positionAdvice}。資料來源為 Yahoo Finance 真實 K 線與新聞，未串接的法人/基本面不使用模擬數字。`,
+      summary: `${stock.name} 目前 AI 綜合分數 ${Math.round(finalScore)}，決策為 ${decision.action}，3-5 天持股建議為 ${forecast.positionAdvice}。模型近似歷史校準 5 日方向正確率 ${modelCalibration.directionAccuracy5Day}%，平均誤差 ${modelCalibration.averageForecastErrorPct}%。資料來源為 Yahoo Finance 真實 K 線與新聞，未串接的法人/基本面不使用模擬數字。`,
       technical: technicalReasons,
       chip: chipReasons,
       capital: capitalReasons,

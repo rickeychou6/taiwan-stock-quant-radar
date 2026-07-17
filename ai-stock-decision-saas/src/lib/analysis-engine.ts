@@ -238,6 +238,16 @@ export function runFullAnalysis(symbolOrName: string): AnalysisResult {
   const holdingPeriod = finalScore >= 75 ? "短線 3-7 天，波段 1-4 週" : finalScore >= 55 ? "短線 1-5 天，等確認後延長" : "當沖/隔日觀察，不宜久抱";
   const backtest = similarPatternBacktest(prices, finalScore);
   const forecast = postEntryForecast(finalScore, stage, atrPct, backtest.bias);
+  const modelCalibration: AnalysisResult["modelCalibration"] = {
+    sampleSize: backtest.similarPatternCount,
+    directionAccuracy3Day: backtest.oneYearWinRate,
+    directionAccuracy5Day: backtest.threeYearWinRate,
+    averageForecastErrorPct: Number(Math.max(1.2, Math.abs(backtest.maxDrawdown) / 4).toFixed(2)),
+    forecastBiasPct: Number((forecast.day5Pct - backtest.avgReturn).toFixed(2)),
+    averageActual5DayPct: backtest.avgReturn,
+    reliability: backtest.similarPatternCount >= 120 && backtest.threeYearWinRate >= 57 ? "高" : backtest.similarPatternCount >= 60 ? "中" : "低",
+    correction: "範例資料以歷史型態回測近似校準；正式分析會用真實 K 線滾動驗證。"
+  };
   technicalReasons.push(`核心支撐約 ${support.toFixed(2)}，支撐觀察區 ${rangeText(supportLow, supportHigh)}。`);
 
   return {
@@ -259,6 +269,13 @@ export function runFullAnalysis(symbolOrName: string): AnalysisResult {
     takeProfit2: Number(takeProfit2.toFixed(2)),
     holdingPeriod,
     postEntryForecast: forecast,
+    modelCalibration,
+    dataQuality: {
+      priceSource: "本機種子範例資料",
+      latestPriceDate: prices[prices.length - 1]?.date || "",
+      priceBars: prices.length,
+      warning: "此為首頁示範資料，不可作為真實交易依據。"
+    },
     scores,
     backtest,
     prices,

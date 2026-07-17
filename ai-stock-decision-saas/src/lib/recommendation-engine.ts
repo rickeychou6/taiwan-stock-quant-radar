@@ -113,6 +113,9 @@ function buildReasons(analysis: AnalysisResult, riskReward: number) {
       ? `目前報酬風險比約 1 : ${riskReward.toFixed(2)}，停損以 ${analysis.stopLossPrice.toFixed(2)} 元控管。`
       : `現價已低於或貼近停損線 ${analysis.stopLossPrice.toFixed(2)} 元，不列入買入候選。`
   );
+  reasons.push(
+    `模型校準：近 ${analysis.modelCalibration.sampleSize} 筆樣本 5 日方向正確率 ${analysis.modelCalibration.directionAccuracy5Day}%，平均誤差 ${analysis.modelCalibration.averageForecastErrorPct}%，可靠度 ${analysis.modelCalibration.reliability}。`
+  );
 
   return reasons;
 }
@@ -123,14 +126,18 @@ function recommendationOf(analysis: AnalysisResult, riskReward: number) {
   const blocked = action === "SELL" || action === "STOP_LOSS" || riskReward <= 0 || analysis.price <= analysis.stopLossPrice;
   const weakTrend = analysis.trendStage === "破線" || analysis.trendStage === "轉弱";
   const forecastPositive = analysis.postEntryForecast.day5Pct >= 0;
+  const weakCalibration =
+    analysis.modelCalibration.reliability === "低" ||
+    analysis.modelCalibration.averageForecastErrorPct > 6 ||
+    analysis.modelCalibration.directionAccuracy5Day < 52;
 
   if (blocked) return "暫不買入" as const;
 
-  if (analysis.finalScore >= 62 && upProbability >= 55 && riskReward >= 1.15 && forecastPositive) {
+  if (!weakCalibration && analysis.finalScore >= 62 && upProbability >= 55 && riskReward >= 1.15 && forecastPositive) {
     return "買入候選" as const;
   }
 
-  if (analysis.finalScore >= 48 && upProbability >= 52 && riskReward >= 1.2 && forecastPositive && !weakTrend) {
+  if (!weakCalibration && analysis.finalScore >= 48 && upProbability >= 52 && riskReward >= 1.2 && forecastPositive && !weakTrend) {
     return "可小量試單" as const;
   }
 
@@ -152,12 +159,17 @@ function transform(analysis: AnalysisResult): StockRecommendation {
   const forecast = analysis.postEntryForecast.day5Pct;
   const actionPenalty =
     analysis.action === "SELL" || analysis.action === "STOP_LOSS" ? -35 : analysis.action === "REDUCE" ? -18 : 0;
+  const calibrationPenalty =
+    (analysis.modelCalibration.reliability === "低" ? 10 : analysis.modelCalibration.reliability === "中" ? 4 : 0) +
+    Math.max(0, analysis.modelCalibration.averageForecastErrorPct - 3) * 1.8 +
+    Math.max(0, analysis.modelCalibration.forecastBiasPct) * 1.2;
   const rankScore =
     analysis.finalScore +
     probability * 0.22 +
     clamp(riskReward, 0, 3) * 7 +
     Math.max(-8, Math.min(10, forecast * 1.3)) +
-    actionPenalty;
+    actionPenalty -
+    calibrationPenalty;
 
   return {
     symbol: analysis.symbol,
