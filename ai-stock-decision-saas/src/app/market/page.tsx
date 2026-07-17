@@ -1,5 +1,5 @@
 import { MetricCard } from "@/components/MetricCard";
-import { marketOverviewQuotes, type MarketQuote } from "@/lib/real-data";
+import { marketMarginOverview, marketOverviewQuotes, type MarketMarginWarning, type MarketQuote } from "@/lib/real-data";
 
 export const dynamic = "force-dynamic";
 
@@ -15,9 +15,35 @@ function formatPct(value: number) {
   return `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
 }
 
+function formatMoney(value: number, signed = false) {
+  const abs = Math.abs(value);
+  const sign = signed ? (value > 0 ? "+" : value < 0 ? "-" : "") : value < 0 ? "-" : "";
+  if (abs >= 100_000_000_000) return `${sign}${(abs / 100_000_000_000).toFixed(2)} 千億`;
+  if (abs >= 100_000_000) return `${sign}${(abs / 100_000_000).toFixed(2)} 億`;
+  if (abs >= 10_000) return `${sign}${(abs / 10_000).toFixed(2)} 萬`;
+  return `${sign}${Math.round(abs).toLocaleString("zh-TW")} 元`;
+}
+
+function formatShares(value: number) {
+  return `${value >= 0 ? "+" : ""}${Math.round(value).toLocaleString("zh-TW")} 張`;
+}
+
 function quoteTone(quote: MarketQuote) {
   if (quote.symbol === "^VIX") return quote.change >= 0 ? "warn" : "bull";
   return quote.change >= 0 ? "bull" : "bear";
+}
+
+function safetyTone(level: string) {
+  if (level === "安全") return "bull";
+  if (level === "危險" || level === "警戒") return "bear";
+  if (level === "注意" || level === "資料不足") return "warn";
+  return "neutral";
+}
+
+function warningClass(warning: MarketMarginWarning) {
+  if (warning.severity === "danger") return "border-rose-400/30 bg-rose-400/10 text-rose-100";
+  if (warning.severity === "warn") return "border-amber-400/30 bg-amber-400/10 text-amber-100";
+  return "border-emerald-400/25 bg-emerald-400/10 text-emerald-100";
 }
 
 function MarketQuoteCard({ quote }: { quote: MarketQuote }) {
@@ -32,7 +58,7 @@ function MarketQuoteCard({ quote }: { quote: MarketQuote }) {
 }
 
 export default async function MarketPage() {
-  const quotes = await marketOverviewQuotes();
+  const [quotes, marginOverview] = await Promise.all([marketOverviewQuotes(), marketMarginOverview()]);
   const headline = quotes.filter((quote) => quote.group !== "futures" && quote.group !== "twfutures");
   const twFutures = quotes.filter((quote) => quote.group === "twfutures");
   const futures = quotes.filter((quote) => quote.group === "futures");
@@ -47,6 +73,81 @@ export default async function MarketPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {headline.map((quote) => <MarketQuoteCard key={quote.symbol} quote={quote} />)}
+      </div>
+
+      <div className="glass rounded-3xl p-5">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-sm text-slate-400">Market Margin Financing</p>
+            <h2 className="text-xl font-black text-white">大盤融資水位</h2>
+          </div>
+          <p className="text-sm text-slate-400">
+            {marginOverview.date || "最新官方資料"} · {marginOverview.source}
+          </p>
+        </div>
+
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <MetricCard
+            label="融資安全狀態"
+            value={marginOverview.safety.level}
+            sub={`${marginOverview.safety.score} 分 · ${marginOverview.safety.summary}`}
+            tone={safetyTone(marginOverview.safety.level)}
+          />
+          <MetricCard
+            label="目前融資總額"
+            value={formatMoney(marginOverview.currentAmount)}
+            sub={`原來總額 ${formatMoney(marginOverview.previousAmount)}`}
+            tone="neutral"
+          />
+          <MetricCard
+            label="融資增減金額"
+            value={formatMoney(marginOverview.changeAmount, true)}
+            sub={`相對原總額 ${formatPct(marginOverview.changePct)} · ${marginOverview.marketCount} 檔`}
+            tone={marginOverview.changeAmount > 0 ? "warn" : "bull"}
+          />
+          <MetricCard
+            label="融資餘額增減"
+            value={formatShares(marginOverview.balanceChange)}
+            sub={`融資張數變化 ${formatPct(marginOverview.balanceChangePct)}`}
+            tone={marginOverview.balanceChange > 0 ? "warn" : "bull"}
+          />
+          <MetricCard
+            label="融資使用率"
+            value={`${marginOverview.utilizationPct.toFixed(2)}%`}
+            sub={`融資餘額 / 融資限額`}
+            tone={safetyTone(marginOverview.safety.level)}
+          />
+          <MetricCard
+            label="融資總額 / 成交值"
+            value={`${marginOverview.amountToTurnoverPct.toFixed(2)}%`}
+            sub={`今日成交值 ${formatMoney(marginOverview.turnover)}`}
+            tone={safetyTone(marginOverview.safety.level)}
+          />
+          <MetricCard
+            label="上市融資水位"
+            value={formatMoney(marginOverview.listedAmount)}
+            sub={`今日增減 ${formatMoney(marginOverview.listedChangeAmount, true)}`}
+            tone={marginOverview.listedChangeAmount > 0 ? "warn" : "bull"}
+          />
+          <MetricCard
+            label="上櫃融資水位"
+            value={formatMoney(marginOverview.otcAmount)}
+            sub={`今日增減 ${formatMoney(marginOverview.otcChangeAmount, true)}`}
+            tone={marginOverview.otcChangeAmount > 0 ? "warn" : "bull"}
+          />
+        </div>
+
+        <div className="mt-4 grid gap-3 lg:grid-cols-2">
+          {marginOverview.safety.warnings.map((warning) => (
+            <div key={warning.id} className={`rounded-2xl border p-4 ${warningClass(warning)}`}>
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                <p className="font-black">{warning.label}</p>
+                <p className="text-sm font-bold">{warning.triggeredValue}</p>
+              </div>
+              <p className="mt-2 text-sm leading-6 opacity-90">{warning.message}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
       {twFutures.length > 0 ? (

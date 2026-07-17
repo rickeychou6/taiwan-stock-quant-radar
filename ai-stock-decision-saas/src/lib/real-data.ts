@@ -1,4 +1,4 @@
-import type { MarginInfo, PriceBar, StockProfile } from "@/lib/types";
+import type { AlertSeverity, MarginInfo, MarginSafetyLevel, PriceBar, StockProfile } from "@/lib/types";
 
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36";
@@ -32,6 +32,7 @@ let marginMapsCache: {
   twse: Map<string, Record<string, string>>;
   tpex: Map<string, Record<string, string>>;
 } | null = null;
+let marketMarginCache: { at: number; data: MarketMarginOverview } | null = null;
 
 export type MarketQuote = {
   symbol: string;
@@ -61,6 +62,43 @@ export type WholeMarketRecommendationUniverse = {
   universeCount: number;
   qualifiedCount: number;
   candidates: MarketScanCandidate[];
+};
+
+export type MarketMarginWarning = {
+  id: string;
+  label: string;
+  severity: AlertSeverity;
+  message: string;
+  triggeredValue: string;
+};
+
+export type MarketMarginOverview = {
+  available: boolean;
+  source: string;
+  date: string;
+  marketCount: number;
+  currentAmount: number;
+  previousAmount: number;
+  changeAmount: number;
+  changePct: number;
+  marginBalance: number;
+  previousMarginBalance: number;
+  balanceChange: number;
+  balanceChangePct: number;
+  marginLimit: number;
+  utilizationPct: number;
+  turnover: number;
+  amountToTurnoverPct: number;
+  listedAmount: number;
+  listedChangeAmount: number;
+  otcAmount: number;
+  otcChangeAmount: number;
+  safety: {
+    level: MarginSafetyLevel;
+    score: number;
+    summary: string;
+    warnings: MarketMarginWarning[];
+  };
 };
 
 type YahooQuote = {
@@ -311,6 +349,23 @@ function rocDateToIso(raw?: string) {
   if (!raw || !/^\d{7}$/.test(raw)) return "";
   const year = Number(raw.slice(0, 3)) + 1911;
   return `${year}-${raw.slice(3, 5)}-${raw.slice(5, 7)}`;
+}
+
+function quoteDateToIso(raw?: string) {
+  const text = raw?.trim();
+  if (!text) return "";
+  const digits = text.replace(/[^\d]/g, "");
+  if (/^\d{8}$/.test(digits)) return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6, 8)}`;
+  if (/^\d{7}$/.test(digits)) return rocDateToIso(digits);
+  return text;
+}
+
+function formatShortTwd(value: number) {
+  const sign = value > 0 ? "+" : value < 0 ? "-" : "";
+  const abs = Math.abs(value);
+  if (abs >= 100_000_000) return `${sign}${(abs / 100_000_000).toFixed(1)} 億`;
+  if (abs >= 10_000) return `${sign}${(abs / 10_000).toFixed(1)} 萬`;
+  return `${sign}${Math.round(abs).toLocaleString("zh-TW")} 元`;
 }
 
 function blankMarginInfo(symbol: string, warning: string): MarginInfo {
@@ -743,6 +798,395 @@ async function loadMarginMaps() {
 
   marginMapsCache = { at: Date.now(), twse, tpex };
   return marginMapsCache;
+}
+
+function blankMarketMarginOverview(summary: string): MarketMarginOverview {
+  return {
+    available: false,
+    source: "TWSE/TPEX 官方融資融券 OpenAPI",
+    date: "",
+    marketCount: 0,
+    currentAmount: 0,
+    previousAmount: 0,
+    changeAmount: 0,
+    changePct: 0,
+    marginBalance: 0,
+    previousMarginBalance: 0,
+    balanceChange: 0,
+    balanceChangePct: 0,
+    marginLimit: 0,
+    utilizationPct: 0,
+    turnover: 0,
+    amountToTurnoverPct: 0,
+    listedAmount: 0,
+    listedChangeAmount: 0,
+    otcAmount: 0,
+    otcChangeAmount: 0,
+    safety: {
+      level: "資料不足",
+      score: 0,
+      summary,
+      warnings: [
+        {
+          id: "market-margin-data-missing",
+          label: "資料不足",
+          severity: "warn",
+          message: summary,
+          triggeredValue: "官方資料暫缺"
+        }
+      ]
+    }
+  };
+}
+
+function buildMarketMarginWarning(
+  id: string,
+  label: string,
+  severity: AlertSeverity,
+  message: string,
+  triggeredValue: string
+): MarketMarginWarning {
+  return { id, label, severity, message, triggeredValue };
+}
+
+function buildMarketMarginSafety(input: {
+  marketCount: number;
+  changeAmount: number;
+  changePct: number;
+  balanceChangePct: number;
+  utilizationPct: number;
+  amountToTurnoverPct: number;
+}) {
+  if (input.marketCount === 0) return blankMarketMarginOverview("官方融資資料暫時不足，無法判斷大盤融資水位。").safety;
+
+  let score = 100;
+  const warnings: MarketMarginWarning[] = [];
+  const addWarning = (points: number, warning: MarketMarginWarning) => {
+    score -= points;
+    warnings.push(warning);
+  };
+
+  if (input.utilizationPct >= 25) {
+    addWarning(
+      28,
+      buildMarketMarginWarning(
+        "market-margin-utilization-danger",
+        "融資使用率過高",
+        "danger",
+        "全市場融資使用率已進入高壓區，籌碼遇到急跌時較容易被迫降槓桿。",
+        `${input.utilizationPct.toFixed(2)}%`
+      )
+    );
+  } else if (input.utilizationPct >= 18) {
+    addWarning(
+      18,
+      buildMarketMarginWarning(
+        "market-margin-utilization-warn",
+        "融資使用率偏高",
+        "warn",
+        "融資使用率偏高，追價時要降低部位，避免大盤回檔時融資賣壓放大。",
+        `${input.utilizationPct.toFixed(2)}%`
+      )
+    );
+  } else if (input.utilizationPct >= 12) {
+    addWarning(
+      8,
+      buildMarketMarginWarning(
+        "market-margin-utilization-watch",
+        "融資使用率升溫",
+        "info",
+        "融資使用率開始升溫，仍可交易，但需要同步看量價是否健康。",
+        `${input.utilizationPct.toFixed(2)}%`
+      )
+    );
+  }
+
+  if (input.balanceChangePct >= 3) {
+    addWarning(
+      24,
+      buildMarketMarginWarning(
+        "market-margin-balance-surge",
+        "融資餘額急增",
+        "danger",
+        "融資餘額單日急增，代表散戶槓桿追價明顯升高，隔日若量縮容易壓回。",
+        `${input.balanceChangePct.toFixed(2)}%`
+      )
+    );
+  } else if (input.balanceChangePct >= 1.5) {
+    addWarning(
+      14,
+      buildMarketMarginWarning(
+        "market-margin-balance-rise",
+        "融資餘額增加",
+        "warn",
+        "融資餘額增加速度偏快，若大盤同步轉弱，需提高停損紀律。",
+        `${input.balanceChangePct.toFixed(2)}%`
+      )
+    );
+  } else if (input.balanceChangePct > 0.5) {
+    addWarning(
+      6,
+      buildMarketMarginWarning(
+        "market-margin-balance-watch",
+        "融資餘額溫和增加",
+        "info",
+        "融資餘額溫和增加，尚未達危險區，但不適合無停損追高。",
+        `${input.balanceChangePct.toFixed(2)}%`
+      )
+    );
+  }
+
+  if (input.amountToTurnoverPct >= 900) {
+    addWarning(
+      24,
+      buildMarketMarginWarning(
+        "market-margin-turnover-danger",
+        "融資總額相對成交值過高",
+        "danger",
+        "融資水位相對市場成交值偏重，代表短線承接力不足時，融資籌碼會變成壓力。",
+        `${input.amountToTurnoverPct.toFixed(2)}%`
+      )
+    );
+  } else if (input.amountToTurnoverPct >= 650) {
+    addWarning(
+      14,
+      buildMarketMarginWarning(
+        "market-margin-turnover-warn",
+        "融資水位偏重",
+        "warn",
+        "融資總額相對成交值偏重，適合偏保守操作，避免重倉追高。",
+        `${input.amountToTurnoverPct.toFixed(2)}%`
+      )
+    );
+  } else if (input.amountToTurnoverPct >= 450) {
+    addWarning(
+      7,
+      buildMarketMarginWarning(
+        "market-margin-turnover-watch",
+        "融資水位需觀察",
+        "info",
+        "融資總額相對成交值進入觀察區，須搭配大盤趨勢與法人買賣超確認。",
+        `${input.amountToTurnoverPct.toFixed(2)}%`
+      )
+    );
+  }
+
+  if (input.changeAmount >= 20_000_000_000) {
+    addWarning(
+      18,
+      buildMarketMarginWarning(
+        "market-margin-money-danger",
+        "融資金額大增",
+        "danger",
+        "融資水位單日增加金額過大，代表市場槓桿追價快速升高。",
+        formatShortTwd(input.changeAmount)
+      )
+    );
+  } else if (input.changeAmount >= 8_000_000_000) {
+    addWarning(
+      10,
+      buildMarketMarginWarning(
+        "market-margin-money-warn",
+        "融資金額增加",
+        "warn",
+        "融資水位單日增加金額偏高，短線要避免買在情緒最熱的位置。",
+        formatShortTwd(input.changeAmount)
+      )
+    );
+  } else if (input.changeAmount > 0) {
+    addWarning(
+      4,
+      buildMarketMarginWarning(
+        "market-margin-money-up",
+        "融資金額小增",
+        "info",
+        "融資水位小幅增加，尚未達明顯風險，但仍需搭配大盤趨勢確認。",
+        formatShortTwd(input.changeAmount)
+      )
+    );
+  }
+
+  score = Math.max(0, Math.min(100, Math.round(score)));
+  const hasDanger = warnings.some((item) => item.severity === "danger");
+  const hasWarn = warnings.some((item) => item.severity === "warn");
+  let level: MarginSafetyLevel =
+    score >= 80 ? "安全" : score >= 62 ? "注意" : score >= 42 ? "警戒" : "危險";
+  if (hasDanger && (level === "安全" || level === "注意")) level = "警戒";
+  if (hasWarn && level === "安全") level = "注意";
+
+  if (warnings.length === 0) {
+    warnings.push(
+      buildMarketMarginWarning(
+        "market-margin-safe",
+        "融資水位安全",
+        "info",
+        "融資水位、增幅與相對成交值都未達警戒門檻。",
+        `安全分數 ${score}`
+      )
+    );
+  }
+
+  const summary =
+    level === "安全"
+      ? "大盤融資水位健康，槓桿風險暫低。"
+      : level === "注意"
+        ? "融資水位開始升溫，仍可交易但不宜重倉追高。"
+        : level === "警戒"
+          ? "融資籌碼偏熱，短線回檔時賣壓可能放大。"
+          : "融資水位高風險，應降低槓桿與追價部位。";
+
+  return { level, score, summary, warnings };
+}
+
+export async function marketMarginOverview(): Promise<MarketMarginOverview> {
+  if (marketMarginCache && Date.now() - marketMarginCache.at < 60_000) return marketMarginCache.data;
+
+  try {
+    const [marginMaps, twseResult, tpexResult] = await Promise.all([
+      loadMarginMaps(),
+      fetchJson<TwseDayAllQuote[]>("https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL"),
+      fetchJson<TpexDailyCloseQuote[]>("https://www.tpex.org.tw/openapi/v1/tpex_mainboard_daily_close_quotes")
+    ]);
+
+    const rows: Array<{
+      code: string;
+      market: "TWSE" | "TPEX";
+      price: number;
+      tradeValue: number;
+      date: string;
+      marginPreviousBalance: number;
+      marginBalance: number;
+      marginLimit: number;
+    }> = [];
+
+    for (const item of twseResult) {
+      const code = item.Code?.trim();
+      if (!commonStockCode(code)) continue;
+      const margin = marginMaps.twse.get(code!);
+      if (!margin) continue;
+      const price = parseTaiwanNumber(item.ClosingPrice) ?? 0;
+      const tradeValue = parseTaiwanNumber(item.TradeValue) ?? 0;
+      const marginPreviousBalance = parseNumberOrZero(margin["融資前日餘額"]);
+      const marginBalance = parseNumberOrZero(margin["融資今日餘額"]);
+      const marginLimit = parseNumberOrZero(margin["融資限額"]);
+      if (price <= 0 || marginBalance <= 0) continue;
+      rows.push({
+        code: code!,
+        market: "TWSE",
+        price,
+        tradeValue,
+        date: quoteDateToIso(item.Date),
+        marginPreviousBalance,
+        marginBalance,
+        marginLimit
+      });
+    }
+
+    for (const item of tpexResult) {
+      const code = item.SecuritiesCompanyCode?.trim();
+      if (!commonStockCode(code)) continue;
+      const margin = marginMaps.tpex.get(code!) as TpexMarginBalance | undefined;
+      if (!margin) continue;
+      const price = parseTaiwanNumber(item.Close) ?? 0;
+      const tradeValue = parseTaiwanNumber(item.TransactionAmount) ?? 0;
+      const marginPreviousBalance = parseNumberOrZero(margin.MarginPurchaseBalancePreviousDay);
+      const marginBalance = parseNumberOrZero(margin.MarginPurchaseBalance);
+      const marginLimit = parseNumberOrZero(margin.MarginPurchaseQuota);
+      if (price <= 0 || marginBalance <= 0) continue;
+      rows.push({
+        code: code!,
+        market: "TPEX",
+        price,
+        tradeValue,
+        date: quoteDateToIso(item.Date || margin.Date),
+        marginPreviousBalance,
+        marginBalance,
+        marginLimit
+      });
+    }
+
+    if (rows.length === 0) return blankMarketMarginOverview("TWSE/TPEX 官方融資資料暫時沒有可彙總的普通股。");
+
+    const summary = rows.reduce(
+      (acc, row) => {
+        const currentAmount = row.marginBalance * 1000 * row.price;
+        const previousAmount = row.marginPreviousBalance * 1000 * row.price;
+        acc.currentAmount += currentAmount;
+        acc.previousAmount += previousAmount;
+        acc.marginBalance += row.marginBalance;
+        acc.previousMarginBalance += row.marginPreviousBalance;
+        acc.marginLimit += row.marginLimit;
+        acc.turnover += row.tradeValue;
+        if (row.market === "TWSE") {
+          acc.listedAmount += currentAmount;
+          acc.listedChangeAmount += currentAmount - previousAmount;
+        } else {
+          acc.otcAmount += currentAmount;
+          acc.otcChangeAmount += currentAmount - previousAmount;
+        }
+        if (row.date && row.date > acc.date) acc.date = row.date;
+        return acc;
+      },
+      {
+        currentAmount: 0,
+        previousAmount: 0,
+        marginBalance: 0,
+        previousMarginBalance: 0,
+        marginLimit: 0,
+        turnover: 0,
+        listedAmount: 0,
+        listedChangeAmount: 0,
+        otcAmount: 0,
+        otcChangeAmount: 0,
+        date: ""
+      }
+    );
+
+    const changeAmount = summary.currentAmount - summary.previousAmount;
+    const changePct = summary.previousAmount > 0 ? (changeAmount / summary.previousAmount) * 100 : 0;
+    const balanceChange = summary.marginBalance - summary.previousMarginBalance;
+    const balanceChangePct =
+      summary.previousMarginBalance > 0 ? (balanceChange / summary.previousMarginBalance) * 100 : 0;
+    const utilizationPct = summary.marginLimit > 0 ? (summary.marginBalance / summary.marginLimit) * 100 : 0;
+    const amountToTurnoverPct = summary.turnover > 0 ? (summary.currentAmount / summary.turnover) * 100 : 0;
+
+    const data: MarketMarginOverview = {
+      available: true,
+      source: "TWSE/TPEX 官方融資融券 OpenAPI + 官方每日收盤價",
+      date: summary.date,
+      marketCount: rows.length,
+      currentAmount: summary.currentAmount,
+      previousAmount: summary.previousAmount,
+      changeAmount,
+      changePct,
+      marginBalance: summary.marginBalance,
+      previousMarginBalance: summary.previousMarginBalance,
+      balanceChange,
+      balanceChangePct,
+      marginLimit: summary.marginLimit,
+      utilizationPct,
+      turnover: summary.turnover,
+      amountToTurnoverPct,
+      listedAmount: summary.listedAmount,
+      listedChangeAmount: summary.listedChangeAmount,
+      otcAmount: summary.otcAmount,
+      otcChangeAmount: summary.otcChangeAmount,
+      safety: buildMarketMarginSafety({
+        marketCount: rows.length,
+        changeAmount,
+        changePct,
+        balanceChangePct,
+        utilizationPct,
+        amountToTurnoverPct
+      })
+    };
+    marketMarginCache = { at: Date.now(), data };
+    return data;
+  } catch {
+    const data = blankMarketMarginOverview("TWSE/TPEX 官方融資水位暫時抓取失敗，請稍後再更新。");
+    marketMarginCache = { at: Date.now(), data };
+    return data;
+  }
 }
 
 export async function fetchMarginTrading(symbol: string, price: number, averageTurnover: number): Promise<MarginInfo> {
