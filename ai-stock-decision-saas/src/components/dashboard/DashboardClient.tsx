@@ -61,6 +61,12 @@ export function DashboardClient() {
     data.scores.news,
     data.scores.macro
   ];
+  const reliabilityTone =
+    data.modelCalibration.reliability === "高"
+      ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-100"
+      : data.modelCalibration.reliability === "中"
+        ? "border-amber-400/40 bg-amber-400/10 text-amber-100"
+        : "border-rose-400/40 bg-rose-400/10 text-rose-100";
 
   return (
     <div className="space-y-6">
@@ -73,7 +79,17 @@ export function DashboardClient() {
             <h1 className="text-3xl font-black text-white">{data.name} {data.symbol}</h1>
             <p className="mt-2 text-slate-300">現價 {price(data.price)}，漲跌幅 {pct(data.changePct)}</p>
           </div>
-          <ScoreRing score={data.finalScore} label="Final Score" />
+          <div className="flex flex-col gap-3 lg:items-end">
+            <ScoreRing score={data.finalScore} label="Final Score" />
+            <div className={`w-full rounded-2xl border px-4 py-3 lg:w-64 ${reliabilityTone}`}>
+              <p className="text-xs font-bold opacity-75">模型可靠度</p>
+              <p className="mt-1 text-3xl font-black">{data.modelCalibration.reliability}</p>
+              <p className="mt-1 text-xs leading-5">
+                5 日方向正確率 {data.modelCalibration.directionAccuracy5Day}%，
+                平均誤差 {pct(data.modelCalibration.averageForecastErrorPct)}
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -98,7 +114,7 @@ export function DashboardClient() {
         <MetricCard
           label="模型校準樣本"
           value={`${data.modelCalibration.sampleSize} 筆`}
-          sub={`可靠度 ${data.modelCalibration.reliability}`}
+          sub="歷史真實走勢回測"
           tone={data.modelCalibration.reliability === "高" ? "bull" : data.modelCalibration.reliability === "中" ? "warn" : "bear"}
         />
         <MetricCard
