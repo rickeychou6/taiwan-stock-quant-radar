@@ -44,9 +44,10 @@ function RecommendationCard({ item, rank }: { item: StockRecommendation; rank: n
         </div>
       </div>
 
-      <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-7">
         <MetricCard label="現價" value={formatPrice(item.price)} sub={formatPct(item.changePct)} tone={isUp ? "bull" : "bear"} />
         <MetricCard label="AI 分數" value={item.finalScore} sub={`信心 ${item.confidence}%`} tone={item.finalScore >= 66 ? "bull" : item.finalScore >= 55 ? "warn" : "neutral"} />
+        <MetricCard label="進場建議" value={item.entryAdvice} sub={item.entryRule} tone={item.entryAdvice === "應買" || item.entryAdvice === "可買" ? "bull" : item.entryAdvice === "不買" || item.entryAdvice === "觀察" ? "bear" : "warn"} />
         <MetricCard label="買入區間" value={item.idealBuyPrice} sub="分批掛單區" tone="bull" />
         <MetricCard label="停損價" value={formatPrice(item.stopLossPrice)} sub="跌破應停損" tone="bear" />
         <MetricCard label="賣出目標" value={item.sellPrice} sub="第一 / 第二目標" tone="warn" />

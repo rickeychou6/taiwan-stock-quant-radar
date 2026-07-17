@@ -1,6 +1,7 @@
 export type Action = "BUY" | "SELL" | "HOLD" | "WATCH" | "REDUCE" | "STOP_LOSS";
 export type RiskLevel = "LOW" | "MEDIUM" | "HIGH";
 export type TrendStage = "初升段" | "主升段" | "末升段" | "盤整" | "轉弱" | "破線";
+export type EntryAdviceLabel = "應買" | "可買" | "小量試單" | "等待" | "觀望" | "觀察" | "不買";
 
 export type PriceBar = {
   date: string;
@@ -46,6 +47,13 @@ export type AnalysisResult = {
   takeProfit1: number;
   takeProfit2: number;
   holdingPeriod: string;
+  entrySignal: {
+    label: EntryAdviceLabel;
+    reason: string;
+    rule: string;
+    riskReward: number;
+    supportDistancePct: number;
+  };
   postEntryForecast: {
     day3Pct: number;
     day4Pct: number;

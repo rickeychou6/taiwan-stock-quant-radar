@@ -67,6 +67,14 @@ export function DashboardClient() {
       : data.modelCalibration.reliability === "中"
         ? "border-amber-400/40 bg-amber-400/10 text-amber-100"
         : "border-rose-400/40 bg-rose-400/10 text-rose-100";
+  const entryTone =
+    data.entrySignal.label === "應買" || data.entrySignal.label === "可買"
+      ? "bull"
+      : data.entrySignal.label === "小量試單" || data.entrySignal.label === "等待" || data.entrySignal.label === "觀望"
+        ? "warn"
+        : data.entrySignal.label === "不買"
+          ? "bear"
+          : "neutral";
 
   return (
     <div className="space-y-6">
@@ -93,14 +101,32 @@ export function DashboardClient() {
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-3 xl:grid-cols-7">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <MetricCard label="進場建議" value={data.entrySignal.label} sub={data.entrySignal.reason} tone={entryTone} />
         <MetricCard label="今日 AI 決策" value={data.action} sub={`信心 ${data.confidence}%`} tone={data.finalScore >= 70 ? "bull" : data.finalScore < 45 ? "bear" : "warn"} />
         <MetricCard label="持股建議" value={data.postEntryForecast.positionAdvice} sub={data.postEntryForecast.reason} />
         <MetricCard label="趨勢階段" value={data.trendStage} sub={`風險 ${data.riskLevel}`} />
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard label="支撐價位" value={data.supportPriceRange} sub={`核心支撐 ${price(data.supportPrice)}`} tone="warn" />
         <MetricCard label="建議買點" value={data.buyPrice} sub="支撐、均線、VWAP、ATR 回檔區" />
         <MetricCard label="停損價" value={price(data.stopLossPrice)} sub="跌破代表判斷錯誤" tone="bear" />
         <MetricCard label="目標價" value={`${price(data.takeProfit1)} / ${price(data.takeProfit2)}`} sub={data.holdingPeriod} tone="bull" />
+      </section>
+
+      <section className="rounded-3xl border border-amber-400/20 bg-amber-400/10 p-4 text-sm leading-6 text-amber-50">
+        <p className="font-bold text-white">進場建議規則</p>
+        <p className="mt-1 text-amber-100">
+          目前套用：{data.entrySignal.rule}；風險報酬比約 1 : {data.entrySignal.riskReward.toFixed(2)}；
+          現價距核心支撐 {pct(data.entrySignal.supportDistancePct)}。
+        </p>
+        <div className="mt-3 grid gap-2 text-slate-200 md:grid-cols-2">
+          <p>可靠度低：不買，最多觀察。</p>
+          <p>可靠度中 + 條件普通：觀望。</p>
+          <p>可靠度中 + 價格接近支撐 + 風險報酬比好：小量試單。</p>
+          <p>可靠度高 + 技術面 / 量能 / 風險報酬比都好：才考慮買入。</p>
+        </div>
       </section>
 
       <section className="grid gap-4 md:grid-cols-4">

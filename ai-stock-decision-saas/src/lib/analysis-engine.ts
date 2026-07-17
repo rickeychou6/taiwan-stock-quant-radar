@@ -1,5 +1,6 @@
 import { atr, bollinger, ema, macd, obv, rsi, sma, stochastic } from "@/lib/indicators";
 import { generatePrices, getStock, mockChipData, mockFundamental, mockMacro, mockNews } from "@/lib/mock-data";
+import { buildEntrySignal } from "@/lib/entry-advice";
 import type { Action, AnalysisResult, PriceBar, RiskLevel, ScoreBlock, TrendStage } from "@/lib/types";
 
 type PositionAdvice = AnalysisResult["postEntryForecast"]["positionAdvice"];
@@ -248,6 +249,20 @@ export function runFullAnalysis(symbolOrName: string): AnalysisResult {
     reliability: backtest.similarPatternCount >= 120 && backtest.threeYearWinRate >= 57 ? "高" : backtest.similarPatternCount >= 60 ? "中" : "低",
     correction: "範例資料以歷史型態回測近似校準；正式分析會用真實 K 線滾動驗證。"
   };
+  const entrySignal = buildEntrySignal({
+    reliability: modelCalibration.reliability,
+    finalScore,
+    technicalScore: scores.technical.score,
+    capitalScore: scores.capital.score,
+    price: close,
+    support,
+    stopLoss,
+    takeProfit1,
+    volumeRatio,
+    trendStage: stage,
+    action: decision.action,
+    forecastUpProbability: forecast.probabilityUp3To5
+  });
   technicalReasons.push(`核心支撐約 ${support.toFixed(2)}，支撐觀察區 ${rangeText(supportLow, supportHigh)}。`);
 
   return {
@@ -268,6 +283,7 @@ export function runFullAnalysis(symbolOrName: string): AnalysisResult {
     takeProfit1: Number(takeProfit1.toFixed(2)),
     takeProfit2: Number(takeProfit2.toFixed(2)),
     holdingPeriod,
+    entrySignal,
     postEntryForecast: forecast,
     modelCalibration,
     dataQuality: {
@@ -280,7 +296,7 @@ export function runFullAnalysis(symbolOrName: string): AnalysisResult {
     backtest,
     prices,
     explanation: {
-      summary: `${stock.name} 綜合分數 ${Math.round(finalScore)}，決策 ${decision.action}，持股建議為「${forecast.positionAdvice}」。`,
+      summary: `${stock.name} 綜合分數 ${Math.round(finalScore)}，決策 ${decision.action}，進場建議為「${entrySignal.label}」，持股建議為「${forecast.positionAdvice}」。`,
       technical: technicalReasons,
       chip: chipReasons,
       capital: capitalReasons,

@@ -10,6 +10,8 @@ export type StockRecommendation = {
   finalScore: number;
   action: Action;
   recommendation: "買入候選" | "可小量試單" | "接近買點" | "等待回檔" | "暫不買入";
+  entryAdvice: AnalysisResult["entrySignal"]["label"];
+  entryRule: string;
   confidence: number;
   trendStage: string;
   buyPrice: string;
@@ -116,6 +118,9 @@ function buildReasons(analysis: AnalysisResult, riskReward: number) {
   reasons.push(
     `模型校準：近 ${analysis.modelCalibration.sampleSize} 筆樣本 5 日方向正確率 ${analysis.modelCalibration.directionAccuracy5Day}%，平均誤差 ${analysis.modelCalibration.averageForecastErrorPct}%，可靠度 ${analysis.modelCalibration.reliability}。`
   );
+  reasons.push(
+    `進場建議：${analysis.entrySignal.label}。套用規則：${analysis.entrySignal.rule}，距核心支撐 ${analysis.entrySignal.supportDistancePct.toFixed(2)}%，風險報酬比 1 : ${analysis.entrySignal.riskReward.toFixed(2)}。`
+  );
 
   return reasons;
 }
@@ -126,12 +131,21 @@ function recommendationOf(analysis: AnalysisResult, riskReward: number) {
   const blocked = action === "SELL" || action === "STOP_LOSS" || riskReward <= 0 || analysis.price <= analysis.stopLossPrice;
   const weakTrend = analysis.trendStage === "破線" || analysis.trendStage === "轉弱";
   const forecastPositive = analysis.postEntryForecast.day5Pct >= 0;
+  const entryLabel = analysis.entrySignal.label;
   const weakCalibration =
     analysis.modelCalibration.reliability === "低" ||
     analysis.modelCalibration.averageForecastErrorPct > 6 ||
     analysis.modelCalibration.directionAccuracy5Day < 52;
 
-  if (blocked) return "暫不買入" as const;
+  if (blocked || entryLabel === "不買" || entryLabel === "觀察") return "暫不買入" as const;
+
+  if (entryLabel === "應買" || entryLabel === "可買") {
+    return "買入候選" as const;
+  }
+
+  if (entryLabel === "小量試單") {
+    return "可小量試單" as const;
+  }
 
   if (!weakCalibration && analysis.finalScore >= 62 && upProbability >= 55 && riskReward >= 1.15 && forecastPositive) {
     return "買入候選" as const;
@@ -163,13 +177,24 @@ function transform(analysis: AnalysisResult): StockRecommendation {
     (analysis.modelCalibration.reliability === "低" ? 10 : analysis.modelCalibration.reliability === "中" ? 4 : 0) +
     Math.max(0, analysis.modelCalibration.averageForecastErrorPct - 3) * 1.8 +
     Math.max(0, analysis.modelCalibration.forecastBiasPct) * 1.2;
+  const entryBonus =
+    analysis.entrySignal.label === "應買"
+      ? 10
+      : analysis.entrySignal.label === "可買"
+        ? 6
+        : analysis.entrySignal.label === "小量試單"
+          ? 3
+          : analysis.entrySignal.label === "觀察" || analysis.entrySignal.label === "不買"
+            ? -12
+            : 0;
   const rankScore =
     analysis.finalScore +
     probability * 0.22 +
     clamp(riskReward, 0, 3) * 7 +
     Math.max(-8, Math.min(10, forecast * 1.3)) +
     actionPenalty -
-    calibrationPenalty;
+    calibrationPenalty +
+    entryBonus;
 
   return {
     symbol: analysis.symbol,
@@ -179,6 +204,8 @@ function transform(analysis: AnalysisResult): StockRecommendation {
     finalScore: analysis.finalScore,
     action: analysis.action,
     recommendation,
+    entryAdvice: analysis.entrySignal.label,
+    entryRule: analysis.entrySignal.rule,
     confidence: analysis.confidence,
     trendStage: analysis.trendStage,
     buyPrice: analysis.buyPrice,

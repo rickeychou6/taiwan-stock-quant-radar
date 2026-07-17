@@ -1,5 +1,6 @@
 import { atr, bollinger, ema, macd, obv, rsi, sma, stochastic } from "@/lib/indicators";
 import { downloadPriceBars, getStockNews, marketSnapshot, resolveStock } from "@/lib/real-data";
+import { buildEntrySignal } from "@/lib/entry-advice";
 import type { Action, AnalysisResult, PriceBar, RiskLevel, ScoreBlock, TrendStage } from "@/lib/types";
 
 type PositionAdvice = AnalysisResult["postEntryForecast"]["positionAdvice"];
@@ -362,6 +363,20 @@ export async function runRealFullAnalysis(symbolOrName: string): Promise<Analysi
     Math.max(0, modelCalibration.averageForecastErrorPct - 3) * 2 +
     Math.max(0, modelCalibration.forecastBiasPct) * 1.5;
   const calibratedConfidence = clamp(decision.confidence - confidencePenalty + Math.max(0, modelCalibration.directionAccuracy5Day - 55) * 0.2);
+  const entrySignal = buildEntrySignal({
+    reliability: modelCalibration.reliability,
+    finalScore,
+    technicalScore: scores.technical.score,
+    capitalScore: scores.capital.score,
+    price: close,
+    support,
+    stopLoss,
+    takeProfit1,
+    volumeRatio,
+    trendStage: stage,
+    action: decision.action,
+    forecastUpProbability: forecast.probabilityUp3To5
+  });
   const holdingPeriod = finalScore >= 75 ? "短線 3-7 天，波段 1-4 週" : finalScore >= 55 ? "短線 1-5 天，等待確認" : "觀望或降低持股";
   technicalReasons.push(`核心支撐約 ${support.toFixed(2)}，支撐觀察區 ${priceRange(supportLow, supportHigh)}。`);
   const latestPriceDate = prices[prices.length - 1]?.date || "";
@@ -384,6 +399,7 @@ export async function runRealFullAnalysis(symbolOrName: string): Promise<Analysi
     takeProfit1: Number(takeProfit1.toFixed(2)),
     takeProfit2: Number(takeProfit2.toFixed(2)),
     holdingPeriod,
+    entrySignal,
     postEntryForecast: forecast,
     modelCalibration,
     dataQuality: {
@@ -399,7 +415,7 @@ export async function runRealFullAnalysis(symbolOrName: string): Promise<Analysi
     backtest,
     prices,
     explanation: {
-      summary: `${stock.name} 目前 AI 綜合分數 ${Math.round(finalScore)}，決策為 ${decision.action}，3-5 天持股建議為 ${forecast.positionAdvice}。模型近似歷史校準 5 日方向正確率 ${modelCalibration.directionAccuracy5Day}%，平均誤差 ${modelCalibration.averageForecastErrorPct}%。資料來源為 Yahoo Finance 真實 K 線與新聞，未串接的法人/基本面不使用模擬數字。`,
+      summary: `${stock.name} 目前 AI 綜合分數 ${Math.round(finalScore)}，決策為 ${decision.action}，進場建議為「${entrySignal.label}」，3-5 天持股建議為 ${forecast.positionAdvice}。模型近似歷史校準 5 日方向正確率 ${modelCalibration.directionAccuracy5Day}%，平均誤差 ${modelCalibration.averageForecastErrorPct}%。資料來源為 Yahoo Finance 真實 K 線與新聞，未串接的法人/基本面不使用模擬數字。`,
       technical: technicalReasons,
       chip: chipReasons,
       capital: capitalReasons,
