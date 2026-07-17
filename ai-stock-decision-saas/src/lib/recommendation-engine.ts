@@ -21,6 +21,10 @@ export type StockRecommendation = {
   marginSafetyScore: number;
   marginSafetySummary: string;
   marginWarningsCount: number;
+  leverageRiskLevel: AnalysisResult["leverageRisk"]["level"];
+  leverageRiskScore: number;
+  dayTradeRisk: AnalysisResult["leverageRisk"]["dayTradeRisk"];
+  overnightRisk: AnalysisResult["leverageRisk"]["overnightRisk"];
   confidence: number;
   trendStage: string;
   buyPrice: string;
@@ -138,6 +142,9 @@ function buildReasons(analysis: AnalysisResult, riskReward: number) {
   reasons.push(
     `融資水位安全：${analysis.marginSafety.level}（${analysis.marginSafety.score} 分）。${analysis.marginSafety.summary}`
   );
+  reasons.push(
+    `槓桿與沖銷風險：槓桿 ${analysis.leverageRisk.level}（${analysis.leverageRisk.score} 分），當沖 ${analysis.leverageRisk.dayTradeRisk}，隔日沖 ${analysis.leverageRisk.overnightRisk}。${analysis.leverageRisk.summary}`
+  );
 
   return reasons;
 }
@@ -209,6 +216,10 @@ function transform(analysis: AnalysisResult): StockRecommendation {
     (analysis.margin.marginChangePct >= 5 ? 6 : analysis.margin.marginChange > 0 ? 2 : 0) +
     (analysis.margin.marginAmountToTurnoverPct >= 250 ? 5 : analysis.margin.marginAmountToTurnoverPct >= 120 ? 2 : 0) +
     (analysis.marginSafety.level === "危險" ? 8 : analysis.marginSafety.level === "警戒" ? 4 : analysis.marginSafety.level === "注意" ? 1 : 0);
+  const leveragePenalty =
+    (analysis.leverageRisk.level === "極高" ? 10 : analysis.leverageRisk.level === "高" ? 6 : analysis.leverageRisk.level === "中" ? 2 : 0) +
+    (analysis.leverageRisk.overnightRisk === "極高" ? 8 : analysis.leverageRisk.overnightRisk === "高" ? 5 : analysis.leverageRisk.overnightRisk === "中" ? 2 : 0) +
+    (analysis.leverageRisk.dayTradeRisk === "極高" ? 5 : analysis.leverageRisk.dayTradeRisk === "高" ? 3 : 0);
   const rankScore =
     analysis.finalScore +
     probability * 0.22 +
@@ -217,7 +228,8 @@ function transform(analysis: AnalysisResult): StockRecommendation {
     actionPenalty -
     calibrationPenalty +
     entryBonus -
-    marginPenalty;
+    marginPenalty -
+    leveragePenalty;
 
   return {
     symbol: analysis.symbol,
@@ -238,6 +250,10 @@ function transform(analysis: AnalysisResult): StockRecommendation {
     marginSafetyScore: analysis.marginSafety.score,
     marginSafetySummary: analysis.marginSafety.summary,
     marginWarningsCount: analysis.marginSafety.warnings.filter((item) => item.severity !== "info").length,
+    leverageRiskLevel: analysis.leverageRisk.level,
+    leverageRiskScore: analysis.leverageRisk.score,
+    dayTradeRisk: analysis.leverageRisk.dayTradeRisk,
+    overnightRisk: analysis.leverageRisk.overnightRisk,
     confidence: analysis.confidence,
     trendStage: analysis.trendStage,
     buyPrice: analysis.buyPrice,

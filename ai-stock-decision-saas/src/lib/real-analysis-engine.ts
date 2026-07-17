@@ -1,6 +1,7 @@
 import { atr, bollinger, ema, macd, obv, rsi, sma, stochastic } from "@/lib/indicators";
 import { downloadPriceBars, fetchMarginTrading, getStockNews, marketSnapshot, resolveStock } from "@/lib/real-data";
 import { buildEntrySignal } from "@/lib/entry-advice";
+import { buildLeverageRisk } from "@/lib/leverage-risk";
 import { buildMarginSafety } from "@/lib/margin-safety";
 import type { Action, AnalysisResult, PriceBar, RiskLevel, ScoreBlock, TrendStage } from "@/lib/types";
 
@@ -243,6 +244,7 @@ export async function runRealFullAnalysis(symbolOrName: string): Promise<Analysi
   const volumes = prices.map((p) => p.volume);
   const close = lastValid(closes);
   const previousClose = closes[closes.length - 2] || close;
+  const priceChangePct = previousClose ? ((close - previousClose) / previousClose) * 100 : 0;
   const ma5 = lastValid(sma(closes, 5));
   const ma10 = lastValid(sma(closes, 10));
   const ma20 = lastValid(sma(closes, 20));
@@ -276,8 +278,17 @@ export async function runRealFullAnalysis(symbolOrName: string): Promise<Analysi
   const stage = detectStage(close, ma20, ma60, ma120, rsi14, bbWidth, breakout);
   const marginSafety = buildMarginSafety({
     margin,
-    priceChangePct: previousClose ? ((close - previousClose) / previousClose) * 100 : 0,
+    priceChangePct,
     trendWeak: stage === "轉弱" || stage === "破線" || close < ma20
+  });
+  const leverageRisk = buildLeverageRisk({
+    margin,
+    marginSafety,
+    priceChangePct,
+    volumeRatio,
+    atrPct,
+    trendWeak: stage === "轉弱" || stage === "破線" || close < ma20,
+    breakout
   });
 
   let technicalScore = 50;
@@ -326,6 +337,10 @@ export async function runRealFullAnalysis(symbolOrName: string): Promise<Analysi
     else if (marginSafety.level === "警戒") chipScore -= 3;
     else if (marginSafety.level === "安全") chipScore += 2;
 
+    if (leverageRisk.level === "極高") chipScore -= 8;
+    else if (leverageRisk.level === "高") chipScore -= 5;
+    else if (leverageRisk.level === "中") chipScore -= 2;
+
     chipReasons.push(
       `融資餘額 ${margin.marginBalance.toLocaleString()} 張，估算融資金額 ${money(margin.marginAmount)}，融資使用率/佔比 ${margin.marginUtilizationPct.toFixed(2)}%。`
     );
@@ -336,6 +351,9 @@ export async function runRealFullAnalysis(symbolOrName: string): Promise<Analysi
       `融資金額約為 20 日均成交值的 ${margin.marginAmountToTurnoverPct.toFixed(2)}%，券資比 ${margin.shortToMarginPct.toFixed(2)}%。${margin.note ? `註記：${margin.note}` : ""}`
     );
     chipReasons.push(`融資水位安全判斷：${marginSafety.level}（${marginSafety.score} 分）。${marginSafety.summary}`);
+    chipReasons.push(
+      `槓桿風險：${leverageRisk.level}（${leverageRisk.score} 分），當沖風險 ${leverageRisk.dayTradeRisk}、隔日沖風險 ${leverageRisk.overnightRisk}。${leverageRisk.summary}`
+    );
   } else {
     chipScore -= 4;
     chipReasons.push(`${margin.warning} 籌碼面先保守降權，避免把未知當利多。`);
@@ -429,7 +447,7 @@ export async function runRealFullAnalysis(symbolOrName: string): Promise<Analysi
     symbol: stock.symbol,
     name: stock.name,
     price: Number(close.toFixed(2)),
-    changePct: previousClose ? ((close - previousClose) / previousClose) * 100 : 0,
+    changePct: priceChangePct,
     finalScore: Math.round(finalScore),
     action: decision.action,
     confidence: Math.round(calibratedConfidence),
@@ -445,6 +463,7 @@ export async function runRealFullAnalysis(symbolOrName: string): Promise<Analysi
     holdingPeriod,
     margin,
     marginSafety,
+    leverageRisk,
     entrySignal,
     postEntryForecast: forecast,
     modelCalibration,
@@ -461,7 +480,7 @@ export async function runRealFullAnalysis(symbolOrName: string): Promise<Analysi
     backtest,
     prices,
     explanation: {
-      summary: `${stock.name} 目前 AI 綜合分數 ${Math.round(finalScore)}，決策為 ${decision.action}，進場建議為「${entrySignal.label}」，3-5 天持股建議為 ${forecast.positionAdvice}。融資水位 ${marginSafety.level}（${marginSafety.score} 分），融資使用率 ${margin.marginUtilizationPct.toFixed(2)}%，融資增減 ${margin.marginChange >= 0 ? "+" : ""}${margin.marginChange.toLocaleString()} 張。模型近似歷史校準 5 日方向正確率 ${modelCalibration.directionAccuracy5Day}%，平均誤差 ${modelCalibration.averageForecastErrorPct}%。資料來源為 Yahoo Finance 真實 K 線、TWSE/TPEX 融資融券與新聞，未串接的法人/基本面不使用模擬數字。`,
+      summary: `${stock.name} 目前 AI 綜合分數 ${Math.round(finalScore)}，決策為 ${decision.action}，進場建議為「${entrySignal.label}」，3-5 天持股建議為 ${forecast.positionAdvice}。融資水位 ${marginSafety.level}（${marginSafety.score} 分），槓桿風險 ${leverageRisk.level}（${leverageRisk.score} 分），當沖/隔日沖套利風險 ${leverageRisk.dayTradeRisk}/${leverageRisk.overnightRisk}。模型近似歷史校準 5 日方向正確率 ${modelCalibration.directionAccuracy5Day}%，平均誤差 ${modelCalibration.averageForecastErrorPct}%。資料來源為 Yahoo Finance 真實 K 線、TWSE/TPEX 融資融券與新聞，未串接的法人/基本面不使用模擬數字。`,
       technical: technicalReasons,
       chip: chipReasons,
       capital: capitalReasons,

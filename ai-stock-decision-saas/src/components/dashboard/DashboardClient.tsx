@@ -16,6 +16,19 @@ function money(value: number) {
   return `${Math.round(value).toLocaleString()} 元`;
 }
 
+function leverageTone(level: AnalysisResult["leverageRisk"]["level"]) {
+  if (level === "極高" || level === "高") return "bear" as const;
+  if (level === "中") return "warn" as const;
+  if (level === "資料不足") return "neutral" as const;
+  return "bull" as const;
+}
+
+function leverageWarningClass(severity: "info" | "warn" | "danger") {
+  if (severity === "danger") return "border-rose-400/40 bg-rose-500/10 text-rose-100";
+  if (severity === "warn") return "border-amber-400/40 bg-amber-500/10 text-amber-100";
+  return "border-emerald-400/30 bg-emerald-500/10 text-emerald-100";
+}
+
 export function DashboardClient() {
   const params = useSearchParams();
   const symbol = params.get("symbol") || "2330.TW";
@@ -169,6 +182,63 @@ export function DashboardClient() {
           sub={`券資比 ${data.margin.shortToMarginPct.toFixed(2)}%`}
           tone={data.margin.marginAmountToTurnoverPct >= 250 ? "bear" : data.margin.marginAmountToTurnoverPct >= 120 ? "warn" : "neutral"}
         />
+      </section>
+
+      <section className="rounded-3xl border border-slate-700/70 bg-slate-950/35 p-4 text-sm leading-6 text-slate-300">
+        <div className="flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Leverage Risk</p>
+            <h2 className="text-xl font-black text-white">槓桿是否過大危險</h2>
+          </div>
+          <p className="max-w-3xl text-slate-300">
+            融資就是槓桿；當融資堆高又遇到放量急漲急跌，就可能吸引當沖或隔日沖套利，造成個股急漲後回吐，或急跌時被迫去槓桿。
+          </p>
+        </div>
+        <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <MetricCard
+            label="槓桿水位"
+            value={data.leverageRisk.level}
+            sub={`${data.leverageRisk.score} 分，${data.leverageRisk.action}`}
+            tone={leverageTone(data.leverageRisk.level)}
+          />
+          <MetricCard
+            label="當沖資金風險"
+            value={data.leverageRisk.dayTradeRisk}
+            sub="量能、漲跌幅、融資增減綜合判斷"
+            tone={leverageTone(data.leverageRisk.dayTradeRisk)}
+          />
+          <MetricCard
+            label="隔日沖套利風險"
+            value={data.leverageRisk.overnightRisk}
+            sub="上漲追融資或急跌去槓桿都會升高"
+            tone={leverageTone(data.leverageRisk.overnightRisk)}
+          />
+          <MetricCard
+            label="急漲急跌風險"
+            value={data.leverageRisk.sharpMoveRisk}
+            sub={data.leverageRisk.directionBias}
+            tone={leverageTone(data.leverageRisk.sharpMoveRisk)}
+          />
+        </div>
+        <div className="mt-4 rounded-2xl border border-slate-700/70 bg-slate-900/45 p-4">
+          <p className="font-bold text-white">結論：{data.leverageRisk.summary}</p>
+          <div className="mt-3 grid gap-2 lg:grid-cols-2">
+            {data.leverageRisk.warnings.map((item) => (
+              <div key={item.id} className={`rounded-2xl border px-3 py-2 ${leverageWarningClass(item.severity)}`}>
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="font-bold">{item.label}</p>
+                  <p className="text-xs font-bold opacity-80">{item.triggeredValue}</p>
+                </div>
+                <p className="text-xs opacity-90">{item.message}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 grid gap-2 text-xs text-slate-400 md:grid-cols-2">
+            {data.leverageRisk.explanation.map((item) => (
+              <p key={item}>{item}</p>
+            ))}
+          </div>
+        </div>
       </section>
 
       <section className="rounded-3xl border border-slate-700/70 bg-slate-950/35 p-4 text-sm leading-6 text-slate-300">

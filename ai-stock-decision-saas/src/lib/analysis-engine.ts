@@ -1,6 +1,7 @@
 import { atr, bollinger, ema, macd, obv, rsi, sma, stochastic } from "@/lib/indicators";
 import { generatePrices, getStock, mockChipData, mockFundamental, mockMacro, mockNews } from "@/lib/mock-data";
 import { buildEntrySignal } from "@/lib/entry-advice";
+import { buildLeverageRisk } from "@/lib/leverage-risk";
 import { buildMarginSafety } from "@/lib/margin-safety";
 import type { Action, AnalysisResult, PriceBar, RiskLevel, ScoreBlock, TrendStage } from "@/lib/types";
 
@@ -118,6 +119,7 @@ export function runFullAnalysis(symbolOrName: string): AnalysisResult {
   const volumes = prices.map((p) => p.volume);
   const close = last(closes);
   const previousClose = closes[closes.length - 2];
+  const priceChangePct = previousClose ? ((close - previousClose) / previousClose) * 100 : 0;
   const ma5 = last(sma(closes, 5));
   const ma10 = last(sma(closes, 10));
   const ma20 = last(sma(closes, 20));
@@ -175,8 +177,17 @@ export function runFullAnalysis(symbolOrName: string): AnalysisResult {
   };
   const marginSafety = buildMarginSafety({
     margin,
-    priceChangePct: previousClose ? ((close - previousClose) / previousClose) * 100 : 0,
+    priceChangePct,
     trendWeak: stage === "轉弱" || stage === "破線" || close < ma20
+  });
+  const leverageRisk = buildLeverageRisk({
+    margin,
+    marginSafety,
+    priceChangePct,
+    volumeRatio,
+    atrPct,
+    trendWeak: stage === "轉弱" || stage === "破線" || close < ma20,
+    breakout: close > boxHigh && volumeRatio >= 1.2
   });
 
   let technicalScore = 50;
@@ -210,6 +221,7 @@ export function runFullAnalysis(symbolOrName: string): AnalysisResult {
   const chipReasons = [
     `外資買賣超 ${mockChipData.foreignBuy.toLocaleString()} 張，投信 ${mockChipData.trustBuy.toLocaleString()} 張，自營商 ${mockChipData.dealerBuy.toLocaleString()} 張。`,
     `融資變化 ${mockChipData.marginDelta.toLocaleString()} 張，券資與借券資料列入風險分數。`,
+    `槓桿風險 ${leverageRisk.level}（${leverageRisk.score} 分），當沖/隔日沖套利風險 ${leverageRisk.dayTradeRisk}/${leverageRisk.overnightRisk}。${leverageRisk.summary}`,
     mockChipData.bigHolderBias
   ];
 
@@ -299,7 +311,7 @@ export function runFullAnalysis(symbolOrName: string): AnalysisResult {
     symbol: stock.symbol,
     name: stock.name,
     price: close,
-    changePct: ((close - previousClose) / previousClose) * 100,
+    changePct: priceChangePct,
     finalScore: Math.round(finalScore),
     action: decision.action,
     confidence: Math.round(decision.confidence),
@@ -315,6 +327,7 @@ export function runFullAnalysis(symbolOrName: string): AnalysisResult {
     holdingPeriod,
     margin,
     marginSafety,
+    leverageRisk,
     entrySignal,
     postEntryForecast: forecast,
     modelCalibration,
