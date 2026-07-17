@@ -239,17 +239,23 @@ export async function runRealFullAnalysis(symbolOrName: string): Promise<Analysi
     scores.news.score * 0.1 +
     scores.macro.score * 0.05;
 
-  const support = Math.max(boxLow, ma20 * 0.985, bbLower);
+  const recentLow10 = Math.min(...lows.slice(-10));
+  const supportLevels = [boxLow, recentLow10, ma20, ma60, bbMid, bbLower, vwap].filter(Number.isFinite);
+  const supportBelowPrice = supportLevels.filter((level) => level <= close);
+  const support = supportBelowPrice.length ? Math.max(...supportBelowPrice) : Math.min(close - atr14 * 0.5, ...supportLevels);
   const resistance = Math.max(boxHigh, bbUpper);
   const stopLoss = Math.min(support - atr14 * 0.5, ma20 - atr14 * 0.6);
-  const idealLow = Math.max(stopLoss + atr14 * 0.6, support - atr14 * 0.25);
+  const supportLow = Math.max(stopLoss + atr14 * 0.35, support - atr14 * 0.35);
+  const supportHigh = Math.max(supportLow, Math.min(close, support + atr14 * 0.25));
   const idealHigh = Math.min(close, support + atr14 * 0.35);
+  const idealLow = Math.min(idealHigh, Math.max(stopLoss + atr14 * 0.6, support - atr14 * 0.25));
   const takeProfit1 = Math.max(resistance, close + atr14 * 1.8);
   const takeProfit2 = Math.max(takeProfit1 + atr14 * 1.5, close + atr14 * 3.2);
   const decision = decisionFromScore(finalScore, close, stopLoss);
   const backtest = similarPatternBacktest(prices, finalScore);
   const forecast = forecastAfterEntry(finalScore, stage, atrPct, backtest.bias);
   const holdingPeriod = finalScore >= 75 ? "短線 3-7 天，波段 1-4 週" : finalScore >= 55 ? "短線 1-5 天，等待確認" : "觀望或降低持股";
+  technicalReasons.push(`核心支撐約 ${support.toFixed(2)}，支撐觀察區 ${priceRange(supportLow, supportHigh)}。`);
 
   return {
     symbol: stock.symbol,
@@ -261,6 +267,8 @@ export async function runRealFullAnalysis(symbolOrName: string): Promise<Analysi
     confidence: Math.round(decision.confidence),
     riskLevel: decision.riskLevel,
     trendStage: stage,
+    supportPrice: Number(support.toFixed(2)),
+    supportPriceRange: priceRange(supportLow, supportHigh),
     buyPrice: priceRange(idealLow, idealHigh),
     idealBuyPrice: priceRange(idealLow, Math.min(idealHigh, vwap)),
     stopLossPrice: Number(stopLoss.toFixed(2)),

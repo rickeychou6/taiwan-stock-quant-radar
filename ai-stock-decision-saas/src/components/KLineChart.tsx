@@ -2,7 +2,7 @@
 
 import type { PriceBar } from "@/lib/types";
 
-export function KLineChart({ data }: { data: PriceBar[] }) {
+export function KLineChart({ data, supportPrice }: { data: PriceBar[]; supportPrice?: number }) {
   const points = data.slice(-70);
   if (!points.length) return <div className="glass rounded-2xl p-6">暫無 K 線資料</div>;
 
@@ -11,6 +11,10 @@ export function KLineChart({ data }: { data: PriceBar[] }) {
   const padding = 28;
   const highs = points.map((p) => p.high);
   const lows = points.map((p) => p.low);
+  if (Number.isFinite(supportPrice)) {
+    highs.push(supportPrice as number);
+    lows.push(supportPrice as number);
+  }
   const max = Math.max(...highs);
   const min = Math.min(...lows);
   const scaleY = (v: number) => padding + ((max - v) / Math.max(1, max - min)) * (height - padding * 2);
@@ -27,6 +31,22 @@ export function KLineChart({ data }: { data: PriceBar[] }) {
           const y = padding + (i * (height - padding * 2)) / 3;
           return <line key={i} x1={padding} x2={width - padding} y1={y} y2={y} stroke="rgba(148,163,184,.18)" />;
         })}
+        {Number.isFinite(supportPrice) ? (
+          <g>
+            <line
+              x1={padding}
+              x2={width - padding}
+              y1={scaleY(supportPrice as number)}
+              y2={scaleY(supportPrice as number)}
+              stroke="#38bdf8"
+              strokeDasharray="7 6"
+              strokeWidth="1.8"
+            />
+            <text x={width - padding - 4} y={scaleY(supportPrice as number) - 6} textAnchor="end" fill="#7dd3fc" fontSize="13" fontWeight="700">
+              支撐 {supportPrice?.toFixed(2)}
+            </text>
+          </g>
+        ) : null}
         {points.map((p, idx) => {
           const x = padding + idx * ((width - padding * 2) / points.length) + candleWidth / 2;
           const up = p.close >= p.open;

@@ -139,10 +139,13 @@ export function runFullAnalysis(symbolOrName: string): AnalysisResult {
   const obvTrend = last(obvValues) > obvValues[obvValues.length - 20];
   const boxHigh = Math.max(...highs.slice(-21, -1));
   const boxLow = Math.min(...lows.slice(-21, -1));
-  const support = Math.max(boxLow, ma20 * 0.985, bbLower);
-  const resistance = Math.max(boxHigh, bbUpper);
   const volumeRatio = last(volumes) / (last(sma(volumes, 20)) || last(volumes));
   const vwap = prices.slice(-20).reduce((sum, p) => sum + p.close * p.volume, 0) / prices.slice(-20).reduce((sum, p) => sum + p.volume, 0);
+  const recentLow10 = Math.min(...lows.slice(-10));
+  const supportLevels = [boxLow, recentLow10, ma20, ma60, bbMid, bbLower, vwap].filter(Number.isFinite);
+  const supportBelowPrice = supportLevels.filter((level) => level <= close);
+  const support = supportBelowPrice.length ? Math.max(...supportBelowPrice) : Math.min(close - atr14 * 0.5, ...supportLevels);
+  const resistance = Math.max(boxHigh, bbUpper);
   const stage = detectStage(close, ma20, ma60, ma120, rsi14);
 
   let technicalScore = 50;
@@ -226,13 +229,16 @@ export function runFullAnalysis(symbolOrName: string): AnalysisResult {
 
   const stopLoss = Math.min(support - atr14 * 0.5, ma20 - atr14 * 0.6);
   const decision = decisionFromScore(finalScore, close, stopLoss);
-  const idealLow = Math.max(stopLoss + atr14 * 0.6, support - atr14 * 0.25);
+  const supportLow = Math.max(stopLoss + atr14 * 0.35, support - atr14 * 0.35);
+  const supportHigh = Math.max(supportLow, Math.min(close, support + atr14 * 0.25));
   const idealHigh = Math.min(close, support + atr14 * 0.35);
+  const idealLow = Math.min(idealHigh, Math.max(stopLoss + atr14 * 0.6, support - atr14 * 0.25));
   const takeProfit1 = Math.max(resistance, close + atr14 * 1.8);
   const takeProfit2 = Math.max(takeProfit1 + atr14 * 1.5, close + atr14 * 3.2);
   const holdingPeriod = finalScore >= 75 ? "短線 3-7 天，波段 1-4 週" : finalScore >= 55 ? "短線 1-5 天，等確認後延長" : "當沖/隔日觀察，不宜久抱";
   const backtest = similarPatternBacktest(prices, finalScore);
   const forecast = postEntryForecast(finalScore, stage, atrPct, backtest.bias);
+  technicalReasons.push(`核心支撐約 ${support.toFixed(2)}，支撐觀察區 ${rangeText(supportLow, supportHigh)}。`);
 
   return {
     symbol: stock.symbol,
@@ -244,6 +250,8 @@ export function runFullAnalysis(symbolOrName: string): AnalysisResult {
     confidence: Math.round(decision.confidence),
     riskLevel: decision.riskLevel,
     trendStage: stage,
+    supportPrice: Number(support.toFixed(2)),
+    supportPriceRange: rangeText(supportLow, supportHigh),
     buyPrice: rangeText(idealLow, idealHigh),
     idealBuyPrice: rangeText(idealLow, Math.min(idealHigh, vwap)),
     stopLossPrice: Number(stopLoss.toFixed(2)),

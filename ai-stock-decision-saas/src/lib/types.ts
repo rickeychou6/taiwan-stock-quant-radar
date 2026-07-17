@@ -38,6 +38,8 @@ export type AnalysisResult = {
   confidence: number;
   riskLevel: RiskLevel;
   trendStage: TrendStage;
+  supportPrice: number;
+  supportPriceRange: string;
   buyPrice: string;
   idealBuyPrice: string;
   stopLossPrice: number;

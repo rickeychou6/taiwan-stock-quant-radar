@@ -77,10 +77,11 @@ export function DashboardClient() {
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-3 xl:grid-cols-6">
+      <section className="grid gap-4 md:grid-cols-3 xl:grid-cols-7">
         <MetricCard label="今日 AI 決策" value={data.action} sub={`信心 ${data.confidence}%`} tone={data.finalScore >= 70 ? "bull" : data.finalScore < 45 ? "bear" : "warn"} />
         <MetricCard label="持股建議" value={data.postEntryForecast.positionAdvice} sub={data.postEntryForecast.reason} />
         <MetricCard label="趨勢階段" value={data.trendStage} sub={`風險 ${data.riskLevel}`} />
+        <MetricCard label="支撐價位" value={data.supportPriceRange} sub={`核心支撐 ${price(data.supportPrice)}`} tone="warn" />
         <MetricCard label="建議買點" value={data.buyPrice} sub="支撐、均線、VWAP、ATR 回檔區" />
         <MetricCard label="停損價" value={price(data.stopLossPrice)} sub="跌破代表判斷錯誤" tone="bear" />
         <MetricCard label="目標價" value={`${price(data.takeProfit1)} / ${price(data.takeProfit2)}`} sub={data.holdingPeriod} tone="bull" />
@@ -93,7 +94,7 @@ export function DashboardClient() {
         <MetricCard label="3-5 天上漲機率" value={`${data.postEntryForecast.probabilityUp3To5}%`} sub={`下跌機率 ${data.postEntryForecast.probabilityDown3To5}%`} />
       </section>
 
-      <KLineChart data={data.prices} />
+      <KLineChart data={data.prices} supportPrice={data.supportPrice} />
 
       <section className="grid gap-4 lg:grid-cols-2">
         <div className="glass rounded-3xl p-5">
