@@ -202,15 +202,15 @@ export function DashboardClient() {
             tone={leverageTone(data.leverageRisk.level)}
           />
           <MetricCard
-            label="當沖資金風險"
-            value={data.leverageRisk.dayTradeRisk}
-            sub="量能、漲跌幅、融資增減綜合判斷"
+            label="當沖可能性"
+            value={`${data.leverageRisk.dayTradeProbability}%`}
+            sub={`風險 ${data.leverageRisk.dayTradeRisk}，量能/漲跌/融資推估`}
             tone={leverageTone(data.leverageRisk.dayTradeRisk)}
           />
           <MetricCard
-            label="隔日沖套利風險"
-            value={data.leverageRisk.overnightRisk}
-            sub="上漲追融資或急跌去槓桿都會升高"
+            label="隔日沖可能性"
+            value={`${data.leverageRisk.overnightProbability}%`}
+            sub={`風險 ${data.leverageRisk.overnightRisk}，追融資/去槓桿推估`}
             tone={leverageTone(data.leverageRisk.overnightRisk)}
           />
           <MetricCard

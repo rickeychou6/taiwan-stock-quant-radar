@@ -24,7 +24,9 @@ export type StockRecommendation = {
   leverageRiskLevel: AnalysisResult["leverageRisk"]["level"];
   leverageRiskScore: number;
   dayTradeRisk: AnalysisResult["leverageRisk"]["dayTradeRisk"];
+  dayTradeProbability: number;
   overnightRisk: AnalysisResult["leverageRisk"]["overnightRisk"];
+  overnightProbability: number;
   confidence: number;
   trendStage: string;
   buyPrice: string;
@@ -143,7 +145,7 @@ function buildReasons(analysis: AnalysisResult, riskReward: number) {
     `融資水位安全：${analysis.marginSafety.level}（${analysis.marginSafety.score} 分）。${analysis.marginSafety.summary}`
   );
   reasons.push(
-    `槓桿與沖銷風險：槓桿 ${analysis.leverageRisk.level}（${analysis.leverageRisk.score} 分），當沖 ${analysis.leverageRisk.dayTradeRisk}，隔日沖 ${analysis.leverageRisk.overnightRisk}。${analysis.leverageRisk.summary}`
+    `槓桿與沖銷風險：槓桿 ${analysis.leverageRisk.level}（${analysis.leverageRisk.score} 分），當沖可能 ${analysis.leverageRisk.dayTradeProbability}%，隔日沖可能 ${analysis.leverageRisk.overnightProbability}%。${analysis.leverageRisk.summary}`
   );
 
   return reasons;
@@ -253,7 +255,9 @@ function transform(analysis: AnalysisResult): StockRecommendation {
     leverageRiskLevel: analysis.leverageRisk.level,
     leverageRiskScore: analysis.leverageRisk.score,
     dayTradeRisk: analysis.leverageRisk.dayTradeRisk,
+    dayTradeProbability: analysis.leverageRisk.dayTradeProbability,
     overnightRisk: analysis.leverageRisk.overnightRisk,
+    overnightProbability: analysis.leverageRisk.overnightProbability,
     confidence: analysis.confidence,
     trendStage: analysis.trendStage,
     buyPrice: analysis.buyPrice,

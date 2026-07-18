@@ -28,6 +28,10 @@ function actionFromLevel(level: LeverageRiskLevel): LeverageRisk["action"] {
   return "可正常評估";
 }
 
+function probabilityFromScore(score: number, fallback = 8) {
+  return Math.max(0, Math.min(95, Math.round(fallback + score * 0.88)));
+}
+
 export function buildLeverageRisk(input: {
   margin: MarginInfo;
   marginSafety: MarginSafety;
@@ -43,7 +47,9 @@ export function buildLeverageRisk(input: {
       level: "資料不足",
       score: 0,
       dayTradeRisk: volumeRatio >= 2 || Math.abs(priceChangePct) >= 4 ? "中" : "資料不足",
+      dayTradeProbability: volumeRatio >= 2 || Math.abs(priceChangePct) >= 4 ? 35 : 0,
       overnightRisk: "資料不足",
+      overnightProbability: volumeRatio >= 2 || Math.abs(priceChangePct) >= 4 ? 25 : 0,
       sharpMoveRisk: volumeRatio >= 2 || Math.abs(priceChangePct) >= 4 ? "中" : "資料不足",
       directionBias: "資料不足",
       action: "資料不足",
@@ -267,6 +273,8 @@ export function buildLeverageRisk(input: {
   }
 
   const leverageLevel = levelFromScore(clampScore(leverageScore));
+  const dayTradeProbability = probabilityFromScore(dayTradeScore);
+  const overnightProbability = probabilityFromScore(overnightScore);
   const dayTradeRisk = levelFromScore(clampScore(dayTradeScore));
   const overnightRisk = levelFromScore(clampScore(overnightScore));
   const sharpMoveRisk = highestLevel([dayTradeRisk, overnightRisk, leverageLevel]);
@@ -312,7 +320,9 @@ export function buildLeverageRisk(input: {
     level,
     score,
     dayTradeRisk,
+    dayTradeProbability,
     overnightRisk,
+    overnightProbability,
     sharpMoveRisk,
     directionBias,
     action,

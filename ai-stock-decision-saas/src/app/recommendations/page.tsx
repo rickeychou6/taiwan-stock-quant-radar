@@ -70,7 +70,9 @@ function RecommendationCard({ item, rank }: { item: StockRecommendation; rank: n
         <MetricCard label="AI 分數" value={item.finalScore} sub={`信心 ${item.confidence}%`} tone={item.finalScore >= 66 ? "bull" : item.finalScore >= 55 ? "warn" : "neutral"} />
         <MetricCard label="進場建議" value={item.entryAdvice} sub={item.entryRule} tone={item.entryAdvice === "應買" || item.entryAdvice === "可買" ? "bull" : item.entryAdvice === "不買" || item.entryAdvice === "觀察" ? "bear" : "warn"} />
         <MetricCard label="融資水位" value={item.marginSafetyLevel} sub={`${item.marginSafetyScore} 分，警示 ${item.marginWarningsCount} 項`} tone={safetyTone(item.marginSafetyLevel)} />
-        <MetricCard label="槓桿風險" value={item.leverageRiskLevel} sub={`${item.leverageRiskScore} 分，當沖 ${item.dayTradeRisk} / 隔日沖 ${item.overnightRisk}`} tone={leverageTone(item.leverageRiskLevel)} />
+        <MetricCard label="槓桿風險" value={item.leverageRiskLevel} sub={`${item.leverageRiskScore} 分，短線沖銷風險`} tone={leverageTone(item.leverageRiskLevel)} />
+        <MetricCard label="當沖可能" value={`${item.dayTradeProbability}%`} sub={`風險 ${item.dayTradeRisk}`} tone={leverageTone(item.dayTradeRisk)} />
+        <MetricCard label="隔日沖可能" value={`${item.overnightProbability}%`} sub={`風險 ${item.overnightRisk}`} tone={leverageTone(item.overnightRisk)} />
         <MetricCard label="融資金額" value={formatMoney(item.marginAmount)} sub={`佔比 ${item.marginUtilizationPct.toFixed(2)}%`} tone={item.marginUtilizationPct >= 30 || item.marginChangePct >= 5 ? "bear" : item.marginUtilizationPct >= 20 || item.marginChange > 0 ? "warn" : "neutral"} />
         <MetricCard label="融資增減" value={`${item.marginChange >= 0 ? "+" : ""}${item.marginChange.toLocaleString()} 張`} sub={formatPct(item.marginChangePct)} tone={item.marginChange <= 0 ? "bull" : item.marginChangePct >= 5 ? "bear" : "warn"} />
         <MetricCard label="買入區間" value={item.idealBuyPrice} sub="分批掛單區" tone="bull" />

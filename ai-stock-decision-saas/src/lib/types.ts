@@ -82,7 +82,9 @@ export type LeverageRisk = {
   level: LeverageRiskLevel;
   score: number;
   dayTradeRisk: LeverageRiskLevel;
+  dayTradeProbability: number;
   overnightRisk: LeverageRiskLevel;
+  overnightProbability: number;
   sharpMoveRisk: LeverageRiskLevel;
   directionBias: "急漲後回吐" | "急跌去槓桿" | "雙向劇烈震盪" | "相對穩定" | "資料不足";
   action: "可正常評估" | "小量觀察" | "避免追高" | "先避開" | "資料不足";

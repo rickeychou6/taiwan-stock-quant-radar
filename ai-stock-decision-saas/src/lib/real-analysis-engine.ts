@@ -352,7 +352,7 @@ export async function runRealFullAnalysis(symbolOrName: string): Promise<Analysi
     );
     chipReasons.push(`融資水位安全判斷：${marginSafety.level}（${marginSafety.score} 分）。${marginSafety.summary}`);
     chipReasons.push(
-      `槓桿風險：${leverageRisk.level}（${leverageRisk.score} 分），當沖風險 ${leverageRisk.dayTradeRisk}、隔日沖風險 ${leverageRisk.overnightRisk}。${leverageRisk.summary}`
+      `槓桿風險：${leverageRisk.level}（${leverageRisk.score} 分），當沖可能 ${leverageRisk.dayTradeProbability}%（${leverageRisk.dayTradeRisk}）、隔日沖可能 ${leverageRisk.overnightProbability}%（${leverageRisk.overnightRisk}）。${leverageRisk.summary}`
     );
   } else {
     chipScore -= 4;
@@ -480,7 +480,7 @@ export async function runRealFullAnalysis(symbolOrName: string): Promise<Analysi
     backtest,
     prices,
     explanation: {
-      summary: `${stock.name} 目前 AI 綜合分數 ${Math.round(finalScore)}，決策為 ${decision.action}，進場建議為「${entrySignal.label}」，3-5 天持股建議為 ${forecast.positionAdvice}。融資水位 ${marginSafety.level}（${marginSafety.score} 分），槓桿風險 ${leverageRisk.level}（${leverageRisk.score} 分），當沖/隔日沖套利風險 ${leverageRisk.dayTradeRisk}/${leverageRisk.overnightRisk}。模型近似歷史校準 5 日方向正確率 ${modelCalibration.directionAccuracy5Day}%，平均誤差 ${modelCalibration.averageForecastErrorPct}%。資料來源為 Yahoo Finance 真實 K 線、TWSE/TPEX 融資融券與新聞，未串接的法人/基本面不使用模擬數字。`,
+      summary: `${stock.name} 目前 AI 綜合分數 ${Math.round(finalScore)}，決策為 ${decision.action}，進場建議為「${entrySignal.label}」，3-5 天持股建議為 ${forecast.positionAdvice}。融資水位 ${marginSafety.level}（${marginSafety.score} 分），槓桿風險 ${leverageRisk.level}（${leverageRisk.score} 分），當沖可能 ${leverageRisk.dayTradeProbability}%，隔日沖可能 ${leverageRisk.overnightProbability}%。模型近似歷史校準 5 日方向正確率 ${modelCalibration.directionAccuracy5Day}%，平均誤差 ${modelCalibration.averageForecastErrorPct}%。資料來源為 Yahoo Finance 真實 K 線、TWSE/TPEX 融資融券與新聞，未串接的法人/基本面不使用模擬數字。`,
       technical: technicalReasons,
       chip: chipReasons,
       capital: capitalReasons,

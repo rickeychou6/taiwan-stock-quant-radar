@@ -221,7 +221,7 @@ export function runFullAnalysis(symbolOrName: string): AnalysisResult {
   const chipReasons = [
     `外資買賣超 ${mockChipData.foreignBuy.toLocaleString()} 張，投信 ${mockChipData.trustBuy.toLocaleString()} 張，自營商 ${mockChipData.dealerBuy.toLocaleString()} 張。`,
     `融資變化 ${mockChipData.marginDelta.toLocaleString()} 張，券資與借券資料列入風險分數。`,
-    `槓桿風險 ${leverageRisk.level}（${leverageRisk.score} 分），當沖/隔日沖套利風險 ${leverageRisk.dayTradeRisk}/${leverageRisk.overnightRisk}。${leverageRisk.summary}`,
+    `槓桿風險 ${leverageRisk.level}（${leverageRisk.score} 分），當沖可能 ${leverageRisk.dayTradeProbability}%、隔日沖可能 ${leverageRisk.overnightProbability}%。${leverageRisk.summary}`,
     mockChipData.bigHolderBias
   ];
 
