@@ -1,86 +1,53 @@
-# AI 股票全方位分析決策網站 SaaS
+# 台股 AI 決策雷達
 
-這是一個可商業化擴充的 MVP 骨架，採用 Next.js、TypeScript、Tailwind CSS、PostgreSQL schema、REST API 與模組化分析引擎。
+這是一套不含自動下單的台股掃描、推薦與提醒網站。系統會讀取 TWSE／TPEX 公開市場資料，依技術面、量價、籌碼、融資風險與模型校準結果排序候選股。
 
-> 風險提醒：本系統僅供研究與輔助判斷，不構成投資建議。
+## 已完成功能
 
-## 已完成 MVP
-
-- 首頁 Landing Page
-- 登入頁 UI，Email/password 與 Google OAuth 預留
-- 股票分析 Dashboard
-- 自選股頁
-- 持股管理頁
-- 市場總覽頁
-- 管理員後台
-- REST API
-- TWSE/TPEX 官方股名索引與 Yahoo Finance 真實 K 線資料層
-- AI 多因子分析引擎初版
-- 3-5 天漲跌百分比預估
-- 賣出 / 續抱 / 減碼 / 觀望提示
-- PostgreSQL Prisma schema
-- Docker Compose
+- 上市櫃股票候選池掃描與推薦排序
+- K 線、均線、MACD、KD、RSI、ATR、量價與突破判斷
+- 買點、觀察區、停損、兩段目標價與風險報酬比
+- 多空強弱、融資安全與槓桿／隔夜風險評分
+- 推薦理由、資料品質與歷史訊號回測
+- 自選股與持倉管理
+- 自選股每 60 秒自動重查、到價／停損／風險通知
+- 音效、震動與系統通知
+- 手機響應式介面、可安裝 PWA 與離線頁面快取
+- 完全不提供下單或券商交易指令
 
 ## 本機啟動
 
+需要 Node.js 20 以上版本：
+
 ```bash
 cd ai-stock-decision-saas
-cp .env.example .env
 npm install
 npm run dev
 ```
 
-打開：
-
-```text
-http://localhost:3000
-```
-
-## Docker
+瀏覽器開啟 `http://localhost:3000`。正式部署前可執行：
 
 ```bash
-cd ai-stock-decision-saas
-cp .env.example .env
-docker compose up --build
+npm run typecheck
+npm run build
+npm run start
 ```
 
-## API
+## 通知能力與限制
 
-- `GET /api/stocks/search?q=`
-- `GET /api/stocks/{symbol}`
-- `GET /api/stocks/{symbol}/prices`
-- `GET /api/stocks/{symbol}/indicators`
-- `GET /api/stocks/{symbol}/news`
-- `GET /api/analysis/{symbol}`
-- `POST /api/analysis/run`
-- `GET /api/watchlist`
-- `POST /api/watchlist`
-- `DELETE /api/watchlist/{id}`
-- `GET /api/portfolio`
-- `POST /api/portfolio`
-- `GET /api/market/overview`
-- `GET /api/backtest/{symbol}`
-- `POST /api/backtest/run`
+「自選警示」頁在網站開啟期間每 60 秒重新分析，符合條件時發出瀏覽器／PWA 系統通知。Service Worker 也已預留 Web Push 事件入口。
 
-## 分析權重
+若要在網站完全關閉後仍全天候掃描與推播，正式環境必須另外部署排程工作、Push 訂閱儲存與 Firebase Cloud Messaging（或標準 Web Push）服務。瀏覽器本身不能保證任意週期的背景掃描。
 
-- 技術面 30%
-- 籌碼面 25%
-- 資金面 15%
-- 基本面 15%
-- 消息面 10%
-- 國際市場 5%
+行情用於分析與研究，不保證即時、完整或正確，也不構成投資建議。正式商用或重新散布即時行情前，請改接合法授權的券商／資料商 API。
 
-## 重要架構原則
+## 主要頁面
 
-AI 不直接亂猜價格。價格、分數、勝率與 3-5 天漲跌百分比由資料與模型計算；AI 僅負責解釋、歸因與摘要。
+- `/recommendations`：全市場推薦雷達
+- `/dashboard`：個股完整分析
+- `/watchlist`：自選股與自動提醒
+- `/portfolio`：持倉風險管理
+- `/market`：大盤與融資安全
+- `/admin`：資料與服務狀態
 
-## 下一步
-
-1. 接 Prisma Client 與正式 PostgreSQL
-2. 建立 NextAuth Credentials 與 Google OAuth
-3. 擴充 FinMind provider 與法人 / 基本面正式資料
-4. 加 Redis 快取
-5. 加排程同步與 API logs
-6. 把 SVG K 線升級成 TradingView Lightweight Charts
-7. 新聞情緒串 OpenAI API 或本地 LLM
+詳細後端與正式化規劃請參考 `docs/ARCHITECTURE.md`。

@@ -179,6 +179,18 @@ function playAlarm() {
   window.setTimeout(() => void context.close(), 900);
 }
 
+async function showSystemNotification(event: AlertEvent) {
+  const options: NotificationOptions = {
+    body: event.message,
+    tag: event.key,
+    icon: "/icon.svg",
+    badge: "/icon.svg"
+  };
+  const registration = await navigator.serviceWorker?.ready.catch(() => undefined);
+  if (registration) await registration.showNotification(`台股警示：${event.type}`, options);
+  else new Notification(`台股警示：${event.type}`, options);
+}
+
 export function WatchlistClient() {
   const [items, setItems] = useState<WatchItem[]>(DEFAULT_ITEMS);
   const [rows, setRows] = useState<WatchRow[]>([]);
@@ -283,10 +295,7 @@ export function WatchlistClient() {
     for (const event of freshEvents) {
       alertedKeysRef.current[event.key] = now;
       if ("Notification" in window && Notification.permission === "granted") {
-        new Notification(`台股警示：${event.type}`, {
-          body: event.message,
-          tag: event.key
-        });
+        void showSystemNotification(event);
       }
     }
 

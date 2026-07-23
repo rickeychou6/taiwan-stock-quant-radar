@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowDownRight, ArrowUpRight, ShieldCheck, Target, TrendingUp } from "lucide-react";
 import { MetricCard } from "@/components/MetricCard";
+import { BuyStockButton } from "@/components/BuyStockButton";
 import { runStockRecommendations, type StockRecommendation } from "@/lib/recommendation-engine";
 
 export const dynamic = "force-dynamic";
@@ -118,12 +119,10 @@ function RecommendationCard({ item, rank }: { item: StockRecommendation; rank: n
               <span className="font-bold text-white">{item.positionAdvice}</span>
             </div>
           </div>
-          <Link
-            href={`/dashboard?symbol=${encodeURIComponent(item.symbol)}`}
-            className="mt-4 inline-flex w-full justify-center rounded-2xl bg-blue-600 px-4 py-3 text-sm font-black text-white transition hover:bg-blue-500"
-          >
-            查看完整單股分析
-          </Link>
+          <div className="mt-4 space-y-2">
+            {item.recommendation === "買入候選" || item.recommendation === "可小量試單" ? <BuyStockButton symbol={item.symbol} name={item.name} price={item.price} stopLossPrice={item.stopLossPrice} /> : null}
+            <Link href={`/dashboard?symbol=${encodeURIComponent(item.symbol)}`} className="inline-flex w-full justify-center rounded-2xl bg-blue-600 px-4 py-3 text-sm font-black text-white transition hover:bg-blue-500">查看完整單股分析</Link>
+          </div>
         </div>
       </div>
     </article>
@@ -131,7 +130,7 @@ function RecommendationCard({ item, rank }: { item: StockRecommendation; rank: n
 }
 
 export default async function RecommendationsPage() {
-  const report = await runStockRecommendations({ scanLimit: 30, outputLimit: 18, concurrency: 5 });
+  const report = await runStockRecommendations({ scanLimit: 48, outputLimit: 30, concurrency: 6 });
   const buyRows = report.recommendations.filter((item) => item.recommendation === "買入候選" || item.recommendation === "可小量試單");
   const nearRows = report.recommendations.filter((item) => item.recommendation === "接近買點" || item.recommendation === "等待回檔");
   const avoidRows = report.recommendations.filter((item) => item.recommendation === "暫不買入");

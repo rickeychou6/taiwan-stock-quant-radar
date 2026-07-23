@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BarChart3, Briefcase, Gauge, Home, ListChecks, ShieldAlert, Sparkles, UserCircle } from "lucide-react";
 import { RiskNotice } from "@/components/RiskNotice";
+import { GlobalSignalAlerts } from "@/components/GlobalSignalAlerts";
 
 const navItems = [
   { href: "/", label: "首頁", mobileLabel: "首頁", icon: Home },
@@ -65,6 +66,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <RiskNotice />
         {children}
       </main>
+      <GlobalSignalAlerts />
     </div>
   );
 }

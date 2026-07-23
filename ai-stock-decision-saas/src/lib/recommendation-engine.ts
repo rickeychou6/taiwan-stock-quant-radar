@@ -163,7 +163,7 @@ function recommendationOf(analysis: AnalysisResult, riskReward: number) {
     analysis.modelCalibration.averageForecastErrorPct > 6 ||
     analysis.modelCalibration.directionAccuracy5Day < 52;
 
-  if (blocked || entryLabel === "不買" || entryLabel === "觀察") return "暫不買入" as const;
+  if (blocked || entryLabel === "不買") return "暫不買入" as const;
 
   if (entryLabel === "應買" || entryLabel === "可買") {
     return "買入候選" as const;
@@ -171,6 +171,32 @@ function recommendationOf(analysis: AnalysisResult, riskReward: number) {
 
   if (entryLabel === "小量試單") {
     return "可小量試單" as const;
+  }
+
+  // 校準可靠度偏弱時不直接給「買入候選」。只有價格已進入理想區，
+  // 且報酬風險、融資與隔夜槓桿都受控，才允許顯示小量試單。
+  if (entryLabel === "觀察") {
+    const priceRange = analysis.idealBuyPrice.match(/\d+(?:\.\d+)?/g)?.map(Number) ?? [];
+    const idealLow = priceRange.length ? Math.min(...priceRange) : 0;
+    const idealHigh = priceRange.length ? Math.max(...priceRange) : 0;
+    const insideIdealZone =
+      idealHigh > 0 && analysis.price >= idealLow * 0.995 && analysis.price <= idealHigh * 1.01;
+    const controlledRisk =
+      analysis.marginSafety.score >= 90 &&
+      analysis.leverageRisk.score <= 35 &&
+      analysis.leverageRisk.overnightProbability <= 40;
+
+    if (
+      insideIdealZone &&
+      controlledRisk &&
+      analysis.finalScore >= 55 &&
+      upProbability >= 58 &&
+      riskReward >= 2 &&
+      forecastPositive
+    ) {
+      return "可小量試單" as const;
+    }
+    return "暫不買入" as const;
   }
 
   if (!weakCalibration && analysis.finalScore >= 62 && upProbability >= 55 && riskReward >= 1.15 && forecastPositive) {

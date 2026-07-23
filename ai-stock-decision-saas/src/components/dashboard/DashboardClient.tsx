@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type { AnalysisResult } from "@/lib/types";
+import { BuyStockButton } from "@/components/BuyStockButton";
 import { KLineChart } from "@/components/KLineChart";
 import { MetricCard } from "@/components/MetricCard";
 import { ScoreRing } from "@/components/ScoreRing";
@@ -111,6 +112,7 @@ export function DashboardClient() {
         : data.marginSafety.level === "資料不足"
           ? "neutral"
           : "warn";
+  const canConfirmBuy = ["應買", "可買", "小量試單"].includes(data.entrySignal.label) && !["SELL", "STOP_LOSS", "REDUCE"].includes(data.action);
 
   return (
     <div className="space-y-6">
@@ -143,6 +145,21 @@ export function DashboardClient() {
         <MetricCard label="持股建議" value={data.postEntryForecast.positionAdvice} sub={data.postEntryForecast.reason} />
         <MetricCard label="趨勢階段" value={data.trendStage} sub={`風險 ${data.riskLevel}`} />
       </section>
+
+      {canConfirmBuy ? (
+        <section className="rounded-3xl border border-emerald-400/25 bg-emerald-500/10 p-5">
+          <div className="grid gap-4 lg:grid-cols-[1fr_260px] lg:items-center">
+            <div>
+              <p className="text-sm font-bold text-emerald-300">AI 買入確認</p>
+              <h2 className="mt-1 text-xl font-black text-white">條件符合，可按同意買進加入持股追蹤</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                系統會記錄買入金額、買入價、股數與停損價，之後持股管理會持續追蹤；若出現停損、目標價或系統賣出訊號，會跳出賣出確認視窗。
+              </p>
+            </div>
+            <BuyStockButton symbol={data.symbol} name={data.name} price={data.price} stopLossPrice={data.stopLossPrice} />
+          </div>
+        </section>
+      ) : null}
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard label="支撐價位" value={data.supportPriceRange} sub={`核心支撐 ${price(data.supportPrice)}`} tone="warn" />
