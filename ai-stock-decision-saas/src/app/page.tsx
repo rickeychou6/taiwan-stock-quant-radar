@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Bot, ChartCandlestick, Database, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, Bot, ChartCandlestick, Database, Radar, ShieldCheck, Sparkles } from "lucide-react";
 import { runRealFullAnalysis } from "@/lib/real-analysis-engine";
 import { MetricCard } from "@/components/MetricCard";
 import { ScoreRing } from "@/components/ScoreRing";
@@ -26,6 +26,9 @@ export default async function HomePage() {
             <Link href="/dashboard" className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 py-4 font-bold text-white hover:bg-blue-500">
               開始分析 <ArrowRight className="h-5 w-5" />
             </Link>
+            <Link href="/radars" className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-6 py-4 font-bold text-slate-950 hover:bg-emerald-400">
+              專用雷達 <Radar className="h-5 w-5" />
+            </Link>
             <Link href="/login" className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-600 px-6 py-4 font-bold text-slate-100 hover:bg-slate-800">
               登入 / 訂閱
             </Link>
@@ -48,11 +51,12 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-4">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         {[
           { icon: ChartCandlestick, title: "全指標技術分析", text: "MA、EMA、MACD、RSI、KD、Bollinger、ATR、ADX/DMI、OBV、MFI、VWAP、SAR、CCI、W%R、Donchian、Keltner。" },
           { icon: Database, title: "資料層可替換", text: "TWSE、TPEX、Yahoo、FinMind、PostgreSQL、Redis、排程同步與 API log 預留。" },
           { icon: Bot, title: "AI 解釋而非亂猜", text: "數字由模型計算，AI 僅負責解釋、多因子摘要與事件影響歸因。" },
+          { icon: Radar, title: "專用雷達合併", text: "盤中現貨、0050、非期貨、隔日上漲、照片群組與低價股都集中在同一網站。" },
           { icon: ShieldCheck, title: "風險可控", text: "停損、風險報酬、回測勝率、最大回撤與賣出/續抱提醒放在最上方。" }
         ].map((item) => {
           const Icon = item.icon;
