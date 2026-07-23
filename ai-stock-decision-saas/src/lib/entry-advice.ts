@@ -44,11 +44,19 @@ export function buildEntrySignal(input: {
   const belowSupport = supportDistancePct < -0.3;
   const riskRewardGood = riskReward >= 1.5;
   const riskRewardAcceptable = riskReward >= 1.2;
+  const riskRewardTradeable = riskReward >= 0.85;
   const technicalGood = input.technicalScore >= 62;
   const volumeGood = input.volumeRatio >= 1.1 || input.capitalScore >= 56;
   const trendGood = input.trendStage === "初升段" || input.trendStage === "主升段";
   const weakTrend = input.trendStage === "破線" || input.trendStage === "轉弱";
   const weakAction = input.action === "SELL" || input.action === "STOP_LOSS" || input.action === "REDUCE";
+  const marketMomentum =
+    trendGood &&
+    technicalGood &&
+    volumeGood &&
+    input.forecastUpProbability >= 54 &&
+    input.finalScore >= 58 &&
+    riskRewardTradeable;
 
   if (weakAction || input.price <= input.stopLoss || weakTrend || belowSupport) {
     return signal(
@@ -61,10 +69,31 @@ export function buildEntrySignal(input: {
   }
 
   if (input.reliability === "低") {
+    if (marketMomentum) {
+      return signal(
+        "小量試單",
+        "可靠度偏低但市場動能轉強，屬於交易型試單：只能小部位，進場後若量縮或跌破停損要立即退出。",
+        "可靠度低 + 市場動能強 + 小量試單",
+        riskReward,
+        supportDistancePct
+      );
+    }
     return signal(
       "觀察",
       "可靠度低：不買，最多觀察。等模型樣本、方向正確率或價格型態改善後再判斷。",
       "可靠度低",
+      riskReward,
+      supportDistancePct
+    );
+  }
+
+  if (input.reliability === "中" && marketMomentum) {
+    return signal(
+      riskRewardAcceptable ? "可買" : "小量試單",
+      riskRewardAcceptable
+        ? "可靠度中但短線量價與趨勢同向轉強，可用交易型買點分批，不能重倉追高。"
+        : "可靠度中且市場動能偏強，但風險報酬未達舒適區，只能小量試單並用停損控管。",
+      "可靠度中 + 市場動能轉強",
       riskReward,
       supportDistancePct
     );
@@ -85,6 +114,18 @@ export function buildEntrySignal(input: {
       "觀望",
       "可靠度中且條件普通，先觀望；等靠近支撐、放量轉強或風險報酬比改善。",
       "可靠度中 + 條件普通",
+      riskReward,
+      supportDistancePct
+    );
+  }
+
+  if (input.reliability === "高" && marketMomentum && input.finalScore >= 62) {
+    return signal(
+      riskRewardGood ? "應買" : "可買",
+      riskRewardGood
+        ? "可靠度高且市場動能、量能與趨勢同向，屬於可執行買點；仍要分批與設停損。"
+        : "可靠度高且市場動能轉強，但不是完美低接區，適合分批可買而非重倉追價。",
+      "可靠度高 + 市場動能轉強",
       riskReward,
       supportDistancePct
     );

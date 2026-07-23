@@ -137,6 +137,9 @@ function buildReasons(analysis: AnalysisResult, riskReward: number) {
     `進場建議：${analysis.entrySignal.label}。套用規則：${analysis.entrySignal.rule}，距核心支撐 ${analysis.entrySignal.supportDistancePct.toFixed(2)}%，風險報酬比 1 : ${analysis.entrySignal.riskReward.toFixed(2)}。`
   );
   reasons.push(
+    `交易判斷：系統現在分開看「支撐低接」與「強勢動能試單」；可靠度不足時不是直接禁止，而是降低部位並縮短停損。`
+  );
+  reasons.push(
     analysis.margin.available
       ? `融資條件：融資餘額 ${analysis.margin.marginBalance.toLocaleString()} 張，估算金額 ${(analysis.margin.marginAmount / 100_000_000).toFixed(2)} 億元，使用率/佔比 ${analysis.margin.marginUtilizationPct.toFixed(2)}%，今日增減 ${analysis.margin.marginChange >= 0 ? "+" : ""}${analysis.margin.marginChange.toLocaleString()} 張。`
       : `融資條件：${analysis.margin.warning}`
@@ -158,10 +161,33 @@ function recommendationOf(analysis: AnalysisResult, riskReward: number) {
   const weakTrend = analysis.trendStage === "破線" || analysis.trendStage === "轉弱";
   const forecastPositive = analysis.postEntryForecast.day5Pct >= 0;
   const entryLabel = analysis.entrySignal.label;
+  const technicalScore = analysis.scores.technical.score;
+  const capitalScore = analysis.scores.capital.score;
+  const newsScore = analysis.scores.news.score;
+  const trendPositive = analysis.trendStage === "初升段" || analysis.trendStage === "主升段" || analysis.trendStage === "末升段";
+  const leverageAllowed = analysis.leverageRisk.level !== "極高" && analysis.marginSafety.level !== "危險";
+  const leverageTradeable = leverageAllowed && analysis.leverageRisk.overnightProbability <= 65;
+  const marketMomentum =
+    trendPositive &&
+    !weakTrend &&
+    technicalScore >= 58 &&
+    capitalScore >= 48 &&
+    upProbability >= 52 &&
+    analysis.finalScore >= 54 &&
+    riskReward >= 0.75 &&
+    analysis.postEntryForecast.day5Pct >= -0.6 &&
+    leverageAllowed;
+  const strongMomentum =
+    marketMomentum &&
+    technicalScore >= 64 &&
+    (capitalScore >= 55 || newsScore >= 55 || analysis.changePct > 0) &&
+    upProbability >= 55 &&
+    riskReward >= 0.9 &&
+    leverageTradeable;
   const weakCalibration =
     analysis.modelCalibration.reliability === "低" ||
-    analysis.modelCalibration.averageForecastErrorPct > 6 ||
-    analysis.modelCalibration.directionAccuracy5Day < 52;
+    analysis.modelCalibration.averageForecastErrorPct > 7 ||
+    analysis.modelCalibration.directionAccuracy5Day < 49;
 
   if (blocked || entryLabel === "不買") return "暫不買入" as const;
 
@@ -173,8 +199,16 @@ function recommendationOf(analysis: AnalysisResult, riskReward: number) {
     return "可小量試單" as const;
   }
 
-  // 校準可靠度偏弱時不直接給「買入候選」。只有價格已進入理想區，
-  // 且報酬風險、融資與隔夜槓桿都受控，才允許顯示小量試單。
+  if (strongMomentum && !weakCalibration && analysis.finalScore >= 64 && action !== "REDUCE") {
+    return "買入候選" as const;
+  }
+
+  if (marketMomentum && (analysis.finalScore >= 58 || upProbability >= 56) && action !== "REDUCE") {
+    return "可小量試單" as const;
+  }
+
+  // 校準可靠度偏弱時不直接給「買入候選」；但若市場量價已經轉強，
+  // 仍允許小量交易型試單，避免模型只會觀望而完全跟不上盤面。
   if (entryLabel === "觀察") {
     const priceRange = analysis.idealBuyPrice.match(/\d+(?:\.\d+)?/g)?.map(Number) ?? [];
     const idealLow = priceRange.length ? Math.min(...priceRange) : 0;
@@ -182,32 +216,33 @@ function recommendationOf(analysis: AnalysisResult, riskReward: number) {
     const insideIdealZone =
       idealHigh > 0 && analysis.price >= idealLow * 0.995 && analysis.price <= idealHigh * 1.01;
     const controlledRisk =
-      analysis.marginSafety.score >= 90 &&
-      analysis.leverageRisk.score <= 35 &&
-      analysis.leverageRisk.overnightProbability <= 40;
+      analysis.marginSafety.score >= 75 &&
+      analysis.leverageRisk.score <= 60 &&
+      analysis.leverageRisk.overnightProbability <= 62;
 
     if (
-      insideIdealZone &&
+      (insideIdealZone || marketMomentum) &&
       controlledRisk &&
-      analysis.finalScore >= 55 &&
-      upProbability >= 58 &&
-      riskReward >= 2 &&
-      forecastPositive
+      analysis.finalScore >= 54 &&
+      upProbability >= 52 &&
+      riskReward >= 0.9 &&
+      analysis.postEntryForecast.day5Pct >= -0.3
     ) {
       return "可小量試單" as const;
     }
-    return "暫不買入" as const;
+    if (analysis.finalScore >= 48 && upProbability >= 49 && riskReward >= 1) return "接近買點" as const;
+    return "等待回檔" as const;
   }
 
-  if (!weakCalibration && analysis.finalScore >= 62 && upProbability >= 55 && riskReward >= 1.15 && forecastPositive) {
+  if (!weakCalibration && analysis.finalScore >= 60 && upProbability >= 53 && riskReward >= 0.9 && forecastPositive && leverageAllowed) {
     return "買入候選" as const;
   }
 
-  if (!weakCalibration && analysis.finalScore >= 48 && upProbability >= 52 && riskReward >= 1.2 && forecastPositive && !weakTrend) {
+  if (analysis.finalScore >= 50 && upProbability >= 50 && riskReward >= 0.75 && !weakTrend && leverageAllowed) {
     return "可小量試單" as const;
   }
 
-  if (analysis.finalScore >= 45 && upProbability >= 48 && riskReward >= 1.5) {
+  if (analysis.finalScore >= 45 && upProbability >= 47 && riskReward >= 0.9) {
     return "接近買點" as const;
   }
 
@@ -226,19 +261,28 @@ function transform(analysis: AnalysisResult): StockRecommendation {
   const actionPenalty =
     analysis.action === "SELL" || analysis.action === "STOP_LOSS" ? -35 : analysis.action === "REDUCE" ? -18 : 0;
   const calibrationPenalty =
-    (analysis.modelCalibration.reliability === "低" ? 10 : analysis.modelCalibration.reliability === "中" ? 4 : 0) +
-    Math.max(0, analysis.modelCalibration.averageForecastErrorPct - 3) * 1.8 +
-    Math.max(0, analysis.modelCalibration.forecastBiasPct) * 1.2;
+    (analysis.modelCalibration.reliability === "低" ? 6 : analysis.modelCalibration.reliability === "中" ? 2 : 0) +
+    Math.max(0, analysis.modelCalibration.averageForecastErrorPct - 4) * 1.1 +
+    Math.max(0, analysis.modelCalibration.forecastBiasPct) * 0.7;
   const entryBonus =
     analysis.entrySignal.label === "應買"
       ? 10
       : analysis.entrySignal.label === "可買"
         ? 6
         : analysis.entrySignal.label === "小量試單"
-          ? 3
-          : analysis.entrySignal.label === "觀察" || analysis.entrySignal.label === "不買"
-            ? -12
-            : 0;
+          ? 5
+          : analysis.entrySignal.label === "觀察"
+            ? -4
+            : analysis.entrySignal.label === "不買"
+              ? -18
+              : analysis.entrySignal.label === "等待" || analysis.entrySignal.label === "觀望"
+                ? -2
+                : 0;
+  const momentumBonus =
+    (analysis.trendStage === "主升段" ? 5 : analysis.trendStage === "初升段" ? 4 : analysis.trendStage === "末升段" ? 1 : 0) +
+    (analysis.scores.technical.score >= 65 ? 4 : analysis.scores.technical.score >= 58 ? 2 : 0) +
+    (analysis.scores.capital.score >= 58 ? 3 : analysis.scores.capital.score >= 50 ? 1 : 0) +
+    (analysis.postEntryForecast.probabilityUp3To5 >= 58 ? 4 : analysis.postEntryForecast.probabilityUp3To5 >= 52 ? 2 : 0);
   const marginPenalty =
     (analysis.margin.marginUtilizationPct >= 30 ? 8 : analysis.margin.marginUtilizationPct >= 20 ? 4 : 0) +
     (analysis.margin.marginChangePct >= 5 ? 6 : analysis.margin.marginChange > 0 ? 2 : 0) +
@@ -257,7 +301,8 @@ function transform(analysis: AnalysisResult): StockRecommendation {
     calibrationPenalty +
     entryBonus -
     marginPenalty -
-    leveragePenalty;
+    leveragePenalty +
+    momentumBonus;
 
   return {
     symbol: analysis.symbol,
