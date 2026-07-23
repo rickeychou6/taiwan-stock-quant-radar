@@ -112,7 +112,7 @@ export function buildTradeProfile(input: BuildTradeProfileInput): TradeProfile {
       mode: "防守出場",
       automationAction: input.action === "REDUCE" ? "減碼" : "等待",
       suitabilityScore: Math.min(45, momentumScore),
-      positionSizePct: input.action === "REDUCE" ? 0 : 10,
+      positionSizePct: 0,
       holdingPeriod: "等待風險降溫",
       entryPlan: "融資或槓桿壓力偏高，不追價；只觀察支撐是否有效。",
       exitPlan: `若反彈量縮或跌破 ${formatPrice(input.stopLoss)}，應優先離場。`,
