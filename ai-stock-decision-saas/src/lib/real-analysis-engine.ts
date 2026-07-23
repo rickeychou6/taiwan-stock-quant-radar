@@ -3,6 +3,7 @@ import { downloadPriceBars, fetchMarginTrading, getStockNews, marketSnapshot, re
 import { buildEntrySignal } from "@/lib/entry-advice";
 import { buildLeverageRisk } from "@/lib/leverage-risk";
 import { buildMarginSafety } from "@/lib/margin-safety";
+import { buildTradeProfile } from "@/lib/trade-profile";
 import type { Action, AnalysisResult, PriceBar, RiskLevel, ScoreBlock, TrendStage } from "@/lib/types";
 
 type PositionAdvice = AnalysisResult["postEntryForecast"]["positionAdvice"];
@@ -439,7 +440,29 @@ export async function runRealFullAnalysis(symbolOrName: string): Promise<Analysi
     action: decision.action,
     forecastUpProbability: forecast.probabilityUp3To5
   });
-  const holdingPeriod = finalScore >= 75 ? "短線 3-7 天，波段 1-4 週" : finalScore >= 55 ? "短線 1-5 天，等待確認" : "觀望或降低持股";
+  const tradeProfile = buildTradeProfile({
+    price: close,
+    support,
+    stopLoss,
+    takeProfit1,
+    takeProfit2,
+    atr: atr14,
+    atrPct,
+    ma20,
+    ma60,
+    volumeRatio,
+    finalScore,
+    technicalScore: scores.technical.score,
+    chipScore: scores.chip.score,
+    capitalScore: scores.capital.score,
+    trendStage: stage,
+    action: decision.action,
+    entryLabel: entrySignal.label,
+    forecast,
+    marginSafety,
+    leverageRisk
+  });
+  const holdingPeriod = tradeProfile.holdingPeriod;
   technicalReasons.push(`核心支撐約 ${support.toFixed(2)}，支撐觀察區 ${priceRange(supportLow, supportHigh)}。`);
   const latestPriceDate = prices[prices.length - 1]?.date || "";
 
@@ -461,6 +484,7 @@ export async function runRealFullAnalysis(symbolOrName: string): Promise<Analysi
     takeProfit1: Number(takeProfit1.toFixed(2)),
     takeProfit2: Number(takeProfit2.toFixed(2)),
     holdingPeriod,
+    tradeProfile,
     margin,
     marginSafety,
     leverageRisk,
@@ -480,7 +504,7 @@ export async function runRealFullAnalysis(symbolOrName: string): Promise<Analysi
     backtest,
     prices,
     explanation: {
-      summary: `${stock.name} 目前 AI 綜合分數 ${Math.round(finalScore)}，決策為 ${decision.action}，進場建議為「${entrySignal.label}」，3-5 天持股建議為 ${forecast.positionAdvice}。融資水位 ${marginSafety.level}（${marginSafety.score} 分），槓桿風險 ${leverageRisk.level}（${leverageRisk.score} 分），當沖可能 ${leverageRisk.dayTradeProbability}%，隔日沖可能 ${leverageRisk.overnightProbability}%。模型近似歷史校準 5 日方向正確率 ${modelCalibration.directionAccuracy5Day}%，平均誤差 ${modelCalibration.averageForecastErrorPct}%。資料來源為 Yahoo Finance 真實 K 線、TWSE/TPEX 融資融券與新聞，未串接的法人/基本面不使用模擬數字。`,
+      summary: `${stock.name} 目前 AI 綜合分數 ${Math.round(finalScore)}，交易型態為「${tradeProfile.style} / ${tradeProfile.mode}」，AI 自動動作為「${tradeProfile.automationAction}」，建議部位 ${tradeProfile.positionSizePct}%。進場建議為「${entrySignal.label}」，3-5 天持股建議為 ${forecast.positionAdvice}。融資水位 ${marginSafety.level}（${marginSafety.score} 分），槓桿風險 ${leverageRisk.level}（${leverageRisk.score} 分），當沖可能 ${leverageRisk.dayTradeProbability}%，隔日沖可能 ${leverageRisk.overnightProbability}%。模型近似歷史校準 5 日方向正確率 ${modelCalibration.directionAccuracy5Day}%，平均誤差 ${modelCalibration.averageForecastErrorPct}%。資料來源為 Yahoo Finance 真實 K 線、TWSE/TPEX 融資融券與新聞，未串接的法人/基本面不使用模擬數字。`,
       technical: technicalReasons,
       chip: chipReasons,
       capital: capitalReasons,

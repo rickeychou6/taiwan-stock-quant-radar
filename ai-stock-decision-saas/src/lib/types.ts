@@ -5,6 +5,9 @@ export type EntryAdviceLabel = "應買" | "可買" | "小量試單" | "等待" |
 export type MarginSafetyLevel = "安全" | "注意" | "警戒" | "危險" | "資料不足";
 export type AlertSeverity = "info" | "warn" | "danger";
 export type LeverageRiskLevel = "低" | "中" | "高" | "極高" | "資料不足";
+export type TradeStyle = "短進短出" | "波段持有" | "中線常抱" | "暫不交易";
+export type TradeMode = "支撐低接" | "突破追價" | "強勢動能" | "趨勢續抱" | "區間等待" | "防守出場";
+export type AutomationAction = "可開倉" | "小量試單" | "續抱" | "減碼" | "停損" | "等待";
 
 export type PriceBar = {
   date: string;
@@ -117,6 +120,20 @@ export type AnalysisResult = {
   takeProfit1: number;
   takeProfit2: number;
   holdingPeriod: string;
+  tradeProfile: {
+    style: TradeStyle;
+    mode: TradeMode;
+    automationAction: AutomationAction;
+    suitabilityScore: number;
+    positionSizePct: number;
+    holdingPeriod: string;
+    entryPlan: string;
+    exitPlan: string;
+    stopPolicy: string;
+    trailingStopPrice: number;
+    reviewFrequency: string;
+    rationale: string[];
+  };
   margin: MarginInfo;
   marginSafety: MarginSafety;
   leverageRisk: LeverageRisk;

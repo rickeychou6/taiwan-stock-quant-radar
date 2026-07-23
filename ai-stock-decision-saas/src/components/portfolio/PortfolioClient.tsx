@@ -68,6 +68,15 @@ function personalizedAdvice(row: PortfolioRow) {
 
   const pnl = ((analysis.price - row.item.cost) / row.item.cost) * 100;
   const activeStopLoss = row.item.stopLossPrice || analysis.stopLossPrice;
+  if (analysis.tradeProfile.automationAction === "停損") {
+    return { label: "停損出場", detail: analysis.tradeProfile.exitPlan, tone: "bear" as const };
+  }
+  if (analysis.tradeProfile.automationAction === "減碼") {
+    return { label: "減碼防守", detail: analysis.tradeProfile.exitPlan, tone: "bear" as const };
+  }
+  if (analysis.tradeProfile.automationAction === "續抱") {
+    return { label: "續抱追蹤", detail: analysis.tradeProfile.stopPolicy, tone: "bull" as const };
+  }
   if (analysis.price <= activeStopLoss || analysis.action === "STOP_LOSS") {
     return { label: "停損/減碼", detail: `現價接近或跌破買入時停損 ${price(activeStopLoss)}，先保護本金。`, tone: "bear" as const };
   }
@@ -92,6 +101,8 @@ function personalizedAdvice(row: PortfolioRow) {
 function suggestedSellPrice(row: PortfolioRow) {
   const analysis = row.analysis;
   if (!analysis) return "-";
+  if (analysis.tradeProfile.automationAction === "停損") return price(analysis.tradeProfile.trailingStopPrice);
+  if (analysis.tradeProfile.automationAction === "減碼") return price(analysis.price);
   if (analysis.price <= analysis.stopLossPrice || analysis.action === "STOP_LOSS") return price(analysis.stopLossPrice);
   return `${price(analysis.takeProfit1)} / ${price(analysis.takeProfit2)}`;
 }
@@ -109,6 +120,24 @@ function sellAlertFor(row: PortfolioRow): SellAlert | null {
       type: "停損",
       suggestedPrice: activeStopLoss,
       reason: `現價 ${price(analysis.price)} 已跌破買入時停損 ${price(activeStopLoss)}，應優先保護本金。`
+    };
+  }
+  if (analysis.tradeProfile.automationAction === "停損") {
+    return {
+      key: `${baseKey}-trade-stop`,
+      row,
+      type: "停損",
+      suggestedPrice: analysis.tradeProfile.trailingStopPrice,
+      reason: analysis.tradeProfile.exitPlan
+    };
+  }
+  if (analysis.tradeProfile.automationAction === "減碼") {
+    return {
+      key: `${baseKey}-trade-reduce`,
+      row,
+      type: "減碼",
+      suggestedPrice: analysis.price,
+      reason: analysis.tradeProfile.exitPlan
     };
   }
   if (analysis.price >= analysis.takeProfit2) {
@@ -371,6 +400,8 @@ export function PortfolioClient() {
                   <MetricCard label="成本 / 損益" value={`${price(row.item.cost)} / ${pct(pnl)}`} sub={row.item.buyAmount ? `投入 ${Math.round(row.item.buyAmount).toLocaleString()} 元` : undefined} tone={pnl >= 0 ? "bull" : "bear"} />
                   <MetricCard label="個人化建議" value={advice.label} sub={advice.detail} tone={advice.tone} />
                   <MetricCard label="建議賣出價" value={suggestedSellPrice(row)} sub="依第一/第二目標或停損線" tone="warn" />
+                  <MetricCard label="交易型態" value={analysis.tradeProfile.style} sub={analysis.tradeProfile.mode} tone={analysis.tradeProfile.style === "暫不交易" ? "bear" : analysis.tradeProfile.style === "短進短出" ? "warn" : "bull"} />
+                  <MetricCard label="AI 動作" value={analysis.tradeProfile.automationAction} sub={`建議部位 ${analysis.tradeProfile.positionSizePct}%`} tone={analysis.tradeProfile.automationAction === "續抱" || analysis.tradeProfile.automationAction === "可開倉" ? "bull" : analysis.tradeProfile.automationAction === "小量試單" || analysis.tradeProfile.automationAction === "等待" ? "warn" : "bear"} />
                   <MetricCard label="融資水位" value={analysis.marginSafety.level} sub={`${analysis.marginSafety.score} 分，警示 ${analysis.marginSafety.warnings.filter((item) => item.severity !== "info").length} 項`} tone={marginSafetyTone(analysis.marginSafety.level)} />
                   <MetricCard label="融資金額" value={money(analysis.margin.marginAmount)} sub={`佔比 ${analysis.margin.marginUtilizationPct.toFixed(2)}%`} tone={analysis.margin.marginUtilizationPct >= 30 || analysis.margin.marginChangePct >= 5 ? "bear" : analysis.margin.marginUtilizationPct >= 20 || analysis.margin.marginChange > 0 ? "warn" : "neutral"} />
                   <MetricCard label="融資增減" value={`${analysis.margin.marginChange >= 0 ? "+" : ""}${analysis.margin.marginChange.toLocaleString()} 張`} sub={pct(analysis.margin.marginChangePct)} tone={analysis.margin.marginChange <= 0 ? "bull" : analysis.margin.marginChangePct >= 5 ? "bear" : "warn"} />

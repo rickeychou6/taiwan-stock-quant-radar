@@ -24,6 +24,18 @@ function leverageTone(level: AnalysisResult["leverageRisk"]["level"]) {
   return "bull" as const;
 }
 
+function tradeStyleTone(style: AnalysisResult["tradeProfile"]["style"]) {
+  if (style === "中線常抱" || style === "波段持有") return "bull" as const;
+  if (style === "短進短出") return "warn" as const;
+  return "bear" as const;
+}
+
+function automationTone(action: AnalysisResult["tradeProfile"]["automationAction"]) {
+  if (action === "可開倉" || action === "續抱") return "bull" as const;
+  if (action === "小量試單" || action === "等待") return "warn" as const;
+  return "bear" as const;
+}
+
 function leverageWarningClass(severity: "info" | "warn" | "danger") {
   if (severity === "danger") return "border-rose-400/40 bg-rose-500/10 text-rose-100";
   if (severity === "warn") return "border-amber-400/40 bg-amber-500/10 text-amber-100";
@@ -112,7 +124,9 @@ export function DashboardClient() {
         : data.marginSafety.level === "資料不足"
           ? "neutral"
           : "warn";
-  const canConfirmBuy = ["應買", "可買", "小量試單"].includes(data.entrySignal.label) && !["SELL", "STOP_LOSS", "REDUCE"].includes(data.action);
+  const canConfirmBuy =
+    ["可開倉", "小量試單"].includes(data.tradeProfile.automationAction) &&
+    !["SELL", "STOP_LOSS", "REDUCE"].includes(data.action);
 
   return (
     <div className="space-y-6">
@@ -144,6 +158,40 @@ export function DashboardClient() {
         <MetricCard label="今日 AI 決策" value={data.action} sub={`信心 ${data.confidence}%`} tone={data.finalScore >= 70 ? "bull" : data.finalScore < 45 ? "bear" : "warn"} />
         <MetricCard label="持股建議" value={data.postEntryForecast.positionAdvice} sub={data.postEntryForecast.reason} />
         <MetricCard label="趨勢階段" value={data.trendStage} sub={`風險 ${data.riskLevel}`} />
+      </section>
+
+      <section className="rounded-3xl border border-blue-400/20 bg-blue-500/10 p-5">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <MetricCard
+            label="交易型態"
+            value={data.tradeProfile.style}
+            sub={data.tradeProfile.mode}
+            tone={tradeStyleTone(data.tradeProfile.style)}
+          />
+          <MetricCard
+            label="AI 自動交易動作"
+            value={data.tradeProfile.automationAction}
+            sub={`適合度 ${data.tradeProfile.suitabilityScore} 分，建議部位 ${data.tradeProfile.positionSizePct}%`}
+            tone={automationTone(data.tradeProfile.automationAction)}
+          />
+          <MetricCard label="持有週期" value={data.tradeProfile.holdingPeriod} sub={data.tradeProfile.reviewFrequency} />
+          <MetricCard label="移動防守" value={price(data.tradeProfile.trailingStopPrice)} sub={data.tradeProfile.stopPolicy} tone="bear" />
+        </div>
+        <div className="mt-4 grid gap-3 lg:grid-cols-2">
+          <div className="rounded-2xl border border-slate-700/70 bg-slate-950/35 p-4 text-sm leading-6 text-slate-300">
+            <p className="font-black text-white">買入計畫</p>
+            <p className="mt-1">{data.tradeProfile.entryPlan}</p>
+          </div>
+          <div className="rounded-2xl border border-slate-700/70 bg-slate-950/35 p-4 text-sm leading-6 text-slate-300">
+            <p className="font-black text-white">賣出計畫</p>
+            <p className="mt-1">{data.tradeProfile.exitPlan}</p>
+          </div>
+        </div>
+        <div className="mt-4 grid gap-2 text-sm text-blue-100 md:grid-cols-2">
+          {data.tradeProfile.rationale.map((item) => (
+            <p key={item}>• {item}</p>
+          ))}
+        </div>
       </section>
 
       {canConfirmBuy ? (

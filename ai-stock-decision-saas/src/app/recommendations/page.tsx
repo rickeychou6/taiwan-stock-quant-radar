@@ -70,6 +70,8 @@ function RecommendationCard({ item, rank }: { item: StockRecommendation; rank: n
         <MetricCard label="現價" value={formatPrice(item.price)} sub={formatPct(item.changePct)} tone={isUp ? "bull" : "bear"} />
         <MetricCard label="AI 分數" value={item.finalScore} sub={`信心 ${item.confidence}%`} tone={item.finalScore >= 66 ? "bull" : item.finalScore >= 55 ? "warn" : "neutral"} />
         <MetricCard label="進場建議" value={item.entryAdvice} sub={item.entryRule} tone={item.entryAdvice === "應買" || item.entryAdvice === "可買" ? "bull" : item.entryAdvice === "不買" || item.entryAdvice === "觀察" ? "bear" : "warn"} />
+        <MetricCard label="交易型態" value={item.tradeStyle} sub={item.tradeMode} tone={item.tradeStyle === "暫不交易" ? "bear" : item.tradeStyle === "短進短出" ? "warn" : "bull"} />
+        <MetricCard label="AI 動作" value={item.automationAction} sub={`建議部位 ${item.positionSizePct}%`} tone={item.automationAction === "可開倉" || item.automationAction === "續抱" ? "bull" : item.automationAction === "小量試單" || item.automationAction === "等待" ? "warn" : "bear"} />
         <MetricCard label="融資水位" value={item.marginSafetyLevel} sub={`${item.marginSafetyScore} 分，警示 ${item.marginWarningsCount} 項`} tone={safetyTone(item.marginSafetyLevel)} />
         <MetricCard label="槓桿風險" value={item.leverageRiskLevel} sub={`${item.leverageRiskScore} 分，短線沖銷風險`} tone={leverageTone(item.leverageRiskLevel)} />
         <MetricCard label="當沖可能" value={`${item.dayTradeProbability}%`} sub={`風險 ${item.dayTradeRisk}`} tone={leverageTone(item.dayTradeRisk)} />
@@ -117,6 +119,18 @@ function RecommendationCard({ item, rank }: { item: StockRecommendation; rank: n
             <div className="flex items-center justify-between gap-4">
               <span>持股後建議</span>
               <span className="font-bold text-white">{item.positionAdvice}</span>
+            </div>
+            <div className="rounded-2xl border border-slate-700/70 bg-slate-900/45 p-3">
+              <p className="font-bold text-white">買入計畫</p>
+              <p className="mt-1 leading-6">{item.entryPlan}</p>
+            </div>
+            <div className="rounded-2xl border border-slate-700/70 bg-slate-900/45 p-3">
+              <p className="font-bold text-white">賣出計畫</p>
+              <p className="mt-1 leading-6">{item.exitPlan}</p>
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <span>追蹤頻率</span>
+              <span className="text-right font-bold text-white">{item.reviewFrequency}</span>
             </div>
           </div>
           <div className="mt-4 space-y-2">

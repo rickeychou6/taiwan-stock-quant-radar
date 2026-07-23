@@ -10,6 +10,14 @@ export type StockRecommendation = {
   finalScore: number;
   action: Action;
   recommendation: "買入候選" | "可小量試單" | "接近買點" | "等待回檔" | "暫不買入";
+  tradeStyle: AnalysisResult["tradeProfile"]["style"];
+  tradeMode: AnalysisResult["tradeProfile"]["mode"];
+  automationAction: AnalysisResult["tradeProfile"]["automationAction"];
+  positionSizePct: number;
+  tradeHoldingPeriod: string;
+  entryPlan: string;
+  exitPlan: string;
+  reviewFrequency: string;
   entryAdvice: AnalysisResult["entrySignal"]["label"];
   entryRule: string;
   marginAmount: number;
@@ -137,6 +145,9 @@ function buildReasons(analysis: AnalysisResult, riskReward: number) {
     `進場建議：${analysis.entrySignal.label}。套用規則：${analysis.entrySignal.rule}，距核心支撐 ${analysis.entrySignal.supportDistancePct.toFixed(2)}%，風險報酬比 1 : ${analysis.entrySignal.riskReward.toFixed(2)}。`
   );
   reasons.push(
+    `交易型態：${analysis.tradeProfile.style} / ${analysis.tradeProfile.mode}，AI 動作 ${analysis.tradeProfile.automationAction}，建議部位 ${analysis.tradeProfile.positionSizePct}%，追蹤頻率：${analysis.tradeProfile.reviewFrequency}。`
+  );
+  reasons.push(
     `交易判斷：系統現在分開看「支撐低接」與「強勢動能試單」；可靠度不足時不是直接禁止，而是降低部位並縮短停損。`
   );
   reasons.push(
@@ -161,6 +172,7 @@ function recommendationOf(analysis: AnalysisResult, riskReward: number) {
   const weakTrend = analysis.trendStage === "破線" || analysis.trendStage === "轉弱";
   const forecastPositive = analysis.postEntryForecast.day5Pct >= 0;
   const entryLabel = analysis.entrySignal.label;
+  const tradeProfile = analysis.tradeProfile;
   const technicalScore = analysis.scores.technical.score;
   const capitalScore = analysis.scores.capital.score;
   const newsScore = analysis.scores.news.score;
@@ -190,6 +202,22 @@ function recommendationOf(analysis: AnalysisResult, riskReward: number) {
     analysis.modelCalibration.directionAccuracy5Day < 49;
 
   if (blocked || entryLabel === "不買") return "暫不買入" as const;
+
+  if (tradeProfile.automationAction === "可開倉" && tradeProfile.style !== "暫不交易" && !weakTrend) {
+    return tradeProfile.positionSizePct >= 30 ? "買入候選" as const : "可小量試單" as const;
+  }
+
+  if (tradeProfile.automationAction === "小量試單" && tradeProfile.style !== "暫不交易" && !weakTrend) {
+    return "可小量試單" as const;
+  }
+
+  if (tradeProfile.automationAction === "續抱" && tradeProfile.style === "中線常抱" && analysis.finalScore >= 66 && upProbability >= 54) {
+    return "接近買點" as const;
+  }
+
+  if (tradeProfile.automationAction === "停損" || tradeProfile.automationAction === "減碼") {
+    return "暫不買入" as const;
+  }
 
   if (entryLabel === "應買" || entryLabel === "可買") {
     return "買入候選" as const;
@@ -292,6 +320,26 @@ function transform(analysis: AnalysisResult): StockRecommendation {
     (analysis.leverageRisk.level === "極高" ? 10 : analysis.leverageRisk.level === "高" ? 6 : analysis.leverageRisk.level === "中" ? 2 : 0) +
     (analysis.leverageRisk.overnightRisk === "極高" ? 8 : analysis.leverageRisk.overnightRisk === "高" ? 5 : analysis.leverageRisk.overnightRisk === "中" ? 2 : 0) +
     (analysis.leverageRisk.dayTradeRisk === "極高" ? 5 : analysis.leverageRisk.dayTradeRisk === "高" ? 3 : 0);
+  const tradeStyleBonus =
+    analysis.tradeProfile.style === "中線常抱"
+      ? 5
+      : analysis.tradeProfile.style === "波段持有"
+        ? 4
+        : analysis.tradeProfile.style === "短進短出"
+          ? 2
+          : -18;
+  const automationBonus =
+    analysis.tradeProfile.automationAction === "可開倉"
+      ? 8
+      : analysis.tradeProfile.automationAction === "小量試單"
+        ? 5
+        : analysis.tradeProfile.automationAction === "續抱"
+          ? 2
+          : analysis.tradeProfile.automationAction === "減碼"
+            ? -8
+            : analysis.tradeProfile.automationAction === "停損"
+              ? -30
+              : -2;
   const rankScore =
     analysis.finalScore +
     probability * 0.22 +
@@ -302,7 +350,9 @@ function transform(analysis: AnalysisResult): StockRecommendation {
     entryBonus -
     marginPenalty -
     leveragePenalty +
-    momentumBonus;
+    momentumBonus +
+    tradeStyleBonus +
+    automationBonus;
 
   return {
     symbol: analysis.symbol,
@@ -312,6 +362,14 @@ function transform(analysis: AnalysisResult): StockRecommendation {
     finalScore: analysis.finalScore,
     action: analysis.action,
     recommendation,
+    tradeStyle: analysis.tradeProfile.style,
+    tradeMode: analysis.tradeProfile.mode,
+    automationAction: analysis.tradeProfile.automationAction,
+    positionSizePct: analysis.tradeProfile.positionSizePct,
+    tradeHoldingPeriod: analysis.tradeProfile.holdingPeriod,
+    entryPlan: analysis.tradeProfile.entryPlan,
+    exitPlan: analysis.tradeProfile.exitPlan,
+    reviewFrequency: analysis.tradeProfile.reviewFrequency,
     entryAdvice: analysis.entrySignal.label,
     entryRule: analysis.entrySignal.rule,
     marginAmount: analysis.margin.marginAmount,
@@ -338,7 +396,7 @@ function transform(analysis: AnalysisResult): StockRecommendation {
     takeProfit2: analysis.takeProfit2,
     sellPrice: `${analysis.takeProfit1.toFixed(2)} / ${analysis.takeProfit2.toFixed(2)} 元`,
     riskReward,
-    holdingPeriod: analysis.holdingPeriod,
+    holdingPeriod: analysis.tradeProfile.holdingPeriod,
     probabilityUp3To5: probability,
     forecastDay5Pct: forecast,
     positionAdvice: analysis.postEntryForecast.positionAdvice,

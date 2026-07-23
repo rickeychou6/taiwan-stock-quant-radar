@@ -3,6 +3,7 @@ import { generatePrices, getStock, mockChipData, mockFundamental, mockMacro, moc
 import { buildEntrySignal } from "@/lib/entry-advice";
 import { buildLeverageRisk } from "@/lib/leverage-risk";
 import { buildMarginSafety } from "@/lib/margin-safety";
+import { buildTradeProfile } from "@/lib/trade-profile";
 import type { Action, AnalysisResult, PriceBar, RiskLevel, ScoreBlock, TrendStage } from "@/lib/types";
 
 type PositionAdvice = AnalysisResult["postEntryForecast"]["positionAdvice"];
@@ -278,7 +279,6 @@ export function runFullAnalysis(symbolOrName: string): AnalysisResult {
   const idealLow = Math.min(idealHigh, Math.max(stopLoss + atr14 * 0.6, support - atr14 * 0.25));
   const takeProfit1 = Math.max(resistance, close + atr14 * 1.8);
   const takeProfit2 = Math.max(takeProfit1 + atr14 * 1.5, close + atr14 * 3.2);
-  const holdingPeriod = finalScore >= 75 ? "短線 3-7 天，波段 1-4 週" : finalScore >= 55 ? "短線 1-5 天，等確認後延長" : "當沖/隔日觀察，不宜久抱";
   const backtest = similarPatternBacktest(prices, finalScore);
   const forecast = postEntryForecast(finalScore, stage, atrPct, backtest.bias);
   const modelCalibration: AnalysisResult["modelCalibration"] = {
@@ -305,6 +305,29 @@ export function runFullAnalysis(symbolOrName: string): AnalysisResult {
     action: decision.action,
     forecastUpProbability: forecast.probabilityUp3To5
   });
+  const tradeProfile = buildTradeProfile({
+    price: close,
+    support,
+    stopLoss,
+    takeProfit1,
+    takeProfit2,
+    atr: atr14,
+    atrPct,
+    ma20,
+    ma60,
+    volumeRatio,
+    finalScore,
+    technicalScore: scores.technical.score,
+    chipScore: scores.chip.score,
+    capitalScore: scores.capital.score,
+    trendStage: stage,
+    action: decision.action,
+    entryLabel: entrySignal.label,
+    forecast,
+    marginSafety,
+    leverageRisk
+  });
+  const holdingPeriod = tradeProfile.holdingPeriod;
   technicalReasons.push(`核心支撐約 ${support.toFixed(2)}，支撐觀察區 ${rangeText(supportLow, supportHigh)}。`);
 
   return {
@@ -325,6 +348,7 @@ export function runFullAnalysis(symbolOrName: string): AnalysisResult {
     takeProfit1: Number(takeProfit1.toFixed(2)),
     takeProfit2: Number(takeProfit2.toFixed(2)),
     holdingPeriod,
+    tradeProfile,
     margin,
     marginSafety,
     leverageRisk,
@@ -341,7 +365,7 @@ export function runFullAnalysis(symbolOrName: string): AnalysisResult {
     backtest,
     prices,
     explanation: {
-      summary: `${stock.name} 綜合分數 ${Math.round(finalScore)}，決策 ${decision.action}，進場建議為「${entrySignal.label}」，持股建議為「${forecast.positionAdvice}」。`,
+      summary: `${stock.name} 綜合分數 ${Math.round(finalScore)}，交易型態「${tradeProfile.style} / ${tradeProfile.mode}」，AI 動作「${tradeProfile.automationAction}」，建議部位 ${tradeProfile.positionSizePct}%。進場建議為「${entrySignal.label}」，持股建議為「${forecast.positionAdvice}」。`,
       technical: technicalReasons,
       chip: chipReasons,
       capital: capitalReasons,

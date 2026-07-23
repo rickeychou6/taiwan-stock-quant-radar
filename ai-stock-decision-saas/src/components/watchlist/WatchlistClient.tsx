@@ -58,6 +58,9 @@ async function fetchAnalysis(symbol: string) {
 
 function watchTone(row: WatchRow) {
   if (!row.analysis) return "neutral" as const;
+  if (row.analysis.tradeProfile.automationAction === "可開倉" || row.analysis.tradeProfile.automationAction === "續抱") return "bull" as const;
+  if (row.analysis.tradeProfile.automationAction === "小量試單" || row.analysis.tradeProfile.automationAction === "等待") return "warn" as const;
+  if (row.analysis.tradeProfile.automationAction === "減碼" || row.analysis.tradeProfile.automationAction === "停損") return "bear" as const;
   if (row.analysis.entrySignal.label === "應買" || row.analysis.entrySignal.label === "可買") return "bull" as const;
   if (row.analysis.entrySignal.label === "小量試單" || row.analysis.entrySignal.label === "等待" || row.analysis.entrySignal.label === "觀望") return "warn" as const;
   if (row.analysis.entrySignal.label === "不買" || row.analysis.entrySignal.label === "觀察") return "bear" as const;
@@ -81,7 +84,7 @@ function leverageTone(level: AnalysisResult["leverageRisk"]["level"]) {
 }
 
 function isBuyableEntry(analysis: AnalysisResult) {
-  return analysis.entrySignal.label === "應買" || analysis.entrySignal.label === "可買" || analysis.entrySignal.label === "小量試單";
+  return analysis.tradeProfile.automationAction === "可開倉" || analysis.tradeProfile.automationAction === "小量試單";
 }
 
 function parseBuyRange(value: string) {
@@ -105,19 +108,24 @@ function alertEventsFor(row: WatchRow): AlertEvent[] {
       symbol: analysis.symbol,
       name: analysis.name,
       type: "買點",
-      message: `${analysis.name} 觸發${analysis.entrySignal.label}，現價 ${price(analysis.price)}，建議買點 ${analysis.buyPrice}`,
+      message: `${analysis.name} 觸發${analysis.tradeProfile.automationAction}，交易型態 ${analysis.tradeProfile.style}，現價 ${price(analysis.price)}，建議買點 ${analysis.buyPrice}`,
       tone: "bull",
       createdAt: now
     });
   }
 
-  if (analysis.price <= analysis.stopLossPrice || analysis.action === "STOP_LOSS" || analysis.action === "SELL") {
+  if (
+    analysis.price <= analysis.stopLossPrice ||
+    analysis.action === "STOP_LOSS" ||
+    analysis.action === "SELL" ||
+    analysis.tradeProfile.automationAction === "停損"
+  ) {
     rows.push({
       key: `${analysis.symbol}-STOP-${analysis.stopLossPrice.toFixed(2)}`,
       symbol: analysis.symbol,
       name: analysis.name,
       type: "停損",
-      message: `${analysis.name} 觸發停損/賣出警示，現價 ${price(analysis.price)}，停損價 ${price(analysis.stopLossPrice)}`,
+      message: `${analysis.name} 觸發停損/賣出警示，現價 ${price(analysis.price)}，停損價 ${price(analysis.stopLossPrice)}，AI 動作 ${analysis.tradeProfile.automationAction}`,
       tone: "bear",
       createdAt: now
     });
@@ -456,6 +464,8 @@ export function WatchlistClient() {
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <MetricCard label="現價 / 漲跌" value={price(row.analysis.price)} sub={pct(row.analysis.changePct)} tone={row.analysis.changePct >= 0 ? "bull" : "bear"} />
                 <MetricCard label="進場建議" value={row.analysis.entrySignal.label} sub={row.analysis.entrySignal.reason} tone={watchTone(row)} />
+                <MetricCard label="交易型態" value={row.analysis.tradeProfile.style} sub={row.analysis.tradeProfile.mode} tone={watchTone(row)} />
+                <MetricCard label="AI 動作" value={row.analysis.tradeProfile.automationAction} sub={`建議部位 ${row.analysis.tradeProfile.positionSizePct}%`} tone={watchTone(row)} />
                 <MetricCard label="今日 AI 決策" value={row.analysis.action} sub={`分數 ${row.analysis.finalScore} / 信心 ${row.analysis.confidence}%`} tone={watchTone(row)} />
                 <MetricCard label="模型可靠度" value={row.analysis.modelCalibration.reliability} sub={`5 日正確率 ${row.analysis.modelCalibration.directionAccuracy5Day}%`} tone={row.analysis.modelCalibration.reliability === "高" ? "bull" : row.analysis.modelCalibration.reliability === "中" ? "warn" : "bear"} />
                 <MetricCard label="融資水位" value={row.analysis.marginSafety.level} sub={`${row.analysis.marginSafety.score} 分，警示 ${row.analysis.marginSafety.warnings.filter((item) => item.severity !== "info").length} 項`} tone={marginSafetyTone(row)} />

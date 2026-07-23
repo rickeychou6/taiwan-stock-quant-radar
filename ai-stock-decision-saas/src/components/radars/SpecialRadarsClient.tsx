@@ -16,6 +16,13 @@ type Recommendation = {
   finalScore: number;
   action: string;
   recommendation: string;
+  tradeStyle: string;
+  tradeMode: string;
+  automationAction: string;
+  positionSizePct: number;
+  entryPlan: string;
+  exitPlan: string;
+  reviewFrequency: string;
   entryAdvice: string;
   entryRule: string;
   marginAmount: number;
@@ -275,6 +282,8 @@ export function SpecialRadarsClient() {
             <MetricCard label="現價" value={formatPrice(intraday.price)} sub={formatPct(intraday.changePct)} tone={intraday.changePct >= 0 ? "bull" : "bear"} />
             <MetricCard label="支撐 / 停損" value={`${intraday.supportPriceRange} / ${formatPrice(intraday.stopLossPrice)}`} tone="warn" />
             <MetricCard label="3-5 天上漲機率" value={`${intraday.postEntryForecast.probabilityUp3To5}%`} sub={`第 5 天 ${formatPct(intraday.postEntryForecast.day5Pct)}`} tone={intraday.postEntryForecast.probabilityUp3To5 >= 55 ? "bull" : "warn"} />
+            <MetricCard label="交易型態" value={intraday.tradeProfile.style} sub={intraday.tradeProfile.mode} tone={intraday.tradeProfile.style === "暫不交易" ? "bear" : intraday.tradeProfile.style === "短進短出" ? "warn" : "bull"} />
+            <MetricCard label="AI 動作" value={intraday.tradeProfile.automationAction} sub={`建議部位 ${intraday.tradeProfile.positionSizePct}%`} tone={intraday.tradeProfile.automationAction === "可開倉" || intraday.tradeProfile.automationAction === "續抱" ? "bull" : intraday.tradeProfile.automationAction === "小量試單" || intraday.tradeProfile.automationAction === "等待" ? "warn" : "bear"} />
             <MetricCard label="AI 分數" value={intraday.finalScore} sub={`信心 ${intraday.confidence}%`} tone={scoreTone(intraday.finalScore)} />
             <MetricCard label="買點區" value={intraday.idealBuyPrice} sub={intraday.entrySignal.reason} />
             <MetricCard label="賣出目標" value={`${formatPrice(intraday.takeProfit1)} / ${formatPrice(intraday.takeProfit2)}`} tone="bull" />
@@ -332,6 +341,8 @@ export function SpecialRadarsClient() {
                   <MetricCard label="現價" value={formatPrice(item.price)} sub={formatPct(item.changePct)} tone={item.changePct >= 0 ? "bull" : "bear"} />
                   <MetricCard label="AI 分數" value={item.finalScore} sub={`信心 ${item.confidence}%`} tone={scoreTone(item.finalScore)} />
                   <MetricCard label="進場建議" value={item.entryAdvice} sub={item.entryRule} tone={recommendationTone(item.recommendation)} />
+                  <MetricCard label="交易型態" value={item.tradeStyle} sub={item.tradeMode} tone={item.tradeStyle === "暫不交易" ? "bear" : item.tradeStyle === "短進短出" ? "warn" : "bull"} />
+                  <MetricCard label="AI 動作" value={item.automationAction} sub={`建議部位 ${item.positionSizePct}%`} tone={item.automationAction === "可開倉" || item.automationAction === "續抱" ? "bull" : item.automationAction === "小量試單" || item.automationAction === "等待" ? "warn" : "bear"} />
                   <MetricCard label="上漲機率" value={`${item.probabilityUp3To5}%`} sub={`第 5 天 ${formatPct(item.forecastDay5Pct)}`} tone={item.probabilityUp3To5 >= 55 ? "bull" : "warn"} />
                   <MetricCard label="買入區間" value={item.idealBuyPrice} />
                   <MetricCard label="停損 / 目標" value={`${formatPrice(item.stopLossPrice)} / ${item.sellPrice}`} tone="warn" />
