@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Bot, Download, Play, RefreshCw, RotateCcw, Shield, WalletCards } from "lucide-react";
+import { Bot, Download, RefreshCw, RotateCcw, Shield, WalletCards } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { MetricCard } from "@/components/MetricCard";
 import type { StockRecommendation } from "@/lib/recommendation-engine";
@@ -87,11 +87,18 @@ type RecommendationReport = {
   errors?: { symbol: string; message: string }[];
 };
 
+type CloudStateResponse = {
+  state: AutoTraderState;
+  source: "github-actions" | "not_started" | "error";
+  message: string;
+  stateUrl?: string;
+};
+
 const STORAGE_KEY = "ai-auto-trader-v1";
 const INITIAL_CAPITAL = 100_000;
 const MAX_POSITIONS = 4;
 const CASH_RESERVE = 5_000;
-const AUTO_INTERVAL_MS = 5 * 60_000;
+const PAGE_REFRESH_INTERVAL_MS = 60_000;
 
 function emptyState(): AutoTraderState {
   return {
@@ -235,18 +242,23 @@ export function AutoTraderClient() {
   const [state, setState] = useState<AutoTraderState>(emptyState());
   const [loading, setLoading] = useState(false);
   const [autoRun, setAutoRun] = useState(false);
-  const [status, setStatus] = useState("尚未啟動 AI 模擬交易。");
+  const [status, setStatus] = useState("背景 AI 機器人已設定為 GitHub Actions 自動排程，正在等待讀取雲端紀錄。");
   const [error, setError] = useState("");
+  const [cloudSource, setCloudSource] = useState<CloudStateResponse["source"]>("not_started");
+  const [lastCloudLoadAt, setLastCloudLoadAt] = useState("");
 
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (!stored) return;
     try {
-      const parsed = JSON.parse(stored) as AutoTraderState;
-      if (parsed.initialCapital === INITIAL_CAPITAL && typeof parsed.cash === "number") setState(parsed);
+      if (stored) {
+        const parsed = JSON.parse(stored) as AutoTraderState;
+        if (parsed.initialCapital === INITIAL_CAPITAL && typeof parsed.cash === "number") setState(parsed);
+      }
     } catch {
       window.localStorage.removeItem(STORAGE_KEY);
     }
+    void loadCloudState();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -255,10 +267,10 @@ export function AutoTraderClient() {
 
   useEffect(() => {
     if (!autoRun) return;
-    const timer = window.setInterval(() => void runAiCycle("auto"), AUTO_INTERVAL_MS);
+    const timer = window.setInterval(() => void loadCloudState(), PAGE_REFRESH_INTERVAL_MS);
     return () => window.clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoRun, state]);
+  }, [autoRun]);
 
   const summary = useMemo(() => {
     const positionValue = state.positions.reduce((sum, position) => sum + position.lastValue, 0);
@@ -267,6 +279,27 @@ export function AutoTraderClient() {
     const totalPnlPct = (totalPnl / state.initialCapital) * 100;
     return { positionValue, totalEquity, totalPnl, totalPnlPct };
   }, [state]);
+
+  async function loadCloudState() {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await fetch("/api/auto-trader/state", { cache: "no-store" });
+      const payload = (await response.json()) as CloudStateResponse;
+      if (!response.ok) throw new Error(payload.message || "雲端紀錄讀取失敗");
+      setCloudSource(payload.source);
+      setLastCloudLoadAt(nowIso());
+      setState(payload.state);
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload.state));
+      setStatus(payload.message);
+    } catch (cloudError) {
+      const message = cloudError instanceof Error ? cloudError.message : "雲端紀錄讀取失敗";
+      setError(message);
+      setStatus("雲端紀錄讀取失敗，暫時顯示本機快取。");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function runAiCycle(source: "manual" | "auto" = "manual") {
     if (loading) return;
@@ -485,7 +518,7 @@ export function AutoTraderClient() {
     const next = emptyState();
     setState(next);
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    setStatus("已重設為虛擬台幣 10 萬元。");
+    setStatus("已清除本機快取；下一次重新讀取會抓回 GitHub Actions 雲端交易紀錄。");
   }
 
   function exportRecords() {
@@ -516,12 +549,12 @@ export function AutoTraderClient() {
           <div className="grid gap-2 sm:grid-cols-2 lg:w-[420px]">
             <button
               type="button"
-              onClick={() => void runAiCycle("manual")}
+              onClick={() => void loadCloudState()}
               disabled={loading}
               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 font-black text-white transition hover:bg-blue-500 disabled:opacity-60"
             >
-              {loading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-              AI 跑一輪
+              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+              重新讀取雲端
             </button>
             <button
               type="button"
@@ -531,7 +564,7 @@ export function AutoTraderClient() {
               }`}
             >
               <RefreshCw className="h-4 w-4" />
-              自動每 5 分鐘：{autoRun ? "開" : "關"}
+              畫面每 60 秒刷新：{autoRun ? "開" : "關"}
             </button>
             <button
               type="button"
@@ -547,7 +580,7 @@ export function AutoTraderClient() {
               className="inline-flex items-center justify-center gap-2 rounded-2xl border border-rose-400/40 px-5 py-3 font-black text-rose-200 transition hover:bg-rose-500/15"
             >
               <RotateCcw className="h-4 w-4" />
-              重設 10 萬
+              清除本機快取
             </button>
           </div>
         </div>
@@ -556,17 +589,24 @@ export function AutoTraderClient() {
       <section className="rounded-3xl border border-amber-400/25 bg-amber-400/10 p-4 text-sm leading-6 text-amber-100">
         <p className="font-black text-white">交易規則</p>
         <p className="mt-1">
-          資料來源必須是真實行情 API；本頁不使用假行情。AI 可自行買賣，但同一交易日買進的部位只會記錄「禁止當沖」警示，不會賣出。
-          紀錄目前保存在此瀏覽器的 localStorage，換裝置或清除瀏覽資料會消失，請定期匯出 JSON。
+          背景機器人由 GitHub Actions 在台股盤中自動執行，不需要你停在這個頁面。資料來源必須是真實行情 API；本頁不使用假行情。
+          AI 可自行買賣，但同一交易日買進的部位只會記錄「禁止當沖」警示，不會賣出。交易紀錄保存在 GitHub 的
+          <span className="font-black text-white"> auto-trader-state </span>資料分支，本頁會讀取那份雲端 JSON。
         </p>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
         <MetricCard label="總資產" value={twd(summary.totalEquity)} sub={`損益 ${pct(summary.totalPnlPct)}`} tone={summary.totalPnl >= 0 ? "bull" : "bear"} />
         <MetricCard label="現金" value={twd(state.cash)} sub={`保留 ${twd(CASH_RESERVE)}`} />
         <MetricCard label="持股市值" value={twd(summary.positionValue)} sub={`${state.positions.length}/${MAX_POSITIONS} 檔`} />
         <MetricCard label="已實現損益" value={twd(state.realizedPnl)} tone={state.realizedPnl >= 0 ? "bull" : "bear"} />
         <MetricCard label="最後執行" value={state.lastRunAt ? new Date(state.lastRunAt).toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" }) : "-"} sub={tradingDateNow()} />
+        <MetricCard
+          label="雲端狀態"
+          value={cloudSource === "github-actions" ? "已啟動" : cloudSource === "not_started" ? "等待首跑" : "讀取錯誤"}
+          sub={lastCloudLoadAt ? `讀取 ${new Date(lastCloudLoadAt).toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" })}` : "尚未讀取"}
+          tone={cloudSource === "github-actions" ? "bull" : cloudSource === "not_started" ? "warn" : "bear"}
+        />
       </section>
 
       <section className="rounded-3xl border border-blue-400/20 bg-blue-500/10 p-4 text-sm leading-6 text-blue-100">
@@ -615,7 +655,7 @@ export function AutoTraderClient() {
           </div>
         ) : (
           <div className="mt-4 rounded-3xl border border-slate-700/70 bg-slate-950/35 p-6 text-slate-300">
-            目前沒有持股。按「AI 跑一輪」後，系統會用真實推薦雷達尋找可買或小量試單標的。
+            目前雲端機器人沒有持股。GitHub Actions 下一次盤中排程會自動用真實推薦雷達尋找可買或小量試單標的。
           </div>
         )}
       </section>

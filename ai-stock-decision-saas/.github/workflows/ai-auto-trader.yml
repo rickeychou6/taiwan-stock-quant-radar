@@ -1,0 +1,38 @@
+name: AI Auto Paper Trader
+
+on:
+  schedule:
+    # Taiwan market hours, Monday-Friday, 09:00-13:59 Asia/Taipei.
+    # GitHub cron uses UTC, so this is 01:00-05:59 UTC.
+    - cron: "*/15 1-5 * * 1-5"
+    # One extra after-close run around 14:10 Taipei time.
+    - cron: "10 6 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ai-auto-paper-trader
+  cancel-in-progress: false
+
+jobs:
+  run-auto-trader:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout strategy code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run AI paper trader
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AUTO_TRADER_BASE_URL: https://ai-stock-decision-saas.vercel.app
+          AUTO_TRADER_STATE_BRANCH: auto-trader-state
+          AUTO_TRADER_STATE_FILE: auto-trader/state.json
+        run: node scripts/auto-trader-bot.mjs
