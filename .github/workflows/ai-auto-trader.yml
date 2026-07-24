@@ -35,4 +35,4 @@ jobs:
           AUTO_TRADER_BASE_URL: https://ai-stock-decision-saas.vercel.app
           AUTO_TRADER_STATE_BRANCH: auto-trader-state
           AUTO_TRADER_STATE_FILE: auto-trader/state.json
-        run: node scripts/auto-trader-bot.mjs
+        run: node ai-stock-decision-saas/scripts/auto-trader-bot.mjs
