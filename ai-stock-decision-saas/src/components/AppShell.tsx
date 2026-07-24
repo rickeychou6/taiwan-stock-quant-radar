@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BarChart3, Briefcase, Gauge, Home, ListChecks, Radar, ShieldAlert, Sparkles, UserCircle } from "lucide-react";
+import { BarChart3, Bot, Briefcase, Gauge, Home, ListChecks, Radar, ShieldAlert, Sparkles, UserCircle } from "lucide-react";
 import { RiskNotice } from "@/components/RiskNotice";
 import { GlobalSignalAlerts } from "@/components/GlobalSignalAlerts";
 
@@ -7,6 +7,7 @@ const navItems = [
   { href: "/", label: "首頁", mobileLabel: "首頁", icon: Home },
   { href: "/dashboard", label: "分析 Dashboard", mobileLabel: "分析", icon: Gauge },
   { href: "/recommendations", label: "個股推薦", mobileLabel: "推薦", icon: Sparkles },
+  { href: "/auto-trader", label: "AI 模擬交易", mobileLabel: "AI交易", icon: Bot },
   { href: "/radars", label: "專用雷達", mobileLabel: "雷達", icon: Radar },
   { href: "/watchlist", label: "自選股", mobileLabel: "自選", icon: ListChecks },
   { href: "/portfolio", label: "持股管理", mobileLabel: "持股", icon: Briefcase },
