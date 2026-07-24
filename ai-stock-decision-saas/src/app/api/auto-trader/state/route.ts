@@ -157,6 +157,7 @@ export async function GET() {
       state,
       source: "github-actions",
       fetchMode: "contents-api",
+      canWriteSettings: Boolean(STATE_WRITE_TOKEN),
       fetchedAt: new Date().toISOString(),
       message: "Loaded latest AI paper trading state."
     });
@@ -167,6 +168,7 @@ export async function GET() {
         state,
         source: "github-actions",
         fetchMode: "raw-fallback",
+        canWriteSettings: Boolean(STATE_WRITE_TOKEN),
         fetchedAt: new Date().toISOString(),
         message: "Loaded AI paper trading state from raw fallback."
       });
@@ -176,6 +178,7 @@ export async function GET() {
           state: emptyState(),
           source: "error",
           fetchMode: "failed",
+          canWriteSettings: Boolean(STATE_WRITE_TOKEN),
           fetchedAt: new Date().toISOString(),
           message:
             contentsError instanceof Error
@@ -219,6 +222,7 @@ export async function PATCH(request: Request) {
       state: nextState,
       source: "github-actions",
       fetchMode: "contents-api",
+      canWriteSettings: Boolean(STATE_WRITE_TOKEN),
       fetchedAt: new Date().toISOString(),
       message: dayTradingEnabled ? "當沖開關已開啟，背景機器人可同日賣出。" : "當沖開關已關閉，當日買進持股會保留到下一個交易日再評估出場。"
     });

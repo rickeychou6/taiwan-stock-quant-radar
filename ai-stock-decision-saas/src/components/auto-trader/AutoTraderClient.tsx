@@ -97,6 +97,7 @@ type RecommendationReport = {
 type CloudStateResponse = {
   state: AutoTraderState;
   source: "github-actions" | "not_started" | "error";
+  canWriteSettings?: boolean;
   message: string;
   stateUrl?: string;
 };
@@ -271,6 +272,7 @@ export function AutoTraderClient() {
   const [status, setStatus] = useState("背景 AI 機器人已設定為 GitHub Actions 自動排程，正在等待讀取雲端紀錄。");
   const [error, setError] = useState("");
   const [cloudSource, setCloudSource] = useState<CloudStateResponse["source"]>("not_started");
+  const [canWriteSettings, setCanWriteSettings] = useState(false);
   const [lastCloudLoadAt, setLastCloudLoadAt] = useState("");
 
   useEffect(() => {
@@ -316,11 +318,16 @@ export function AutoTraderClient() {
       const payload = (await response.json()) as CloudStateResponse;
       if (!response.ok) throw new Error(payload.message || "雲端紀錄讀取失敗");
       setCloudSource(payload.source);
+      setCanWriteSettings(Boolean(payload.canWriteSettings));
       setLastCloudLoadAt(nowIso());
       const nextState = normalizeState(payload.state);
       setState(nextState);
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextState));
-      setStatus(payload.message);
+      setStatus(
+        payload.canWriteSettings
+          ? payload.message
+          : `${payload.message} 當沖開關雲端寫入尚未啟用，需在 Vercel 設定免費 AUTO_TRADER_STATE_TOKEN 後才可從網站切換。`
+      );
     } catch (cloudError) {
       const message = cloudError instanceof Error ? cloudError.message : "雲端紀錄讀取失敗";
       setError(message);
@@ -623,7 +630,7 @@ export function AutoTraderClient() {
             <button
               type="button"
               onClick={() => void updateDayTradingSetting(!dayTradingEnabled)}
-              disabled={savingSettings || loading}
+              disabled={savingSettings || loading || !canWriteSettings}
               className={`inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 font-black transition disabled:opacity-60 ${
                 dayTradingEnabled
                   ? "bg-emerald-500 text-slate-950 hover:bg-emerald-400"
@@ -631,7 +638,7 @@ export function AutoTraderClient() {
               }`}
             >
               {dayTradingEnabled ? <ToggleRight className="h-5 w-5" /> : <ToggleLeft className="h-5 w-5" />}
-              當沖出場：{dayTradingEnabled ? "開" : "關"}
+              當沖出場：{dayTradingEnabled ? "開" : "關"}{canWriteSettings ? "" : "（待設定）"}
             </button>
             <button
               type="button"
@@ -671,7 +678,7 @@ export function AutoTraderClient() {
         <MetricCard
           label="當沖開關"
           value={dayTradingEnabled ? "開啟" : "關閉"}
-          sub={state.settings?.updatedAt ? `更新 ${new Date(state.settings.updatedAt).toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" })}` : "預設開啟"}
+          sub={!canWriteSettings ? "雲端寫入待設定" : state.settings?.updatedAt ? `更新 ${new Date(state.settings.updatedAt).toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" })}` : "預設開啟"}
           tone={dayTradingEnabled ? "bull" : "warn"}
         />
         <MetricCard label="最後執行" value={state.lastRunAt ? new Date(state.lastRunAt).toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" }) : "-"} sub={tradingDateNow()} />
