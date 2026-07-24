@@ -1,15 +1,15 @@
 {
   "initialCapital": 100000,
-  "cash": 83982.5,
-  "realizedPnl": -180,
+  "cash": 91737.5,
+  "realizedPnl": -284,
   "positions": [
     {
       "id": "position-1784869641306-8f27efb1e5acc",
       "symbol": "3081.TWO",
       "name": "聯亞",
-      "shares": 2,
+      "shares": 1,
       "entryPrice": 1830,
-      "entryAmount": 3660,
+      "entryAmount": 1830,
       "stopLossPrice": 1651.67,
       "takeProfit1": 2036.72,
       "takeProfit2": 2267.32,
@@ -19,18 +19,18 @@
       "automationAction": "減碼",
       "positionSizePct": 0,
       "lastPrice": 1760,
-      "lastValue": 3520,
-      "unrealizedPnl": -140,
+      "lastValue": 1760,
+      "unrealizedPnl": -70,
       "unrealizedPnlPct": -3.825136612021858,
-      "lastAnalysisAt": "2026-07-24T05:38:13.267Z"
+      "lastAnalysisAt": "2026-07-24T06:13:04.548Z"
     },
     {
       "id": "position-1784869641307-77b8419e56339",
       "symbol": "3665.TW",
       "name": "貿聯-KY",
-      "shares": 2,
+      "shares": 1,
       "entryPrice": 2215,
-      "entryAmount": 4430,
+      "entryAmount": 2215,
       "stopLossPrice": 1866.21,
       "takeProfit1": 2469.86,
       "takeProfit2": 2690.57,
@@ -40,18 +40,18 @@
       "automationAction": "小量試單",
       "positionSizePct": 12,
       "lastPrice": 2205,
-      "lastValue": 4410,
-      "unrealizedPnl": -20,
+      "lastValue": 2205,
+      "unrealizedPnl": -10,
       "unrealizedPnlPct": -0.4514672686230248,
-      "lastAnalysisAt": "2026-07-24T05:38:13.621Z"
+      "lastAnalysisAt": "2026-07-24T06:13:05.739Z"
     },
     {
       "id": "position-1784869641307-f1e8d85d7591c",
       "symbol": "3702.TW",
       "name": "大聯大",
-      "shares": 25,
+      "shares": 13,
       "entryPrice": 119.5,
-      "entryAmount": 2987.5,
+      "entryAmount": 1553.5,
       "stopLossPrice": 108.19,
       "takeProfit1": 127.14,
       "takeProfit2": 135.18,
@@ -61,18 +61,18 @@
       "automationAction": "小量試單",
       "positionSizePct": 12,
       "lastPrice": 117.5,
-      "lastValue": 2937.5,
-      "unrealizedPnl": -50,
+      "lastValue": 1527.5,
+      "unrealizedPnl": -26,
       "unrealizedPnlPct": -1.6736401673640167,
-      "lastAnalysisAt": "2026-07-24T05:38:13.915Z"
+      "lastAnalysisAt": "2026-07-24T06:13:06.345Z"
     },
     {
       "id": "position-1784869641307-f2996a6a9f0fd",
       "symbol": "3017.TW",
       "name": "奇鋐",
-      "shares": 2,
+      "shares": 1,
       "entryPrice": 2380,
-      "entryAmount": 4760,
+      "entryAmount": 2380,
       "stopLossPrice": 2279.68,
       "takeProfit1": 2790,
       "takeProfit2": 3036.43,
@@ -82,13 +82,73 @@
       "automationAction": "小量試單",
       "positionSizePct": 12,
       "lastPrice": 2380,
-      "lastValue": 4760,
+      "lastValue": 2380,
       "unrealizedPnl": 0,
       "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-07-24T05:38:14.225Z"
+      "lastAnalysisAt": "2026-07-24T06:13:06.847Z"
     }
   ],
   "trades": [
+    {
+      "side": "PARTIAL_SELL",
+      "symbol": "3017.TW",
+      "name": "奇鋐",
+      "price": 2380,
+      "shares": 1,
+      "amount": 2380,
+      "cashAfter": 91737.5,
+      "reason": "AI 顯示減碼訊號：短線目標先看 2790.00 元；若隔日開高無量，先減碼。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1784869641307-f2996a6a9f0fd",
+      "id": "trade-1784873586847-5f5fb6b30b3ee",
+      "createdAt": "2026-07-24T06:13:06.847Z",
+      "tradingDate": "2026-07-24"
+    },
+    {
+      "side": "PARTIAL_SELL",
+      "symbol": "3702.TW",
+      "name": "大聯大",
+      "price": 117.5,
+      "shares": 12,
+      "amount": 1410,
+      "cashAfter": 89357.5,
+      "reason": "AI 顯示減碼訊號：短線目標先看 127.14 元；若隔日開高無量，先減碼。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1784869641307-f1e8d85d7591c",
+      "id": "trade-1784873586345-baf58f6ae2551",
+      "createdAt": "2026-07-24T06:13:06.345Z",
+      "tradingDate": "2026-07-24"
+    },
+    {
+      "side": "PARTIAL_SELL",
+      "symbol": "3665.TW",
+      "name": "貿聯-KY",
+      "price": 2205,
+      "shares": 1,
+      "amount": 2205,
+      "cashAfter": 87947.5,
+      "reason": "AI 顯示減碼訊號：短線目標先看 2469.86 元；若隔日開高無量，先減碼。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1784869641307-77b8419e56339",
+      "id": "trade-1784873585739-fd1f9dde2ae77",
+      "createdAt": "2026-07-24T06:13:05.739Z",
+      "tradingDate": "2026-07-24"
+    },
+    {
+      "side": "PARTIAL_SELL",
+      "symbol": "3081.TWO",
+      "name": "聯亞",
+      "price": 1760,
+      "shares": 1,
+      "amount": 1760,
+      "cashAfter": 85742.5,
+      "reason": "AI 顯示減碼訊號：跌破 1651.67 元 代表判斷錯誤；若已持有，優先降低風險。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1784869641306-8f27efb1e5acc",
+      "id": "trade-1784873584548-fcbf0ac9c4f17",
+      "createdAt": "2026-07-24T06:13:04.548Z",
+      "tradingDate": "2026-07-24"
+    },
     {
       "side": "PARTIAL_SELL",
       "symbol": "3017.TW",
@@ -276,6 +336,63 @@
       "name": "資金控管",
       "decision": "暫停買入",
       "reason": "已持有 4 檔，避免過度分散。",
+      "id": "decision-1784873586848-fda01d90626dc",
+      "createdAt": "2026-07-24T06:13:06.848Z",
+      "tradingDate": "2026-07-24"
+    },
+    {
+      "symbol": "3017.TW",
+      "name": "奇鋐",
+      "decision": "部分賣出",
+      "reason": "AI 顯示減碼訊號：短線目標先看 2790.00 元；若隔日開高無量，先減碼。",
+      "finalScore": 57,
+      "tradeStyle": "短進短出",
+      "automationAction": "小量試單",
+      "id": "decision-1784873586848-6ace87137dcbc",
+      "createdAt": "2026-07-24T06:13:06.848Z",
+      "tradingDate": "2026-07-24"
+    },
+    {
+      "symbol": "3702.TW",
+      "name": "大聯大",
+      "decision": "部分賣出",
+      "reason": "AI 顯示減碼訊號：短線目標先看 127.14 元；若隔日開高無量，先減碼。",
+      "finalScore": 62,
+      "tradeStyle": "短進短出",
+      "automationAction": "小量試單",
+      "id": "decision-1784873586345-bc2fa5e88262b",
+      "createdAt": "2026-07-24T06:13:06.345Z",
+      "tradingDate": "2026-07-24"
+    },
+    {
+      "symbol": "3665.TW",
+      "name": "貿聯-KY",
+      "decision": "部分賣出",
+      "reason": "AI 顯示減碼訊號：短線目標先看 2469.86 元；若隔日開高無量，先減碼。",
+      "finalScore": 65,
+      "tradeStyle": "短進短出",
+      "automationAction": "小量試單",
+      "id": "decision-1784873585739-f29b3fc2628cc",
+      "createdAt": "2026-07-24T06:13:05.739Z",
+      "tradingDate": "2026-07-24"
+    },
+    {
+      "symbol": "3081.TWO",
+      "name": "聯亞",
+      "decision": "部分賣出",
+      "reason": "AI 顯示減碼訊號：跌破 1651.67 元 代表判斷錯誤；若已持有，優先降低風險。",
+      "finalScore": 47,
+      "tradeStyle": "暫不交易",
+      "automationAction": "減碼",
+      "id": "decision-1784873584548-eeb5ed973c5d7",
+      "createdAt": "2026-07-24T06:13:04.548Z",
+      "tradingDate": "2026-07-24"
+    },
+    {
+      "symbol": "CASH",
+      "name": "資金控管",
+      "decision": "暫停買入",
+      "reason": "已持有 4 檔，避免過度分散。",
       "id": "decision-1784871494225-ba88719aaec0f",
       "createdAt": "2026-07-24T05:38:14.225Z",
       "tradingDate": "2026-07-24"
@@ -436,6 +553,15 @@
   ],
   "equity": [
     {
+      "id": "equity-1784873586848-2a93837bfaa4e",
+      "createdAt": "2026-07-24T06:13:06.848Z",
+      "tradingDate": "2026-07-24",
+      "cash": 91737.5,
+      "positionValue": 7872.5,
+      "totalEquity": 99610,
+      "realizedPnl": -284
+    },
+    {
       "id": "equity-1784871494225-4dba5964463f5",
       "createdAt": "2026-07-24T05:38:14.225Z",
       "tradingDate": "2026-07-24",
@@ -468,5 +594,5 @@
     "updatedAt": "",
     "updatedBy": "system-default"
   },
-  "lastRunAt": "2026-07-24T05:38:10.870Z"
+  "lastRunAt": "2026-07-24T06:12:58.177Z"
 }
