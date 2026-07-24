@@ -17,6 +17,11 @@ function emptyState() {
     trades: [],
     decisions: [],
     equity: [],
+    settings: {
+      dayTradingEnabled: true,
+      updatedAt: "",
+      updatedBy: "system-default"
+    },
     lastRunAt: ""
   };
 }
@@ -54,6 +59,23 @@ function tradedSymbolToday(state, symbol, tradingDate) {
       trade.tradingDate === tradingDate &&
       (trade.side === "BUY" || trade.side === "SELL" || trade.side === "PARTIAL_SELL")
   );
+}
+
+function normalizeState(state) {
+  const base = emptyState();
+  return {
+    ...base,
+    ...state,
+    positions: Array.isArray(state?.positions) ? state.positions : [],
+    trades: Array.isArray(state?.trades) ? state.trades : [],
+    decisions: Array.isArray(state?.decisions) ? state.decisions : [],
+    equity: Array.isArray(state?.equity) ? state.equity : [],
+    settings: {
+      ...base.settings,
+      ...(state?.settings || {}),
+      dayTradingEnabled: state?.settings?.dayTradingEnabled ?? true
+    }
+  };
 }
 
 async function fetchJson(url, options = {}) {
@@ -208,7 +230,7 @@ async function loadStateFromGitHub() {
     const file = await githubApi(`/contents/${encodedPath}?ref=${encodeURIComponent(STATE_BRANCH)}`);
     const json = Buffer.from(file.content || "", "base64").toString("utf8");
     return {
-      state: JSON.parse(json),
+      state: normalizeState(JSON.parse(json)),
       sha: file.sha
     };
   } catch (error) {
@@ -235,7 +257,9 @@ async function saveStateToGitHub(state, sha) {
 }
 
 async function runCycle(state) {
+  state = normalizeState(state);
   const tradingDate = tradingDateNow();
+  const dayTradingEnabled = state.settings.dayTradingEnabled;
   state.lastRunAt = nowIso();
 
   const markedPositions = [];
@@ -245,7 +269,30 @@ async function runCycle(state) {
       const marked = markPosition(position, analysis);
       const signal = shouldSell(marked, analysis);
 
-      if (signal.sell) {
+      if (signal.sell && !dayTradingEnabled && position.openedTradingDate === tradingDate) {
+        markedPositions.push(marked);
+        appendTrade(state, {
+          side: "BLOCKED_SELL",
+          symbol: position.symbol,
+          name: position.name,
+          price: analysis.price,
+          shares: 0,
+          amount: 0,
+          cashAfter: state.cash,
+          reason: `當沖開關目前關閉；${signal.reason}，但此股是 ${tradingDate} 當日買進，系統保留到下一個交易日再評估出場。`,
+          source: "github-actions-real-time-analysis",
+          positionId: position.id
+        }, tradingDate);
+        appendDecision(state, {
+          symbol: position.symbol,
+          name: position.name,
+          decision: "當沖關閉",
+          reason: `已出現賣出訊號，但當沖開關關閉，今日不賣，下一個交易日重新判斷。原始訊號：${signal.reason}`,
+          finalScore: analysis.finalScore,
+          tradeStyle: analysis.tradeProfile.style,
+          automationAction: analysis.tradeProfile.automationAction
+        }, tradingDate);
+      } else if (signal.sell) {
         const sellShares = signal.partial ? Math.max(1, Math.floor(marked.shares / 2)) : marked.shares;
         const sellAmount = sellShares * analysis.price;
         state.cash += sellAmount;
@@ -428,6 +475,7 @@ console.log(JSON.stringify({
   lastRunAt: nextState.lastRunAt,
   cash: nextState.cash,
   positions: nextState.positions.length,
+  dayTradingEnabled: nextState.settings.dayTradingEnabled,
   totalEquity: nextState.cash + positionValue,
   trades: nextState.trades.length,
   decisions: nextState.decisions.length
