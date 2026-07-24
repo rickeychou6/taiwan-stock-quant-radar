@@ -134,10 +134,6 @@ function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
 }
 
-function canSellToday(position: AutoPosition, tradingDate: string) {
-  return position.openedTradingDate !== tradingDate;
-}
-
 function tradedSymbolToday(state: AutoTraderState, symbol: string, tradingDate: string) {
   return state.trades.some((trade) => trade.symbol === symbol && trade.tradingDate === tradingDate && (trade.side === "BUY" || trade.side === "SELL" || trade.side === "PARTIAL_SELL"));
 }
@@ -152,7 +148,7 @@ function tradeSideLabel(side: TradeRecord["side"]) {
   if (side === "BUY") return "買進";
   if (side === "SELL") return "賣出";
   if (side === "PARTIAL_SELL") return "部分賣出";
-  if (side === "BLOCKED_SELL") return "禁止當沖";
+  if (side === "BLOCKED_SELL") return "舊規則未成交";
   return "略過";
 }
 
@@ -320,32 +316,6 @@ export function AutoTraderClient() {
           const sellSignal = shouldSell(marked, analysis);
 
           if (sellSignal.sell) {
-            if (!canSellToday(position, tradingDate)) {
-              markedPositions.push(marked);
-              appendTrade(next, {
-                side: "BLOCKED_SELL",
-                symbol: position.symbol,
-                name: position.name,
-                price: analysis.price,
-                shares: 0,
-                amount: 0,
-                cashAfter: next.cash,
-                reason: `禁止當沖：${sellSignal.reason}。今天買進的股票不可今天賣出，延到下一個交易日再檢查。`,
-                source: "real-time-analysis",
-                positionId: position.id
-              }, tradingDate);
-              appendDecision(next, {
-                symbol: position.symbol,
-                name: position.name,
-                decision: "禁止當沖，暫不賣",
-                reason: sellSignal.reason,
-                finalScore: analysis.finalScore,
-                tradeStyle: analysis.tradeProfile.style,
-                automationAction: analysis.tradeProfile.automationAction
-              }, tradingDate);
-              continue;
-            }
-
             const sellShares = sellSignal.partial ? Math.max(1, Math.floor(marked.shares / 2)) : marked.shares;
             const sellAmount = sellShares * analysis.price;
             next.cash += sellAmount;
@@ -490,7 +460,7 @@ export function AutoTraderClient() {
             symbol: "MARKET",
             name: "全市場",
             decision: "沒有買入",
-            reason: "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。"
+            reason: "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與資金風控限制。"
           }, tradingDate);
         }
       } else {
@@ -543,7 +513,7 @@ export function AutoTraderClient() {
             </h1>
             <p className="mt-3 max-w-4xl text-sm leading-6 text-slate-300">
               初始虛擬資金 100,000 元。AI 會用真實台股行情、推薦雷達與單股分析 API 自動找股、買進、續抱、減碼或賣出；
-              只有買賣進出是模擬，不會送出券商委託。系統嚴格禁止當沖，同一天買進的股票不可同一天賣出，但可隔日沖。
+              只有買賣進出是模擬，不會送出券商委託。系統已開放當沖；同一天買進後若 AI 偵測到停損、減碼、達標或賣出訊號，可以同日賣出。
             </p>
           </div>
           <div className="grid gap-2 sm:grid-cols-2 lg:w-[420px]">
@@ -590,7 +560,8 @@ export function AutoTraderClient() {
         <p className="font-black text-white">交易規則</p>
         <p className="mt-1">
           背景機器人由 GitHub Actions 在台股盤中自動執行，不需要你停在這個頁面。資料來源必須是真實行情 API；本頁不使用假行情。
-          AI 可自行買賣，但同一交易日買進的部位只會記錄「禁止當沖」警示，不會賣出。交易紀錄保存在 GitHub 的
+          AI 可自行買賣，已開放當沖出場；若同一交易日出現停損、減碼、達標或賣出訊號，背景機器人可立即模擬賣出。
+          為避免無限制來回刷單，同一檔股票同日賣出後不會再反覆買回。交易紀錄保存在 GitHub 的
           <span className="font-black text-white"> auto-trader-state </span>資料分支，本頁會讀取那份雲端 JSON。
         </p>
       </section>
@@ -644,7 +615,7 @@ export function AutoTraderClient() {
                   <MetricCard label="現價 / 市值" value={price(position.lastPrice)} sub={twd(position.lastValue)} tone={position.unrealizedPnl >= 0 ? "bull" : "bear"} />
                   <MetricCard label="未實現損益" value={twd(position.unrealizedPnl)} sub={pct(position.unrealizedPnlPct)} tone={position.unrealizedPnl >= 0 ? "bull" : "bear"} />
                   <MetricCard label="AI 動作" value={position.automationAction} sub={`${position.tradeStyle}，部位 ${position.positionSizePct}%`} tone={actionTone(position.automationAction)} />
-                  <MetricCard label="停損" value={price(position.stopLossPrice)} sub="跌破才可隔日出場" tone="bear" />
+                  <MetricCard label="停損" value={price(position.stopLossPrice)} sub="跌破可立即當沖出場" tone="bear" />
                   <MetricCard label="目標" value={`${price(position.takeProfit1)} / ${price(position.takeProfit2)}`} tone="bull" />
                 </div>
                 <Link href={`/dashboard?symbol=${encodeURIComponent(position.symbol)}`} className="mt-4 block rounded-2xl bg-blue-600 px-4 py-3 text-center font-black text-white transition hover:bg-blue-500">

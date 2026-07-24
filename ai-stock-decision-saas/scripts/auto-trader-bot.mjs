@@ -47,10 +47,6 @@ function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
 
-function canSellToday(position, tradingDate) {
-  return position.openedTradingDate !== tradingDate;
-}
-
 function tradedSymbolToday(state, symbol, tradingDate) {
   return state.trades.some(
     (trade) =>
@@ -250,32 +246,6 @@ async function runCycle(state) {
       const signal = shouldSell(marked, analysis);
 
       if (signal.sell) {
-        if (!canSellToday(position, tradingDate)) {
-          markedPositions.push(marked);
-          appendTrade(state, {
-            side: "BLOCKED_SELL",
-            symbol: position.symbol,
-            name: position.name,
-            price: analysis.price,
-            shares: 0,
-            amount: 0,
-            cashAfter: state.cash,
-            reason: `禁止當沖：${signal.reason}。今天買進的股票不可今天賣出，延到下一個交易日再檢查。`,
-            source: "github-actions-real-time-analysis",
-            positionId: position.id
-          }, tradingDate);
-          appendDecision(state, {
-            symbol: position.symbol,
-            name: position.name,
-            decision: "禁止當沖，暫不賣",
-            reason: signal.reason,
-            finalScore: analysis.finalScore,
-            tradeStyle: analysis.tradeProfile.style,
-            automationAction: analysis.tradeProfile.automationAction
-          }, tradingDate);
-          continue;
-        }
-
         const sellShares = signal.partial ? Math.max(1, Math.floor(marked.shares / 2)) : marked.shares;
         const sellAmount = sellShares * analysis.price;
         state.cash += sellAmount;
@@ -432,7 +402,7 @@ async function runCycle(state) {
         symbol: "MARKET",
         name: "全市場",
         decision: "沒有買入",
-        reason: "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。"
+        reason: "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與資金風控限制。"
       }, tradingDate);
     }
   } else {
