@@ -182,12 +182,17 @@ async function githubApi(path, options = {}) {
   });
 }
 
+function isGitHubNotFound(error) {
+  const message = String(error?.message || "");
+  return message.includes("404") || message.toLowerCase().includes("not found");
+}
+
 async function ensureStateBranch() {
   try {
     await githubApi(`/git/ref/heads/${STATE_BRANCH}`);
     return;
   } catch (error) {
-    if (!String(error.message).includes("404")) throw error;
+    if (!isGitHubNotFound(error)) throw error;
   }
 
   if (!GITHUB_SHA) throw new Error("Missing GITHUB_SHA for creating state branch.");
@@ -211,7 +216,7 @@ async function loadStateFromGitHub() {
       sha: file.sha
     };
   } catch (error) {
-    if (!String(error.message).includes("404")) throw error;
+    if (!isGitHubNotFound(error)) throw error;
     return { state: emptyState(), sha: undefined };
   }
 }
