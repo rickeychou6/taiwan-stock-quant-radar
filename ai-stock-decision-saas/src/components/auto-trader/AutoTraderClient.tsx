@@ -113,6 +113,21 @@ function emptyState(): AutoTraderState {
   };
 }
 
+function normalizeState(input: (Partial<AutoTraderState> & { settings?: unknown }) | null | undefined): AutoTraderState {
+  const normalized: AutoTraderState & { settings?: unknown } = {
+    ...emptyState(),
+    ...(input || {}),
+    positions: Array.isArray(input?.positions) ? input.positions : [],
+    trades: Array.isArray(input?.trades) ? input.trades : [],
+    decisions: Array.isArray(input?.decisions) ? input.decisions : [],
+    equity: Array.isArray(input?.equity) ? input.equity : [],
+    lastRunAt: typeof input?.lastRunAt === "string" ? input.lastRunAt : ""
+  };
+
+  delete normalized.settings;
+  return normalized;
+}
+
 function nowIso() {
   return new Date().toISOString();
 }
@@ -252,7 +267,7 @@ export function AutoTraderClient() {
     try {
       if (stored) {
         const parsed = JSON.parse(stored) as AutoTraderState;
-        if (parsed.initialCapital === INITIAL_CAPITAL && typeof parsed.cash === "number") setState(parsed);
+        if (parsed.initialCapital === INITIAL_CAPITAL && typeof parsed.cash === "number") setState(normalizeState(parsed));
       }
     } catch {
       window.localStorage.removeItem(STORAGE_KEY);
@@ -289,8 +304,9 @@ export function AutoTraderClient() {
       if (!response.ok) throw new Error(payload.message || "雲端紀錄讀取失敗");
       setCloudSource(payload.source);
       setLastCloudLoadAt(nowIso());
-      setState(payload.state);
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload.state));
+      const nextState = normalizeState(payload.state);
+      setState(nextState);
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextState));
       setStatus(payload.message);
     } catch (cloudError) {
       const message = cloudError instanceof Error ? cloudError.message : "雲端紀錄讀取失敗";
@@ -309,7 +325,7 @@ export function AutoTraderClient() {
     const tradingDate = tradingDateNow();
 
     try {
-      const next: AutoTraderState = JSON.parse(JSON.stringify(state));
+      const next = normalizeState(JSON.parse(JSON.stringify(state)) as AutoTraderState);
       next.lastRunAt = nowIso();
 
       const markedPositions: AutoPosition[] = [];

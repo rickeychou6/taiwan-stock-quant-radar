@@ -22,6 +22,21 @@ function emptyState() {
   };
 }
 
+function normalizeState(state: Record<string, unknown> | null | undefined) {
+  const normalized = {
+    ...emptyState(),
+    ...(state || {}),
+    positions: Array.isArray(state?.positions) ? state.positions : [],
+    trades: Array.isArray(state?.trades) ? state.trades : [],
+    decisions: Array.isArray(state?.decisions) ? state.decisions : [],
+    equity: Array.isArray(state?.equity) ? state.equity : [],
+    lastRunAt: typeof state?.lastRunAt === "string" ? state.lastRunAt : ""
+  };
+
+  delete (normalized as { settings?: unknown }).settings;
+  return normalized;
+}
+
 async function fetchStateFromContentsApi() {
   const apiUrl = `https://api.github.com/repos/${STATE_REPO}/contents/${STATE_FILE}?ref=${STATE_BRANCH}`;
   const response = await fetch(apiUrl, {
@@ -43,7 +58,7 @@ async function fetchStateFromContentsApi() {
   }
 
   const content = Buffer.from(String(payload.content).replace(/\s/g, ""), "base64").toString("utf8");
-  return JSON.parse(content);
+  return normalizeState(JSON.parse(content));
 }
 
 async function fetchStateFromRaw() {
@@ -60,7 +75,7 @@ async function fetchStateFromRaw() {
     throw new Error(`GitHub raw state returned ${response.status}`);
   }
 
-  return response.json();
+  return normalizeState(await response.json());
 }
 
 export async function GET() {

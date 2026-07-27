@@ -21,6 +21,22 @@ function emptyState() {
   };
 }
 
+function normalizeState(state) {
+  const base = emptyState();
+  const normalized = {
+    ...base,
+    ...(state || {}),
+    positions: Array.isArray(state?.positions) ? state.positions : [],
+    trades: Array.isArray(state?.trades) ? state.trades : [],
+    decisions: Array.isArray(state?.decisions) ? state.decisions : [],
+    equity: Array.isArray(state?.equity) ? state.equity : [],
+    lastRunAt: typeof state?.lastRunAt === "string" ? state.lastRunAt : ""
+  };
+
+  delete normalized.settings;
+  return normalized;
+}
+
 function nowIso() {
   return new Date().toISOString();
 }
@@ -212,7 +228,7 @@ async function loadStateFromGitHub() {
     const file = await githubApi(`/contents/${encodedPath}?ref=${encodeURIComponent(STATE_BRANCH)}`);
     const json = Buffer.from(file.content || "", "base64").toString("utf8");
     return {
-      state: JSON.parse(json),
+      state: normalizeState(JSON.parse(json)),
       sha: file.sha
     };
   } catch (error) {
@@ -239,6 +255,7 @@ async function saveStateToGitHub(state, sha) {
 }
 
 async function runCycle(state) {
+  state = normalizeState(state);
   const tradingDate = tradingDateNow();
   state.lastRunAt = nowIso();
 
