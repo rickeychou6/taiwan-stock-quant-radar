@@ -1,7 +1,7 @@
 {
   "initialCapital": 100000,
-  "cash": 68702,
-  "realizedPnl": -281.8000000000011,
+  "cash": 69138,
+  "realizedPnl": -270.8000000000011,
   "positions": [
     {
       "id": "position-1784882384944-5c1a1e232ec4f",
@@ -22,7 +22,7 @@
       "lastValue": 3715.2000000000003,
       "unrealizedPnl": -72,
       "unrealizedPnlPct": -1.9011406844106464,
-      "lastAnalysisAt": "2026-07-27T08:06:14.276Z"
+      "lastAnalysisAt": "2026-07-27T10:06:43.780Z"
     },
     {
       "id": "position-1784882384944-048c8bef0ec22",
@@ -43,15 +43,15 @@
       "lastValue": 14028,
       "unrealizedPnl": -966.0000000000018,
       "unrealizedPnlPct": -6.442577030812337,
-      "lastAnalysisAt": "2026-07-27T08:06:14.720Z"
+      "lastAnalysisAt": "2026-07-27T10:06:44.781Z"
     },
     {
       "id": "position-1784882384944-d5be25c0938d6",
       "symbol": "8271.TW",
       "name": "宇瞻",
-      "shares": 4,
+      "shares": 2,
       "entryPrice": 212.5,
-      "entryAmount": 850,
+      "entryAmount": 425,
       "stopLossPrice": 183.45,
       "takeProfit1": 239.54,
       "takeProfit2": 257.48,
@@ -61,10 +61,10 @@
       "automationAction": "等待",
       "positionSizePct": 0,
       "lastPrice": 218,
-      "lastValue": 872,
-      "unrealizedPnl": 22,
+      "lastValue": 436,
+      "unrealizedPnl": 11,
       "unrealizedPnlPct": 2.588235294117647,
-      "lastAnalysisAt": "2026-07-27T08:06:15.156Z"
+      "lastAnalysisAt": "2026-07-27T10:06:45.158Z"
     },
     {
       "id": "position-1785139599708-9e4c866a7bd4a",
@@ -85,10 +85,25 @@
       "lastValue": 11385,
       "unrealizedPnl": 0,
       "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-07-27T08:06:39.708Z"
+      "lastAnalysisAt": "2026-07-27T10:06:45.506Z"
     }
   ],
   "trades": [
+    {
+      "side": "PARTIAL_SELL",
+      "symbol": "8271.TW",
+      "name": "宇瞻",
+      "price": 218,
+      "shares": 2,
+      "amount": 436,
+      "cashAfter": 69138,
+      "reason": "AI 顯示減碼訊號：短線目標先看 239.54 元；若隔日開高無量，先減碼。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1784882384944-d5be25c0938d6",
+      "id": "trade-1785146805158-99163b037e008",
+      "createdAt": "2026-07-27T10:06:45.158Z",
+      "tradingDate": "2026-07-27"
+    },
     {
       "side": "BUY",
       "symbol": "6187.TWO",
@@ -601,6 +616,63 @@
     }
   ],
   "decisions": [
+    {
+      "symbol": "CASH",
+      "name": "資金控管",
+      "decision": "暫停買入",
+      "reason": "已持有 4 檔，避免過度分散。",
+      "id": "decision-1785146805506-a2eea148db728",
+      "createdAt": "2026-07-27T10:06:45.506Z",
+      "tradingDate": "2026-07-27"
+    },
+    {
+      "symbol": "6187.TWO",
+      "name": "6187.TWO",
+      "decision": "續抱",
+      "reason": "短線停損要更緊，收盤或盤中跌破 964.70 元 就不戀戰。",
+      "finalScore": 54,
+      "tradeStyle": "短進短出",
+      "automationAction": "小量試單",
+      "id": "decision-1785146805506-5fbecb3f2a80b",
+      "createdAt": "2026-07-27T10:06:45.506Z",
+      "tradingDate": "2026-07-27"
+    },
+    {
+      "symbol": "8271.TW",
+      "name": "宇瞻",
+      "decision": "部分賣出",
+      "reason": "AI 顯示減碼訊號：短線目標先看 239.54 元；若隔日開高無量，先減碼。",
+      "finalScore": 62,
+      "tradeStyle": "短進短出",
+      "automationAction": "等待",
+      "id": "decision-1785146805158-593dd0602e444",
+      "createdAt": "2026-07-27T10:06:45.158Z",
+      "tradingDate": "2026-07-27"
+    },
+    {
+      "symbol": "4541.TWO",
+      "name": "晟田",
+      "decision": "續抱",
+      "reason": "停損線 61.29 元 不可下修。",
+      "finalScore": 51,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1785146804781-f03cfdf0196a2",
+      "createdAt": "2026-07-27T10:06:44.781Z",
+      "tradingDate": "2026-07-27"
+    },
+    {
+      "symbol": "4127.TWO",
+      "name": "天良",
+      "decision": "續抱",
+      "reason": "收盤跌破 71.62 元 或跌破 MA20 後無法收回，應降低部位。",
+      "finalScore": 54,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1785146803780-e895caded5f6f",
+      "createdAt": "2026-07-27T10:06:43.780Z",
+      "tradingDate": "2026-07-27"
+    },
     {
       "symbol": "6187.TWO",
       "name": "6187.TWO",
@@ -1138,6 +1210,15 @@
   ],
   "equity": [
     {
+      "id": "equity-1785146805506-f55f84101f21c",
+      "createdAt": "2026-07-27T10:06:45.506Z",
+      "tradingDate": "2026-07-27",
+      "cash": 69138,
+      "positionValue": 29564.2,
+      "totalEquity": 98702.2,
+      "realizedPnl": -270.8000000000011
+    },
+    {
       "id": "equity-1785139599708-ce123b0a71ec4",
       "createdAt": "2026-07-27T08:06:39.708Z",
       "tradingDate": "2026-07-27",
@@ -1219,5 +1300,5 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-07-27T08:05:44.837Z"
+  "lastRunAt": "2026-07-27T10:06:31.331Z"
 }
