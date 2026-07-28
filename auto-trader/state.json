@@ -16,13 +16,13 @@
       "openedAt": "2026-07-24T08:39:44.944Z",
       "openedTradingDate": "2026-07-24",
       "tradeStyle": "暫不交易",
-      "automationAction": "減碼",
+      "automationAction": "等待",
       "positionSizePct": 0,
       "lastPrice": 74.1,
       "lastValue": 1778.3999999999999,
       "unrealizedPnl": -115.20000000000027,
       "unrealizedPnlPct": -6.083650190114082,
-      "lastAnalysisAt": "2026-07-28T06:19:18.090Z"
+      "lastAnalysisAt": "2026-07-28T08:48:32.925Z"
     },
     {
       "id": "position-1784882384944-048c8bef0ec22",
@@ -43,7 +43,7 @@
       "lastValue": 13209,
       "unrealizedPnl": -1785.0000000000018,
       "unrealizedPnlPct": -11.904761904761916,
-      "lastAnalysisAt": "2026-07-28T06:19:18.803Z"
+      "lastAnalysisAt": "2026-07-28T08:48:34.192Z"
     },
     {
       "id": "position-1785139599708-9e4c866a7bd4a",
@@ -64,7 +64,7 @@
       "lastValue": 10582,
       "unrealizedPnl": -803,
       "unrealizedPnlPct": -7.053140096618357,
-      "lastAnalysisAt": "2026-07-28T06:19:19.424Z"
+      "lastAnalysisAt": "2026-07-28T08:48:34.626Z"
     },
     {
       "id": "position-1785219568981-d036ccd86a229",
@@ -85,10 +85,25 @@
       "lastValue": 14976.800000000001,
       "unrealizedPnl": 0,
       "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-07-28T06:19:28.981Z"
+      "lastAnalysisAt": "2026-07-28T08:48:35.076Z"
     }
   ],
   "trades": [
+    {
+      "side": "BLOCKED_SELL",
+      "symbol": "3441.TWO",
+      "name": "聯一光電",
+      "price": 77.2,
+      "shares": 0,
+      "amount": 0,
+      "cashAfter": 56353.59999999999,
+      "reason": "禁止當沖：AI 顯示減碼訊號：第一目標 87.63 元 先賣 1/3 到 1/2，第二目標 96.32 元 再分批。。今天買進的股票不可今天賣出，延到下一個交易日再檢查。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1785219568981-d036ccd86a229",
+      "id": "trade-1785228515076-0751175d0d187",
+      "createdAt": "2026-07-28T08:48:35.076Z",
+      "tradingDate": "2026-07-28"
+    },
     {
       "side": "BUY",
       "symbol": "3441.TWO",
@@ -676,6 +691,63 @@
     }
   ],
   "decisions": [
+    {
+      "symbol": "CASH",
+      "name": "資金控管",
+      "decision": "暫停買入",
+      "reason": "已持有 4 檔，避免過度分散。",
+      "id": "decision-1785228515076-fad6e8101c85a",
+      "createdAt": "2026-07-28T08:48:35.076Z",
+      "tradingDate": "2026-07-28"
+    },
+    {
+      "symbol": "3441.TWO",
+      "name": "聯一光電",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "AI 顯示減碼訊號：第一目標 87.63 元 先賣 1/3 到 1/2，第二目標 96.32 元 再分批。",
+      "finalScore": 56,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1785228515076-f589c4c9488e5",
+      "createdAt": "2026-07-28T08:48:35.076Z",
+      "tradingDate": "2026-07-28"
+    },
+    {
+      "symbol": "6187.TWO",
+      "name": "6187.TWO",
+      "decision": "續抱",
+      "reason": "停損線 883.03 元 不下修，跌破代表交易假設失效。",
+      "finalScore": 44,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1785228514626-967cdc2bbea32",
+      "createdAt": "2026-07-28T08:48:34.626Z",
+      "tradingDate": "2026-07-28"
+    },
+    {
+      "symbol": "4541.TWO",
+      "name": "晟田",
+      "decision": "續抱",
+      "reason": "停損線 59.22 元 不可下修。",
+      "finalScore": 49,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1785228514192-3fab1380e9bed",
+      "createdAt": "2026-07-28T08:48:34.192Z",
+      "tradingDate": "2026-07-28"
+    },
+    {
+      "symbol": "4127.TWO",
+      "name": "天良",
+      "decision": "續抱",
+      "reason": "停損線 68.91 元 不可下修。",
+      "finalScore": 45,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1785228512926-bc08dfe7bf05a",
+      "createdAt": "2026-07-28T08:48:32.926Z",
+      "tradingDate": "2026-07-28"
+    },
     {
       "symbol": "3441.TWO",
       "name": "聯一光電",
@@ -1387,6 +1459,15 @@
   ],
   "equity": [
     {
+      "id": "equity-1785228515076-da2621aaf215c",
+      "createdAt": "2026-07-28T08:48:35.076Z",
+      "tradingDate": "2026-07-28",
+      "cash": 56353.59999999999,
+      "positionValue": 40546.200000000004,
+      "totalEquity": 96899.79999999999,
+      "realizedPnl": -397.00000000000136
+    },
+    {
       "id": "equity-1785219568981-6fce65a504051",
       "createdAt": "2026-07-28T06:19:28.981Z",
       "tradingDate": "2026-07-28",
@@ -1495,5 +1576,5 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-07-28T06:19:06.999Z"
+  "lastRunAt": "2026-07-28T08:48:26.714Z"
 }
