@@ -1,7 +1,7 @@
 {
   "initialCapital": 100000,
-  "cash": 78071.59999999998,
-  "realizedPnl": -1040.8000000000025,
+  "cash": 79864.99999999997,
+  "realizedPnl": -1208.8000000000025,
   "positions": [
     {
       "id": "position-1784882384944-5c1a1e232ec4f",
@@ -10,19 +10,19 @@
       "shares": 24,
       "entryPrice": 78.9,
       "entryAmount": 1893.6000000000001,
-      "stopLossPrice": 69.21,
+      "stopLossPrice": 67.88,
       "takeProfit1": 89,
-      "takeProfit2": 96.78,
+      "takeProfit2": 97.15,
       "openedAt": "2026-07-24T08:39:44.944Z",
       "openedTradingDate": "2026-07-24",
       "tradeStyle": "暫不交易",
       "automationAction": "等待",
       "positionSizePct": 0,
-      "lastPrice": 73.5,
-      "lastValue": 1764,
-      "unrealizedPnl": -129.60000000000014,
-      "unrealizedPnlPct": -6.844106463878334,
-      "lastAnalysisAt": "2026-07-29T08:53:47.250Z"
+      "lastPrice": 70.8,
+      "lastValue": 1699.1999999999998,
+      "unrealizedPnl": -194.40000000000032,
+      "unrealizedPnlPct": -10.266159695817507,
+      "lastAnalysisAt": "2026-07-30T03:50:36.022Z"
     },
     {
       "id": "position-1784882384944-048c8bef0ec22",
@@ -31,64 +31,94 @@
       "shares": 210,
       "entryPrice": 71.4,
       "entryAmount": 14994.000000000002,
-      "stopLossPrice": 55.85,
+      "stopLossPrice": 54.21,
       "takeProfit1": 81.6,
-      "takeProfit2": 91.95,
+      "takeProfit2": 92.38,
       "openedAt": "2026-07-24T08:39:44.944Z",
       "openedTradingDate": "2026-07-24",
       "tradeStyle": "暫不交易",
       "automationAction": "等待",
       "positionSizePct": 0,
-      "lastPrice": 61.2,
-      "lastValue": 12852,
-      "unrealizedPnl": -2142.000000000002,
-      "unrealizedPnlPct": -14.285714285714295,
-      "lastAnalysisAt": "2026-07-29T08:53:50.285Z"
+      "lastPrice": 58,
+      "lastValue": 12180,
+      "unrealizedPnl": -2814.000000000002,
+      "unrealizedPnlPct": -18.767507002801132,
+      "lastAnalysisAt": "2026-07-30T03:50:36.742Z"
     },
     {
       "id": "position-1785139599708-9e4c866a7bd4a",
       "symbol": "6187.TWO",
       "name": "6187.TWO",
-      "shares": 2,
+      "shares": 1,
       "entryPrice": 1035,
-      "entryAmount": 2070,
-      "stopLossPrice": 821.96,
+      "entryAmount": 1035,
+      "stopLossPrice": 778.96,
       "takeProfit1": 1125,
-      "takeProfit2": 1257.11,
+      "takeProfit2": 1266.11,
       "openedAt": "2026-07-27T08:06:39.708Z",
       "openedTradingDate": "2026-07-27",
       "tradeStyle": "暫不交易",
       "automationAction": "減碼",
       "positionSizePct": 0,
-      "lastPrice": 890,
-      "lastValue": 1780,
-      "unrealizedPnl": -290,
-      "unrealizedPnlPct": -14.009661835748794,
-      "lastAnalysisAt": "2026-07-29T08:53:50.616Z"
+      "lastPrice": 861,
+      "lastValue": 861,
+      "unrealizedPnl": -174,
+      "unrealizedPnlPct": -16.81159420289855,
+      "lastAnalysisAt": "2026-07-30T03:50:37.053Z"
     },
     {
       "id": "position-1785219568981-d036ccd86a229",
       "symbol": "3441.TWO",
       "name": "聯一光電",
-      "shares": 25,
+      "shares": 13,
       "entryPrice": 77.2,
-      "entryAmount": 1930,
-      "stopLossPrice": 67.16,
-      "takeProfit1": 95.51,
-      "takeProfit2": 104.43,
+      "entryAmount": 1003.6,
+      "stopLossPrice": 66.48,
+      "takeProfit1": 90.09,
+      "takeProfit2": 100.42,
       "openedAt": "2026-07-28T06:19:28.981Z",
       "openedTradingDate": "2026-07-28",
-      "tradeStyle": "短進短出",
-      "automationAction": "等待",
-      "positionSizePct": 0,
-      "lastPrice": 84.8,
-      "lastValue": 2120,
-      "unrealizedPnl": 189.99999999999986,
-      "unrealizedPnlPct": 9.84455958549222,
-      "lastAnalysisAt": "2026-07-29T08:53:50.961Z"
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "positionSizePct": 20,
+      "lastPrice": 77.7,
+      "lastValue": 1010.1,
+      "unrealizedPnl": 6.5,
+      "unrealizedPnlPct": 0.6476683937823834,
+      "lastAnalysisAt": "2026-07-30T03:50:37.446Z"
     }
   ],
   "trades": [
+    {
+      "side": "PARTIAL_SELL",
+      "symbol": "3441.TWO",
+      "name": "聯一光電",
+      "price": 77.7,
+      "shares": 12,
+      "amount": 932.4000000000001,
+      "cashAfter": 79864.99999999997,
+      "reason": "AI 顯示減碼訊號：第一目標 90.09 元 先賣 1/3 到 1/2，第二目標 100.42 元 再分批。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1785219568981-d036ccd86a229",
+      "id": "trade-1785383437446-0275e16ab7a84",
+      "createdAt": "2026-07-30T03:50:37.446Z",
+      "tradingDate": "2026-07-30"
+    },
+    {
+      "side": "PARTIAL_SELL",
+      "symbol": "6187.TWO",
+      "name": "6187.TWO",
+      "price": 861,
+      "shares": 1,
+      "amount": 861,
+      "cashAfter": 78932.59999999998,
+      "reason": "AI 顯示減碼訊號：跌破 778.96 元 代表判斷錯誤；若已持有，優先降低風險。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1785139599708-9e4c866a7bd4a",
+      "id": "trade-1785383437053-92cb0bcf30f81",
+      "createdAt": "2026-07-30T03:50:37.053Z",
+      "tradingDate": "2026-07-30"
+    },
     {
       "side": "PARTIAL_SELL",
       "symbol": "3441.TWO",
@@ -781,6 +811,63 @@
     }
   ],
   "decisions": [
+    {
+      "symbol": "CASH",
+      "name": "資金控管",
+      "decision": "暫停買入",
+      "reason": "已持有 4 檔，避免過度分散。",
+      "id": "decision-1785383437446-190c5b8ddba5a",
+      "createdAt": "2026-07-30T03:50:37.446Z",
+      "tradingDate": "2026-07-30"
+    },
+    {
+      "symbol": "3441.TWO",
+      "name": "聯一光電",
+      "decision": "部分賣出",
+      "reason": "AI 顯示減碼訊號：第一目標 90.09 元 先賣 1/3 到 1/2，第二目標 100.42 元 再分批。",
+      "finalScore": 63,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1785383437446-dd9407f409209",
+      "createdAt": "2026-07-30T03:50:37.446Z",
+      "tradingDate": "2026-07-30"
+    },
+    {
+      "symbol": "6187.TWO",
+      "name": "6187.TWO",
+      "decision": "部分賣出",
+      "reason": "AI 顯示減碼訊號：跌破 778.96 元 代表判斷錯誤；若已持有，優先降低風險。",
+      "finalScore": 48,
+      "tradeStyle": "暫不交易",
+      "automationAction": "減碼",
+      "id": "decision-1785383437053-25e5651af52cc",
+      "createdAt": "2026-07-30T03:50:37.053Z",
+      "tradingDate": "2026-07-30"
+    },
+    {
+      "symbol": "4541.TWO",
+      "name": "晟田",
+      "decision": "續抱",
+      "reason": "停損線 54.21 元 不可下修。",
+      "finalScore": 47,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1785383436742-3a54acdb5ca9b",
+      "createdAt": "2026-07-30T03:50:36.742Z",
+      "tradingDate": "2026-07-30"
+    },
+    {
+      "symbol": "4127.TWO",
+      "name": "天良",
+      "decision": "續抱",
+      "reason": "停損線 67.88 元 不可下修。",
+      "finalScore": 48,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1785383436022-4f07e1bd559a",
+      "createdAt": "2026-07-30T03:50:36.022Z",
+      "tradingDate": "2026-07-30"
+    },
     {
       "symbol": "CASH",
       "name": "資金控管",
@@ -1720,6 +1807,15 @@
   ],
   "equity": [
     {
+      "id": "equity-1785383437446-587f7b39ce8a1",
+      "createdAt": "2026-07-30T03:50:37.446Z",
+      "tradingDate": "2026-07-30",
+      "cash": 79864.99999999997,
+      "positionValue": 15750.300000000001,
+      "totalEquity": 95615.29999999997,
+      "realizedPnl": -1208.8000000000025
+    },
+    {
       "id": "equity-1785315230961-6314c2d3fdae1",
       "createdAt": "2026-07-29T08:53:50.961Z",
       "tradingDate": "2026-07-29",
@@ -1864,5 +1960,5 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-07-29T08:53:15.813Z"
+  "lastRunAt": "2026-07-30T03:50:28.907Z"
 }
