@@ -1,7 +1,7 @@
 {
   "initialCapital": 100000,
-  "cash": 69707.59999999996,
-  "realizedPnl": -1392.4000000000026,
+  "cash": 82537.59999999996,
+  "realizedPnl": -2065.600000000003,
   "positions": [
     {
       "id": "position-1784882384944-5c1a1e232ec4f",
@@ -18,40 +18,40 @@
       "tradeStyle": "暫不交易",
       "automationAction": "等待",
       "positionSizePct": 0,
-      "lastPrice": 74.7,
-      "lastValue": 1792.8000000000002,
-      "unrealizedPnl": -100.79999999999995,
-      "unrealizedPnlPct": -5.3231939163498065,
-      "lastAnalysisAt": "2026-07-31T04:16:43.115Z"
+      "lastPrice": 73.8,
+      "lastValue": 1771.1999999999998,
+      "unrealizedPnl": -122.40000000000032,
+      "unrealizedPnlPct": -6.463878326996214,
+      "lastAnalysisAt": "2026-07-31T07:21:19.304Z"
     },
     {
       "id": "position-1784882384944-048c8bef0ec22",
       "symbol": "4541.TWO",
       "name": "晟田",
-      "shares": 210,
+      "shares": 105,
       "entryPrice": 71.4,
-      "entryAmount": 14994.000000000002,
+      "entryAmount": 7497.000000000001,
       "stopLossPrice": 52.27,
       "takeProfit1": 81.6,
       "takeProfit2": 92.49,
       "openedAt": "2026-07-24T08:39:44.944Z",
       "openedTradingDate": "2026-07-24",
       "tradeStyle": "暫不交易",
-      "automationAction": "等待",
+      "automationAction": "減碼",
       "positionSizePct": 0,
-      "lastPrice": 60.4,
-      "lastValue": 12684,
-      "unrealizedPnl": -2310.000000000002,
-      "unrealizedPnlPct": -15.406162464986004,
-      "lastAnalysisAt": "2026-07-31T04:16:47.092Z"
+      "lastPrice": 60,
+      "lastValue": 6300,
+      "unrealizedPnl": -1197.0000000000007,
+      "unrealizedPnlPct": -15.966386554621856,
+      "lastAnalysisAt": "2026-07-31T07:21:20.348Z"
     },
     {
       "id": "position-1785219568981-d036ccd86a229",
       "symbol": "3441.TWO",
       "name": "聯一光電",
-      "shares": 2,
+      "shares": 1,
       "entryPrice": 77.2,
-      "entryAmount": 154.4,
+      "entryAmount": 77.2,
       "stopLossPrice": 66.59,
       "takeProfit1": 96.64,
       "takeProfit2": 107.17,
@@ -61,34 +61,79 @@
       "automationAction": "小量試單",
       "positionSizePct": 12,
       "lastPrice": 84,
-      "lastValue": 168,
-      "unrealizedPnl": 13.599999999999994,
+      "lastValue": 84,
+      "unrealizedPnl": 6.799999999999997,
       "unrealizedPnlPct": 8.80829015544041,
-      "lastAnalysisAt": "2026-07-31T04:16:47.434Z"
+      "lastAnalysisAt": "2026-07-31T07:21:23.059Z"
     },
     {
       "id": "position-1785392398111-d8e62836b6e87",
       "symbol": "2451.TW",
       "name": "創見",
-      "shares": 44,
+      "shares": 22,
       "entryPrice": 269.5,
-      "entryAmount": 11858,
-      "stopLossPrice": 242.29,
-      "takeProfit1": 326.51,
-      "takeProfit2": 354.85,
+      "entryAmount": 5929,
+      "stopLossPrice": 242.31,
+      "takeProfit1": 327.01,
+      "takeProfit2": 355.35,
       "openedAt": "2026-07-30T06:19:58.111Z",
       "openedTradingDate": "2026-07-30",
       "tradeStyle": "短進短出",
       "automationAction": "等待",
       "positionSizePct": 0,
-      "lastPrice": 292.5,
-      "lastValue": 12870,
-      "unrealizedPnl": 1012,
-      "unrealizedPnlPct": 8.534322820037106,
-      "lastAnalysisAt": "2026-07-31T04:16:47.750Z"
+      "lastPrice": 293,
+      "lastValue": 6446,
+      "unrealizedPnl": 517,
+      "unrealizedPnlPct": 8.719851576994433,
+      "lastAnalysisAt": "2026-07-31T07:21:23.996Z"
     }
   ],
   "trades": [
+    {
+      "side": "PARTIAL_SELL",
+      "symbol": "2451.TW",
+      "name": "創見",
+      "price": 293,
+      "shares": 22,
+      "amount": 6446,
+      "cashAfter": 82537.59999999996,
+      "reason": "AI 顯示減碼訊號：短線目標先看 327.01 元；若隔日開高無量，先減碼。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1785392398111-d8e62836b6e87",
+      "id": "trade-1785482483996-0dda38da72fe5",
+      "createdAt": "2026-07-31T07:21:23.996Z",
+      "tradingDate": "2026-07-31"
+    },
+    {
+      "side": "PARTIAL_SELL",
+      "symbol": "3441.TWO",
+      "name": "聯一光電",
+      "price": 84,
+      "shares": 1,
+      "amount": 84,
+      "cashAfter": 76091.59999999996,
+      "reason": "AI 顯示減碼訊號：短線目標先看 96.64 元；若隔日開高無量，先減碼。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1785219568981-d036ccd86a229",
+      "id": "trade-1785482483059-b9c7ff027de96",
+      "createdAt": "2026-07-31T07:21:23.059Z",
+      "tradingDate": "2026-07-31"
+    },
+    {
+      "side": "PARTIAL_SELL",
+      "symbol": "4541.TWO",
+      "name": "晟田",
+      "price": 60,
+      "shares": 105,
+      "amount": 6300,
+      "cashAfter": 76007.59999999996,
+      "reason": "AI 顯示減碼訊號：若反彈量縮或跌破 52.27 元，應優先離場。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1784882384944-048c8bef0ec22",
+      "id": "trade-1785482480348-01610722a11c9",
+      "createdAt": "2026-07-31T07:21:20.348Z",
+      "tradingDate": "2026-07-31"
+    },
     {
       "side": "PARTIAL_SELL",
       "symbol": "3441.TWO",
@@ -901,6 +946,63 @@
     }
   ],
   "decisions": [
+    {
+      "symbol": "CASH",
+      "name": "資金控管",
+      "decision": "暫停買入",
+      "reason": "已持有 4 檔，避免過度分散。",
+      "id": "decision-1785482483996-1418dfce4e3dc",
+      "createdAt": "2026-07-31T07:21:23.996Z",
+      "tradingDate": "2026-07-31"
+    },
+    {
+      "symbol": "2451.TW",
+      "name": "創見",
+      "decision": "部分賣出",
+      "reason": "AI 顯示減碼訊號：短線目標先看 327.01 元；若隔日開高無量，先減碼。",
+      "finalScore": 66,
+      "tradeStyle": "短進短出",
+      "automationAction": "等待",
+      "id": "decision-1785482483996-fee5805436b48",
+      "createdAt": "2026-07-31T07:21:23.996Z",
+      "tradingDate": "2026-07-31"
+    },
+    {
+      "symbol": "3441.TWO",
+      "name": "聯一光電",
+      "decision": "部分賣出",
+      "reason": "AI 顯示減碼訊號：短線目標先看 96.64 元；若隔日開高無量，先減碼。",
+      "finalScore": 64,
+      "tradeStyle": "短進短出",
+      "automationAction": "小量試單",
+      "id": "decision-1785482483059-d92488b2f64ea",
+      "createdAt": "2026-07-31T07:21:23.059Z",
+      "tradingDate": "2026-07-31"
+    },
+    {
+      "symbol": "4541.TWO",
+      "name": "晟田",
+      "decision": "部分賣出",
+      "reason": "AI 顯示減碼訊號：若反彈量縮或跌破 52.27 元，應優先離場。",
+      "finalScore": 45,
+      "tradeStyle": "暫不交易",
+      "automationAction": "減碼",
+      "id": "decision-1785482480348-399810e014a9e",
+      "createdAt": "2026-07-31T07:21:20.348Z",
+      "tradingDate": "2026-07-31"
+    },
+    {
+      "symbol": "4127.TWO",
+      "name": "天良",
+      "decision": "續抱",
+      "reason": "停損線 67.32 元 不可下修。",
+      "finalScore": 46,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1785482479305-48f367fb417cf",
+      "createdAt": "2026-07-31T07:21:19.305Z",
+      "tradingDate": "2026-07-31"
+    },
     {
       "symbol": "CASH",
       "name": "資金控管",
@@ -2071,6 +2173,15 @@
   ],
   "equity": [
     {
+      "id": "equity-1785482483996-0be8cdc22bce4",
+      "createdAt": "2026-07-31T07:21:23.996Z",
+      "tradingDate": "2026-07-31",
+      "cash": 82537.59999999996,
+      "positionValue": 14601.2,
+      "totalEquity": 97138.79999999996,
+      "realizedPnl": -2065.600000000003
+    },
+    {
       "id": "equity-1785471407751-faf7cfbdc9353",
       "createdAt": "2026-07-31T04:16:47.751Z",
       "tradingDate": "2026-07-31",
@@ -2251,5 +2362,5 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-07-31T04:16:36.861Z"
+  "lastRunAt": "2026-07-31T07:20:55.413Z"
 }
