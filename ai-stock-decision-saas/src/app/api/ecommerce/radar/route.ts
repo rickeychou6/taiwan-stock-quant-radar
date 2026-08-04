@@ -14,11 +14,13 @@ export async function GET(request: Request) {
   const shippingCost = Number(searchParams.get("shippingCost") || 60);
   const adRate = Number(searchParams.get("adRate") || 0.06);
   const returnReserveRate = Number(searchParams.get("returnReserveRate") || 0.03);
+  const includeExternalSources = searchParams.get("includeExternalSources") !== "0";
 
   try {
     const report = await runEcommerceRadar({
       keywords,
       perKeywordLimit,
+      includeExternalSources,
       costSettings: {
         platformFeeRate,
         paymentFeeRate,

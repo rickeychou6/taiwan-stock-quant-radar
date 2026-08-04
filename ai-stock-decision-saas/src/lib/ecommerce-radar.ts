@@ -26,8 +26,22 @@ export type CommerceCategorySummary = {
   averageLowServiceRepeatScore: number;
   averageSeasonalHotScore: number;
   averageLowCostHighMarginScore: number;
+  averageLifestyleScore: number;
   bestProductTitle: string;
   bestProductUrl: string;
+};
+
+export type LifestyleSmallItemSummary = {
+  productCount: number;
+  averagePrice: number;
+  averageGrossMarginRate: number;
+  averageNetMarginRate: number;
+  averageLowCostHighMarginScore: number;
+  averageLifestyleScore: number;
+  averageSalesSignal: number;
+  marketplaces: string[];
+  topProductTitle: string;
+  topProductUrl: string;
 };
 
 export type CommerceProduct = {
@@ -56,6 +70,9 @@ export type CommerceProduct = {
   seasonalHotScore: number;
   seasonalReason: string;
   lowCostHighMarginScore: number;
+  isLifestyleSmallItem: boolean;
+  lifestyleScore: number;
+  lifestyleReason: string;
   grossMarginRate: number;
   costRate: number;
   estimatedProductCost: number;
@@ -70,6 +87,7 @@ export type CommerceProduct = {
   estimatedNetMarginRate: number;
   estimatedProfitIndex: number;
   breakEvenPrice: number;
+  externalSoldSignal?: number;
   nextMonthScore: number;
   nextQuarterScore: number;
   confidence: "高" | "中" | "低";
@@ -84,12 +102,15 @@ export type CommerceRadarReport = {
   sources: CommerceSourceStatus[];
   scannedKeywords: string[];
   categorySummary: CommerceCategorySummary[];
+  lifestyleSummary: LifestyleSmallItemSummary;
   products: CommerceProduct[];
   topSales: CommerceProduct[];
   topProfit: CommerceProduct[];
   lowServiceHighRepurchase: CommerceProduct[];
   seasonalHotProducts: CommerceProduct[];
   lowCostHighMarginProducts: CommerceProduct[];
+  lifestyleProducts: CommerceProduct[];
+  lifestyleLowCostHighProfitProducts: CommerceProduct[];
   nextMonthWinners: CommerceProduct[];
   nextQuarterWinners: CommerceProduct[];
   limitations: string[];
@@ -108,6 +129,40 @@ type PchomeProduct = {
 type PchomeResponse = {
   totalRows?: number;
   prods?: PchomeProduct[];
+};
+
+type ShopeeItemBasic = {
+  itemid?: number;
+  shopid?: number;
+  name?: string;
+  price?: number;
+  price_before_discount?: number;
+  image?: string;
+  sold?: number;
+  historical_sold?: number;
+};
+
+type ShopeeSearchResponse = {
+  total_count?: number;
+  items?: Array<{
+    item_basic?: ShopeeItemBasic;
+  }>;
+};
+
+type RawCommerceInput = {
+  id: string;
+  title: string;
+  description: string;
+  source: string;
+  marketplace: string;
+  keyword: string;
+  rank: number;
+  url: string;
+  imageUrl: string;
+  price: number;
+  originalPrice: number;
+  searchTotalRows: number;
+  externalSoldSignal?: number;
 };
 
 type CategoryRule = {
@@ -152,7 +207,17 @@ const DEFAULT_KEYWORDS = [
   "牙膏",
   "零食",
   "咖啡豆",
-  "車用吸塵器"
+  "車用吸塵器",
+  "掛勾",
+  "置物架",
+  "廚房小物",
+  "浴室收納",
+  "電線收納",
+  "保溫杯",
+  "小夜燈",
+  "防塵罩",
+  "密封袋",
+  "桌面收納"
 ];
 
 const DEFAULT_COST_SETTINGS: CostSettings = {
@@ -164,6 +229,10 @@ const DEFAULT_COST_SETTINGS: CostSettings = {
 };
 
 const CATEGORY_RULES: CategoryRule[] = [
+  { parentCategory: "生活小物", category: "收納整理小物", grossMarginRate: 0.48, repurchaseScore: 68, afterSalesBurden: "低", keywords: ["掛勾", "置物", "收納盒", "收納箱", "收納架", "電線收納", "桌面收納", "防塵罩", "衣架", "束線", "理線"], seasonalKeywords: ["搬家", "開學", "大掃除"] },
+  { parentCategory: "生活小物", category: "廚房日用小物", grossMarginRate: 0.46, repurchaseScore: 72, afterSalesBurden: "低", keywords: ["廚房小物", "瀝水", "密封袋", "保鮮盒", "杯刷", "砧板", "餐具", "便當盒", "鍋鏟", "菜瓜布"], seasonalKeywords: ["年節", "搬家", "囤貨"] },
+  { parentCategory: "生活小物", category: "浴室清潔小物", grossMarginRate: 0.44, repurchaseScore: 78, afterSalesBurden: "低", keywords: ["浴室", "牙刷架", "肥皂盒", "刮水", "除霉", "馬桶刷", "海綿", "抹布", "清潔刷"], seasonalKeywords: ["大掃除", "換季"] },
+  { parentCategory: "生活小物", category: "隨身日用小物", grossMarginRate: 0.50, repurchaseScore: 58, afterSalesBurden: "低", keywords: ["保溫杯", "水壺", "小夜燈", "鑰匙圈", "杯墊", "香氛", "除臭", "旅行瓶", "口罩盒"], seasonalKeywords: ["通勤", "開學", "禮物"] },
   { parentCategory: "3C 電子", category: "耳機與音訊", grossMarginRate: 0.28, repurchaseScore: 38, afterSalesBurden: "高", keywords: ["耳機", "藍牙", "降噪", "喇叭", "音響", "麥克風"], seasonalKeywords: ["通勤", "開學", "禮物"] },
   { parentCategory: "3C 電子", category: "手機配件", grossMarginRate: 0.42, repurchaseScore: 58, afterSalesBurden: "低", keywords: ["手機殼", "保護貼", "充電線", "充電器", "磁吸", "支架", "快充"], seasonalKeywords: ["換機", "開學"] },
   { parentCategory: "3C 電子", category: "電腦周邊", grossMarginRate: 0.30, repurchaseScore: 35, afterSalesBurden: "中", keywords: ["滑鼠", "鍵盤", "螢幕", "電競", "筆電", "散熱", "視訊"], seasonalKeywords: ["開學", "電競"] },
@@ -198,7 +267,7 @@ function round(value: number, digits = 0) {
 
 function cleanKeywords(input?: string | null) {
   const raw = input ? input.split(/[,，\n]/).map((item) => item.trim()).filter(Boolean) : DEFAULT_KEYWORDS;
-  return Array.from(new Set(raw)).slice(0, 30);
+  return Array.from(new Set(raw)).slice(0, 42);
 }
 
 function normalizeCostSettings(input?: Partial<CostSettings>) {
@@ -357,6 +426,57 @@ function buildLowCostHighMarginScore(args: {
   );
 }
 
+const LIFESTYLE_SMALL_ITEM_PATTERN = /掛勾|置物|收納|理線|束線|廚房小物|瀝水|密封袋|保鮮盒|杯刷|餐具|便當盒|菜瓜布|浴室|牙刷架|肥皂盒|刮水|除霉|馬桶刷|海綿|抹布|清潔刷|保溫杯|水壺|小夜燈|鑰匙圈|杯墊|香氛|除臭|旅行瓶|防塵罩|衣架|桌面/;
+
+function detectLifestyleSmallItem(text: string, rule: CategoryRule, price: number) {
+  return rule.parentCategory === "生活小物" || (price <= 1200 && LIFESTYLE_SMALL_ITEM_PATTERN.test(text));
+}
+
+function buildLifestyleScore(args: {
+  isLifestyleSmallItem: boolean;
+  price: number;
+  lowCostHighMarginScore: number;
+  lowAfterSalesScore: number;
+  salesSignal: number;
+  repurchaseScore: number;
+  estimatedNetMarginRate: number;
+}) {
+  if (!args.isLifestyleSmallItem) return 0;
+  const lowCostEntryScore =
+    args.price <= 199 ? 100 :
+    args.price <= 499 ? 94 :
+    args.price <= 899 ? 84 :
+    args.price <= 1200 ? 72 :
+    48;
+
+  return clamp(
+    args.lowCostHighMarginScore * 0.34 +
+      lowCostEntryScore * 0.20 +
+      args.lowAfterSalesScore * 0.16 +
+      args.salesSignal * 0.12 +
+      args.repurchaseScore * 0.10 +
+      Math.max(args.estimatedNetMarginRate, 0) * 65,
+    0,
+    100
+  );
+}
+
+function lifestyleReason(product: {
+  isLifestyleSmallItem: boolean;
+  price: number;
+  grossMarginRate: number;
+  afterSalesBurden: "低" | "中" | "高";
+  estimatedNetMarginRate: number;
+}) {
+  if (!product.isLifestyleSmallItem) return "非生活小物主分類，生活小物分不列入主要判斷";
+  const parts = [];
+  if (product.price <= 500) parts.push("低單價容易測品");
+  if (product.grossMarginRate >= 0.44) parts.push("分類毛利率偏高");
+  if (product.afterSalesBurden === "低") parts.push("售服負擔低");
+  if (product.estimatedNetMarginRate > 0.12) parts.push("估算淨利率較佳");
+  return parts.length ? parts.join("、") : "生活小物屬性明確，但需確認實際進貨價與退貨率";
+}
+
 function productUrl(id: string) {
   return `https://24h.pchome.com.tw/prod/${encodeURIComponent(id)}`;
 }
@@ -403,6 +523,118 @@ function buildCostModel(price: number, grossMarginRate: number, settings: CostSe
   };
 }
 
+function buildCommerceProduct(input: RawCommerceInput, costSettings: CostSettings): CommerceProduct {
+  const price = Number(input.price || 0);
+  const originalPrice = Number(input.originalPrice || price);
+  const discountPct = originalPrice > price ? ((originalPrice - price) / originalPrice) * 100 : 0;
+  const searchText = `${input.title} ${input.description} ${input.keyword}`;
+  const category = detectCategory(searchText);
+  const rankScore = clamp(100 - (input.rank - 1) * 10, 0, 100);
+  const breadthScore = clamp(Math.log10(input.searchTotalRows + 1) * 18, 0, 70);
+  const externalSoldScore = input.externalSoldSignal ? clamp(Math.log10(input.externalSoldSignal + 1) * 22, 0, 80) : 0;
+  const salesSignal = input.externalSoldSignal
+    ? clamp(rankScore * 0.52 + breadthScore * 0.18 + externalSoldScore * 0.24 + (discountPct > 0 ? 4 : 0), 0, 100)
+    : clamp(rankScore * 0.72 + breadthScore * 0.28 + (discountPct > 0 ? 4 : 0), 0, 100);
+  const costs = buildCostModel(price, category.grossMarginRate, costSettings);
+  const estimatedProfitIndex = Math.max(costs.estimatedNetProfit, 0) * (salesSignal / 100);
+  const repurchaseScore = adjustRepurchaseScore(category.repurchaseScore, searchText);
+  const lowAfterSalesScore = adjustAfterSalesScore(afterSalesScore(category.afterSalesBurden), searchText, price);
+  const lowServiceRepeatScore = buildLowServiceRepeatScore({
+    salesSignal,
+    repurchaseScore,
+    lowAfterSalesScore,
+    estimatedNetMarginRate: costs.estimatedNetMarginRate,
+    price
+  });
+  const seasonNow = seasonalProfile(input.title, category);
+  const lowCostHighMarginScore = buildLowCostHighMarginScore({
+    price,
+    grossMarginRate: category.grossMarginRate,
+    estimatedNetMarginRate: costs.estimatedNetMarginRate,
+    estimatedNetProfit: costs.estimatedNetProfit,
+    salesSignal,
+    lowAfterSalesScore
+  });
+  const isLifestyleSmallItem = detectLifestyleSmallItem(searchText, category, price);
+  const lifestyleScore = buildLifestyleScore({
+    isLifestyleSmallItem,
+    price,
+    lowCostHighMarginScore,
+    lowAfterSalesScore,
+    salesSignal,
+    repurchaseScore,
+    estimatedNetMarginRate: costs.estimatedNetMarginRate
+  });
+  const seasonMonth = seasonalityBoost(input.title, category, "month");
+  const seasonQuarter = seasonalityBoost(input.title, category, "quarter");
+  const seasonalHotScore = clamp(salesSignal * 0.40 + seasonNow.score * 0.34 + lowCostHighMarginScore * 0.10 + lowServiceRepeatScore * 0.08 + (discountPct > 0 ? 6 : 0), 0, 100);
+  const nextMonthScore = clamp(salesSignal * 0.44 + seasonMonth * 0.22 + lowServiceRepeatScore * 0.14 + lowCostHighMarginScore * 0.10 + Math.max(costs.estimatedNetMarginRate, 0) * 36 + (discountPct > 0 ? 6 : 0), 0, 100);
+  const nextQuarterScore = clamp(salesSignal * 0.38 + seasonQuarter * 0.30 + lowServiceRepeatScore * 0.16 + lowCostHighMarginScore * 0.10 + Math.max(costs.estimatedNetMarginRate, 0) * 42 + (price < 3000 ? 4 : 0), 0, 100);
+  const soldText = input.externalSoldSignal ? ` / 銷售訊號 ${input.externalSoldSignal.toLocaleString()}` : "";
+
+  return {
+    id: input.id,
+    title: input.title,
+    source: input.source,
+    marketplace: input.marketplace,
+    keyword: input.keyword,
+    rank: input.rank,
+    url: input.url,
+    imageUrl: input.imageUrl,
+    price,
+    originalPrice,
+    currency: "TWD",
+    discountPct: round(discountPct, 1),
+    searchTotalRows: input.searchTotalRows,
+    salesSignal: round(salesSignal, 1),
+    salesSignalLabel: `熱銷排序第 ${input.rank} 名 / 搜尋池 ${input.searchTotalRows.toLocaleString()} 件${soldText}`,
+    parentCategory: category.parentCategory,
+    category: category.category,
+    categoryConfidence: category.categoryConfidence,
+    repurchaseScore: round(repurchaseScore, 1),
+    afterSalesBurden: category.afterSalesBurden,
+    lowAfterSalesScore: round(lowAfterSalesScore, 1),
+    lowServiceRepeatScore: round(lowServiceRepeatScore, 1),
+    seasonalHotScore: round(seasonalHotScore, 1),
+    seasonalReason: seasonNow.reason,
+    lowCostHighMarginScore: round(lowCostHighMarginScore, 1),
+    isLifestyleSmallItem,
+    lifestyleScore: round(lifestyleScore, 1),
+    lifestyleReason: lifestyleReason({
+      isLifestyleSmallItem,
+      price,
+      grossMarginRate: category.grossMarginRate,
+      afterSalesBurden: category.afterSalesBurden,
+      estimatedNetMarginRate: costs.estimatedNetMarginRate
+    }),
+    grossMarginRate: category.grossMarginRate,
+    ...costs,
+    estimatedProfitIndex: round(estimatedProfitIndex, 1),
+    breakEvenPrice: costs.breakEvenPrice,
+    externalSoldSignal: input.externalSoldSignal,
+    nextMonthScore: round(nextMonthScore, 1),
+    nextQuarterScore: round(nextQuarterScore, 1),
+    confidence: input.searchTotalRows >= 1000 && input.rank <= 5 ? "高" : input.searchTotalRows >= 200 || Number(input.externalSoldSignal || 0) >= 100 ? "中" : "低",
+    reasons: [
+      `${input.marketplace} 熱銷排序 ${input.rank}，代表目前平台排序訊號靠前。`,
+      `搜尋池共有 ${input.searchTotalRows.toLocaleString()} 件，需求廣度${input.searchTotalRows >= 1000 ? "大" : input.searchTotalRows >= 200 ? "中等" : "偏小"}。`,
+      input.externalSoldSignal ? `外部銷售訊號 ${input.externalSoldSignal.toLocaleString()}，已納入熱銷分。` : "來源沒有公開實際銷量，主要使用排序與商品池推估。",
+      `分類為 ${category.parentCategory} / ${category.category}，分類可信度 ${category.categoryConfidence}。`,
+      `回購分 ${round(repurchaseScore, 1)}，售服負擔 ${category.afterSalesBurden}，低售服回購分 ${round(lowServiceRepeatScore, 1)}。`,
+      `季節熱賣分 ${round(seasonalHotScore, 1)}：${seasonNow.reason}。`,
+      `低成本高毛利分 ${round(lowCostHighMarginScore, 1)}，估毛利 ${costs.estimatedGrossProfit.toLocaleString()} 元，估淨利 ${costs.estimatedNetProfit.toLocaleString()} 元。`,
+      isLifestyleSmallItem ? `生活小物分 ${round(lifestyleScore, 1)}：${lifestyleReason({ isLifestyleSmallItem, price, grossMarginRate: category.grossMarginRate, afterSalesBurden: category.afterSalesBurden, estimatedNetMarginRate: costs.estimatedNetMarginRate })}。` : "非生活小物主分類，不列入生活小物重點榜。",
+      `估進貨成本 ${round(costs.costRate * 100, 1)}%，加上平台費、金流、物流、廣告與退貨準備後，估淨利 ${costs.estimatedNetProfit.toLocaleString()} 元。`
+    ],
+    riskNotes: [
+      `${input.marketplace} 公開資料可能沒有揭露完整成交件數。`,
+      "成本為估算值，尚未接你的真實進貨單、平台合約、物流費率與廣告後台。",
+      category.afterSalesBurden === "高" ? "此類商品售後、保固或維修負擔較高，需保守估算客服成本。" : "此類商品售服負擔相對可控，但仍需留意退貨率與評價。",
+      "如果商品需要保固、客服或高退貨率，實際淨利可能低於本模型。"
+    ]
+  };
+}
+
 async function fetchPchomeKeyword(keyword: string, limit: number, costSettings: CostSettings): Promise<{ products: CommerceProduct[]; status: CommerceSourceStatus }> {
   const url = `https://ecshweb.pchome.com.tw/search/v3.3/all/results?q=${encodeURIComponent(keyword)}&page=1&sort=sale/dc`;
   const fetchedAt = new Date().toISOString();
@@ -424,91 +656,20 @@ async function fetchPchomeKeyword(keyword: string, limit: number, costSettings: 
 
     const products = rows.map<CommerceProduct>((item, index) => {
       const id = String(item.Id || `${keyword}-${index}`);
-      const title = String(item.name || "未命名商品");
-      const description = String(item.describe || "");
-      const price = Number(item.price || 0);
-      const originalPrice = Number(item.originPrice || price);
-      const discountPct = originalPrice > price ? ((originalPrice - price) / originalPrice) * 100 : 0;
-      const rank = index + 1;
-      const searchText = `${title} ${description} ${keyword}`;
-      const category = detectCategory(searchText);
-      const rankScore = clamp(100 - (rank - 1) * (70 / Math.max(limit - 1, 1)), 0, 100);
-      const breadthScore = clamp(Math.log10(totalRows + 1) * 18, 0, 70);
-      const salesSignal = clamp(rankScore * 0.72 + breadthScore * 0.28 + (discountPct > 0 ? 4 : 0), 0, 100);
-      const costs = buildCostModel(price, category.grossMarginRate, costSettings);
-      const estimatedProfitIndex = Math.max(costs.estimatedNetProfit, 0) * (salesSignal / 100);
-      const repurchaseScore = adjustRepurchaseScore(category.repurchaseScore, searchText);
-      const lowAfterSalesScore = adjustAfterSalesScore(afterSalesScore(category.afterSalesBurden), searchText, price);
-      const lowServiceRepeatScore = buildLowServiceRepeatScore({
-        salesSignal,
-        repurchaseScore,
-        lowAfterSalesScore,
-        estimatedNetMarginRate: costs.estimatedNetMarginRate,
-        price
-      });
-      const seasonNow = seasonalProfile(title, category);
-      const lowCostHighMarginScore = buildLowCostHighMarginScore({
-        price,
-        grossMarginRate: category.grossMarginRate,
-        estimatedNetMarginRate: costs.estimatedNetMarginRate,
-        estimatedNetProfit: costs.estimatedNetProfit,
-        salesSignal,
-        lowAfterSalesScore
-      });
-      const seasonMonth = seasonalityBoost(title, category, "month");
-      const seasonQuarter = seasonalityBoost(title, category, "quarter");
-      const seasonalHotScore = clamp(salesSignal * 0.40 + seasonNow.score * 0.34 + lowCostHighMarginScore * 0.10 + lowServiceRepeatScore * 0.08 + (discountPct > 0 ? 6 : 0), 0, 100);
-      const nextMonthScore = clamp(salesSignal * 0.44 + seasonMonth * 0.22 + lowServiceRepeatScore * 0.14 + lowCostHighMarginScore * 0.10 + Math.max(costs.estimatedNetMarginRate, 0) * 36 + (discountPct > 0 ? 6 : 0), 0, 100);
-      const nextQuarterScore = clamp(salesSignal * 0.38 + seasonQuarter * 0.30 + lowServiceRepeatScore * 0.16 + lowCostHighMarginScore * 0.10 + Math.max(costs.estimatedNetMarginRate, 0) * 42 + (price < 3000 ? 4 : 0), 0, 100);
-
-      return {
+      return buildCommerceProduct({
         id,
-        title,
+        title: String(item.name || "未命名商品"),
+        description: String(item.describe || ""),
         source: "PChome 24h 公開搜尋",
         marketplace: "PChome 24h",
         keyword,
-        rank,
+        rank: index + 1,
         url: productUrl(id),
         imageUrl: imageUrl(item.picS || item.picB),
-        price,
-        originalPrice,
-        currency: "TWD",
-        discountPct: round(discountPct, 1),
-        searchTotalRows: totalRows,
-        salesSignal: round(salesSignal, 1),
-        salesSignalLabel: `熱銷排序第 ${rank} 名 / 搜尋池 ${totalRows.toLocaleString()} 件`,
-        parentCategory: category.parentCategory,
-        category: category.category,
-        categoryConfidence: category.categoryConfidence,
-        repurchaseScore: round(repurchaseScore, 1),
-        afterSalesBurden: category.afterSalesBurden,
-        lowAfterSalesScore: round(lowAfterSalesScore, 1),
-        lowServiceRepeatScore: round(lowServiceRepeatScore, 1),
-        seasonalHotScore: round(seasonalHotScore, 1),
-        seasonalReason: seasonNow.reason,
-        lowCostHighMarginScore: round(lowCostHighMarginScore, 1),
-        grossMarginRate: category.grossMarginRate,
-        ...costs,
-        estimatedProfitIndex: round(estimatedProfitIndex, 1),
-        nextMonthScore: round(nextMonthScore, 1),
-        nextQuarterScore: round(nextQuarterScore, 1),
-        confidence: totalRows >= 1000 && rank <= 5 ? "高" : totalRows >= 200 ? "中" : "低",
-        reasons: [
-          `PChome 熱銷排序 ${rank}，代表目前平台排序訊號靠前。`,
-          `搜尋池共有 ${totalRows.toLocaleString()} 件，需求廣度${totalRows >= 1000 ? "大" : totalRows >= 200 ? "中等" : "偏小"}。`,
-          `分類為 ${category.parentCategory} / ${category.category}，分類可信度 ${category.categoryConfidence}。`,
-          `回購分 ${round(repurchaseScore, 1)}，售服負擔 ${category.afterSalesBurden}，低售服回購分 ${round(lowServiceRepeatScore, 1)}。`,
-          `季節熱賣分 ${round(seasonalHotScore, 1)}：${seasonNow.reason}。`,
-          `低成本高毛利分 ${round(lowCostHighMarginScore, 1)}，估毛利 ${costs.estimatedGrossProfit.toLocaleString()} 元，估淨利 ${costs.estimatedNetProfit.toLocaleString()} 元。`,
-          `估進貨成本 ${round(costs.costRate * 100, 1)}%，加上平台費、金流、物流、廣告與退貨準備後，估淨利 ${costs.estimatedNetProfit.toLocaleString()} 元。`
-        ],
-        riskNotes: [
-          "PChome 公開資料沒有揭露實際成交件數。",
-          "成本為估算值，尚未接你的真實進貨單、平台合約、物流費率與廣告後台。",
-          category.afterSalesBurden === "高" ? "此類商品售後、保固或維修負擔較高，需保守估算客服成本。" : "此類商品售服負擔相對可控，但仍需留意退貨率與評價。",
-          "如果商品需要保固、客服或高退貨率，實際淨利可能低於本模型。"
-        ]
-      };
+        price: Number(item.price || 0),
+        originalPrice: Number(item.originPrice || item.price || 0),
+        searchTotalRows: totalRows
+      }, costSettings);
     });
 
     return {
@@ -535,6 +696,141 @@ async function fetchPchomeKeyword(keyword: string, limit: number, costSettings: 
   }
 }
 
+function shopeeProductUrl(shopid?: number, itemid?: number) {
+  if (!shopid || !itemid) return "https://shopee.tw/search";
+  return `https://shopee.tw/product/${shopid}/${itemid}`;
+}
+
+function shopeeImageUrl(image?: string) {
+  if (!image) return "";
+  return `https://cf.shopee.tw/file/${image}`;
+}
+
+function normalizeShopeePrice(value?: number) {
+  const raw = Number(value || 0);
+  if (!Number.isFinite(raw) || raw <= 0) return 0;
+  return Math.round(raw / 100000);
+}
+
+async function fetchShopeeKeyword(keyword: string, limit: number, costSettings: CostSettings): Promise<{ products: CommerceProduct[]; status: CommerceSourceStatus }> {
+  const url = `https://shopee.tw/api/v4/search/search_items?by=relevancy&keyword=${encodeURIComponent(keyword)}&limit=${limit}&newest=0&order=desc&page_type=search&scenario=PAGE_GLOBAL_SEARCH&version=2`;
+  const fetchedAt = new Date().toISOString();
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 7000);
+
+  try {
+    const response = await fetch(url, {
+      cache: "no-store",
+      signal: controller.signal,
+      headers: {
+        Accept: "application/json",
+        Referer: `https://shopee.tw/search?keyword=${encodeURIComponent(keyword)}`,
+        "User-Agent": "Mozilla/5.0 ecommerce-radar"
+      }
+    });
+
+    if (!response.ok) throw new Error(`Shopee returned HTTP ${response.status}`);
+
+    const payload = (await response.json()) as ShopeeSearchResponse;
+    const rows = Array.isArray(payload.items) ? payload.items.slice(0, limit) : [];
+    const totalRows = Number(payload.total_count || rows.length || 0);
+    const products = rows.flatMap<CommerceProduct>((item, index) => {
+      const basic = item.item_basic;
+      if (!basic?.itemid || !basic.shopid || !basic.name) return [];
+      const price = normalizeShopeePrice(basic.price);
+      if (!price) return [];
+      const originalPrice = normalizeShopeePrice(basic.price_before_discount) || price;
+      const sold = Number(basic.historical_sold || basic.sold || 0);
+
+      return buildCommerceProduct({
+        id: `${basic.shopid}-${basic.itemid}`,
+        title: basic.name,
+        description: "",
+        source: "Shopee 蝦皮公開搜尋",
+        marketplace: "Shopee 蝦皮",
+        keyword,
+        rank: index + 1,
+        url: shopeeProductUrl(basic.shopid, basic.itemid),
+        imageUrl: shopeeImageUrl(basic.image),
+        price,
+        originalPrice,
+        searchTotalRows: totalRows,
+        externalSoldSignal: sold > 0 ? sold : undefined
+      }, costSettings);
+    });
+
+    return {
+      products,
+      status: {
+        source: `Shopee 蝦皮：${keyword}`,
+        ok: products.length > 0,
+        fetchedAt,
+        url,
+        message: products.length > 0
+          ? `取得 ${products.length} 件商品，搜尋池 ${totalRows.toLocaleString()} 件；若來源有公開 sold/historical_sold，已納入銷售訊號。`
+          : "蝦皮公開端點未回傳可用商品，可能需要登入 Cookie 或受到反爬限制。"
+      }
+    };
+  } catch (error) {
+    return {
+      products: [],
+      status: {
+        source: `Shopee 蝦皮：${keyword}`,
+        ok: false,
+        fetchedAt,
+        url,
+        message: error instanceof Error ? `${error.message}；此來源可能需要登入 Cookie 或受到反爬限制。` : "蝦皮來源讀取失敗"
+      }
+    };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function fetchPinduoduoKeyword(keyword: string): Promise<{ products: CommerceProduct[]; status: CommerceSourceStatus }> {
+  const url = `https://mobile.yangkeduo.com/search_result.html?search_key=${encodeURIComponent(keyword)}`;
+  const fetchedAt = new Date().toISOString();
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 6000);
+
+  try {
+    const response = await fetch(url, {
+      cache: "no-store",
+      signal: controller.signal,
+      headers: {
+        Accept: "text/html,application/xhtml+xml",
+        "User-Agent": "Mozilla/5.0 ecommerce-radar"
+      }
+    });
+
+    return {
+      products: [],
+      status: {
+        source: `拼多多：${keyword}`,
+        ok: false,
+        fetchedAt,
+        url,
+        message: response.ok
+          ? "已嘗試連線，但拼多多匿名頁面沒有穩定公開 JSON 商品/價格資料；為避免硬爬錯誤資料，未納入計分。"
+          : `拼多多返回 HTTP ${response.status}，未納入計分。`
+      }
+    };
+  } catch (error) {
+    return {
+      products: [],
+      status: {
+        source: `拼多多：${keyword}`,
+        ok: false,
+        fetchedAt,
+        url,
+        message: error instanceof Error ? `${error.message}；拼多多通常需要動態驗證或正式資料介面。` : "拼多多來源讀取失敗"
+      }
+    };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 function uniqueProducts(products: CommerceProduct[]) {
   const seen = new Set<string>();
   return products.filter((product) => {
@@ -547,6 +843,12 @@ function uniqueProducts(products: CommerceProduct[]) {
 
 function sortDesc<T>(rows: T[], selector: (row: T) => number) {
   return [...rows].sort((a, b) => selector(b) - selector(a));
+}
+
+function pickExternalKeywords(keywords: string[]) {
+  const lifestyleKeywords = keywords.filter((keyword) => LIFESTYLE_SMALL_ITEM_PATTERN.test(keyword)).slice(0, 8);
+  const base = lifestyleKeywords.length ? lifestyleKeywords : keywords.slice(0, 6);
+  return Array.from(new Set(base)).slice(0, 8);
 }
 
 function buildCategorySummary(products: CommerceProduct[]) {
@@ -570,17 +872,60 @@ function buildCategorySummary(products: CommerceProduct[]) {
       averageLowServiceRepeatScore: round(rows.reduce((sum, product) => sum + product.lowServiceRepeatScore, 0) / rows.length, 1),
       averageSeasonalHotScore: round(rows.reduce((sum, product) => sum + product.seasonalHotScore, 0) / rows.length, 1),
       averageLowCostHighMarginScore: round(rows.reduce((sum, product) => sum + product.lowCostHighMarginScore, 0) / rows.length, 1),
+      averageLifestyleScore: round(rows.reduce((sum, product) => sum + product.lifestyleScore, 0) / rows.length, 1),
       bestProductTitle: best?.title || "",
       bestProductUrl: best?.url || ""
     };
   }).sort((a, b) => Math.max(b.averageSeasonalHotScore, b.averageLowCostHighMarginScore, b.averageLowServiceRepeatScore) - Math.max(a.averageSeasonalHotScore, a.averageLowCostHighMarginScore, a.averageLowServiceRepeatScore));
 }
 
-export async function runEcommerceRadar(options?: { keywords?: string | null; perKeywordLimit?: number; costSettings?: Partial<CostSettings> }) {
+function buildLifestyleSummary(products: CommerceProduct[]): LifestyleSmallItemSummary {
+  const rows = products.filter((product) => product.isLifestyleSmallItem);
+  const top = sortDesc(rows, (product) => product.lifestyleScore * 0.45 + product.lowCostHighMarginScore * 0.35 + product.salesSignal * 0.20)[0];
+
+  if (!rows.length) {
+    return {
+      productCount: 0,
+      averagePrice: 0,
+      averageGrossMarginRate: 0,
+      averageNetMarginRate: 0,
+      averageLowCostHighMarginScore: 0,
+      averageLifestyleScore: 0,
+      averageSalesSignal: 0,
+      marketplaces: [],
+      topProductTitle: "",
+      topProductUrl: ""
+    };
+  }
+
+  return {
+    productCount: rows.length,
+    averagePrice: round(rows.reduce((sum, product) => sum + product.price, 0) / rows.length),
+    averageGrossMarginRate: round(rows.reduce((sum, product) => sum + product.grossMarginRate, 0) / rows.length, 4),
+    averageNetMarginRate: round(rows.reduce((sum, product) => sum + product.estimatedNetMarginRate, 0) / rows.length, 4),
+    averageLowCostHighMarginScore: round(rows.reduce((sum, product) => sum + product.lowCostHighMarginScore, 0) / rows.length, 1),
+    averageLifestyleScore: round(rows.reduce((sum, product) => sum + product.lifestyleScore, 0) / rows.length, 1),
+    averageSalesSignal: round(rows.reduce((sum, product) => sum + product.salesSignal, 0) / rows.length, 1),
+    marketplaces: Array.from(new Set(rows.map((product) => product.marketplace))).sort(),
+    topProductTitle: top?.title || "",
+    topProductUrl: top?.url || ""
+  };
+}
+
+export async function runEcommerceRadar(options?: { keywords?: string | null; perKeywordLimit?: number; costSettings?: Partial<CostSettings>; includeExternalSources?: boolean }) {
   const keywords = cleanKeywords(options?.keywords);
   const perKeywordLimit = clamp(Number(options?.perKeywordLimit || 8), 3, 12);
   const costSettings = normalizeCostSettings(options?.costSettings);
-  const results = await Promise.all(keywords.map((keyword) => fetchPchomeKeyword(keyword, perKeywordLimit, costSettings)));
+  const pchomeResults = await Promise.all(keywords.map((keyword) => fetchPchomeKeyword(keyword, perKeywordLimit, costSettings)));
+  const includeExternalSources = options?.includeExternalSources ?? true;
+  const externalKeywords = includeExternalSources ? pickExternalKeywords(keywords) : [];
+  const [shopeeResults, pinduoduoResults] = includeExternalSources
+    ? await Promise.all([
+        Promise.all(externalKeywords.map((keyword) => fetchShopeeKeyword(keyword, Math.min(perKeywordLimit, 6), costSettings))),
+        Promise.all(externalKeywords.slice(0, 3).map((keyword) => fetchPinduoduoKeyword(keyword)))
+      ])
+    : [[], []] as Array<Array<{ products: CommerceProduct[]; status: CommerceSourceStatus }>>;
+  const results = [...pchomeResults, ...shopeeResults, ...pinduoduoResults];
   const products = uniqueProducts(results.flatMap((result) => result.products));
 
   const topSales = sortDesc(products, (product) => product.salesSignal).slice(0, 10);
@@ -588,6 +933,11 @@ export async function runEcommerceRadar(options?: { keywords?: string | null; pe
   const lowServiceHighRepurchase = sortDesc(products, (product) => product.lowServiceRepeatScore).slice(0, 10);
   const seasonalHotProducts = sortDesc(products, (product) => product.seasonalHotScore).slice(0, 10);
   const lowCostHighMarginProducts = sortDesc(products, (product) => product.lowCostHighMarginScore).slice(0, 10);
+  const lifestyleProducts = sortDesc(products.filter((product) => product.isLifestyleSmallItem), (product) => product.lifestyleScore).slice(0, 20);
+  const lifestyleLowCostHighProfitProducts = sortDesc(
+    products.filter((product) => product.isLifestyleSmallItem && product.estimatedNetProfit > 0),
+    (product) => product.lifestyleScore * 0.42 + product.lowCostHighMarginScore * 0.40 + product.salesSignal * 0.18
+  ).slice(0, 12);
   const nextMonthWinners = sortDesc(products, (product) => product.nextMonthScore).slice(0, 10);
   const nextQuarterWinners = sortDesc(products, (product) => product.nextQuarterScore).slice(0, 10);
 
@@ -598,17 +948,23 @@ export async function runEcommerceRadar(options?: { keywords?: string | null; pe
     sources: results.map((result) => result.status),
     scannedKeywords: keywords,
     categorySummary: buildCategorySummary(products),
+    lifestyleSummary: buildLifestyleSummary(products),
     products,
     topSales,
     topProfit,
     lowServiceHighRepurchase,
     seasonalHotProducts,
     lowCostHighMarginProducts,
+    lifestyleProducts,
+    lifestyleLowCostHighProfitProducts,
     nextMonthWinners,
     nextQuarterWinners,
     limitations: [
       "目前使用 PChome 24h 公開搜尋 JSON：商品、價格、折扣、搜尋池與熱銷排序是真實公開資料。",
+      "系統會盡量嘗試 Shopee 蝦皮公開搜尋端點；若來源要求登入 Cookie、驗證或被反爬，會在來源狀態中標示失敗，不使用假資料補值。",
+      "拼多多匿名網頁目前沒有穩定公開 JSON 商品/價格資料；系統會嘗試連線並標示來源狀態，但不硬爬動態頁面避免錯誤資料。",
       "PChome 沒有公開實際成交件數，所以「銷售量最大」以熱銷排序分數呈現，不顯示假件數。",
+      "生活小物分是依低單價、低售服、低成本高毛利、熱銷排序、回購與淨利率推估，適合找可測品，不等於保證出單。",
       "回購分與售服負擔是依商品分類、商品關鍵字、價格與耗材特徵推估；若要精準，需要接實際訂單回購率、客服工單與退貨資料。",
       "季節熱賣分是依目前月份、類別季節字、熱銷排序、折扣與成本效率推估；它是進貨輔助，不是平台保證銷量。",
       "低成本高毛利分是依毛利率、淨利率、售價門檻、熱銷分與售服負擔推估；真正獲利仍需要接真實進貨成本、廣告成本與退貨率。",
