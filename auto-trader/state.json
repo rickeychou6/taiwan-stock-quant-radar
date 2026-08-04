@@ -1,7 +1,7 @@
 {
   "initialCapital": 100000,
-  "cash": 82280.49999999996,
-  "realizedPnl": -2890.800000000004,
+  "cash": 82529.34999999996,
+  "realizedPnl": -2893.600000000004,
   "positions": [
     {
       "id": "position-1784882384944-5c1a1e232ec4f",
@@ -22,7 +22,7 @@
       "lastValue": 1852.8000000000002,
       "unrealizedPnl": -40.799999999999955,
       "unrealizedPnlPct": -2.15462610899873,
-      "lastAnalysisAt": "2026-08-04T06:27:05.606Z"
+      "lastAnalysisAt": "2026-08-04T08:51:26.009Z"
     },
     {
       "id": "position-1784882384944-048c8bef0ec22",
@@ -43,15 +43,15 @@
       "lastValue": 439.59999999999997,
       "unrealizedPnl": -60.2000000000001,
       "unrealizedPnlPct": -12.044817927170886,
-      "lastAnalysisAt": "2026-08-04T06:27:06.145Z"
+      "lastAnalysisAt": "2026-08-04T08:51:26.359Z"
     },
     {
       "id": "position-1785489265233-a76a90ea2adfc",
       "symbol": "2887.TW",
       "name": "台新新光金",
-      "shares": 14,
+      "shares": 7,
       "entryPrice": 35.95,
-      "entryAmount": 503.30000000000007,
+      "entryAmount": 251.65000000000003,
       "stopLossPrice": 34.23,
       "takeProfit1": 37.84,
       "takeProfit2": 39.75,
@@ -61,10 +61,10 @@
       "automationAction": "小量試單",
       "positionSizePct": 20,
       "lastPrice": 35.55,
-      "lastValue": 497.69999999999993,
-      "unrealizedPnl": -5.60000000000008,
+      "lastValue": 248.84999999999997,
+      "unrealizedPnl": -2.80000000000004,
       "unrealizedPnlPct": -1.112656467315732,
-      "lastAnalysisAt": "2026-08-04T06:27:07.040Z"
+      "lastAnalysisAt": "2026-08-04T08:51:26.671Z"
     },
     {
       "id": "position-1785824837537-c98792356d8e5",
@@ -85,10 +85,25 @@
       "lastValue": 11932,
       "unrealizedPnl": 0,
       "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-08-04T06:27:17.537Z"
+      "lastAnalysisAt": "2026-08-04T08:51:26.983Z"
     }
   ],
   "trades": [
+    {
+      "side": "PARTIAL_SELL",
+      "symbol": "2887.TW",
+      "name": "台新新光金",
+      "price": 35.55,
+      "shares": 7,
+      "amount": 248.84999999999997,
+      "cashAfter": 82529.34999999996,
+      "reason": "AI 顯示減碼訊號：第一目標 37.84 元 先賣 1/3 到 1/2，第二目標 39.75 元 再分批。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1785489265233-a76a90ea2adfc",
+      "id": "trade-1785833486671-709b48ba945cd",
+      "createdAt": "2026-08-04T08:51:26.671Z",
+      "tradingDate": "2026-08-04"
+    },
     {
       "side": "BUY",
       "symbol": "2344.TW",
@@ -1216,6 +1231,63 @@
     }
   ],
   "decisions": [
+    {
+      "symbol": "CASH",
+      "name": "資金控管",
+      "decision": "暫停買入",
+      "reason": "已持有 4 檔，避免過度分散。",
+      "id": "decision-1785833486983-6b0f805e1ebbe",
+      "createdAt": "2026-08-04T08:51:26.983Z",
+      "tradingDate": "2026-08-04"
+    },
+    {
+      "symbol": "2344.TW",
+      "name": "華邦電",
+      "decision": "續抱",
+      "reason": "短線停損要更緊，收盤或盤中跌破 149.04 元 就不戀戰。",
+      "finalScore": 52,
+      "tradeStyle": "短進短出",
+      "automationAction": "小量試單",
+      "id": "decision-1785833486983-247d4e69377ee",
+      "createdAt": "2026-08-04T08:51:26.983Z",
+      "tradingDate": "2026-08-04"
+    },
+    {
+      "symbol": "2887.TW",
+      "name": "台新新光金",
+      "decision": "部分賣出",
+      "reason": "AI 顯示減碼訊號：第一目標 37.84 元 先賣 1/3 到 1/2，第二目標 39.75 元 再分批。",
+      "finalScore": 56,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1785833486671-607db1cf80417",
+      "createdAt": "2026-08-04T08:51:26.671Z",
+      "tradingDate": "2026-08-04"
+    },
+    {
+      "symbol": "4541.TWO",
+      "name": "晟田",
+      "decision": "續抱",
+      "reason": "停損線 52.64 元 不可下修。",
+      "finalScore": 45,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1785833486359-f7269a0deef54",
+      "createdAt": "2026-08-04T08:51:26.359Z",
+      "tradingDate": "2026-08-04"
+    },
+    {
+      "symbol": "4127.TWO",
+      "name": "天良",
+      "decision": "續抱",
+      "reason": "收盤跌破 72.93 元 或跌破 MA20 後無法收回，應降低部位。",
+      "finalScore": 54,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1785833486009-daf7ea0a5fe67",
+      "createdAt": "2026-08-04T08:51:26.009Z",
+      "tradingDate": "2026-08-04"
+    },
     {
       "symbol": "2344.TW",
       "name": "華邦電",
@@ -2791,6 +2863,15 @@
   ],
   "equity": [
     {
+      "id": "equity-1785833486984-504fde3e7a6f5",
+      "createdAt": "2026-08-04T08:51:26.984Z",
+      "tradingDate": "2026-08-04",
+      "cash": 82529.34999999996,
+      "positionValue": 14473.25,
+      "totalEquity": 97002.59999999996,
+      "realizedPnl": -2893.600000000004
+    },
+    {
       "id": "equity-1785824837537-3979c9f904662",
       "createdAt": "2026-08-04T06:27:17.537Z",
       "tradingDate": "2026-08-04",
@@ -3034,5 +3115,5 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-08-04T06:27:03.450Z"
+  "lastRunAt": "2026-08-04T08:51:24.321Z"
 }
