@@ -109,12 +109,16 @@ function CostInput({ label, value, suffix, min, max, step, onChange }: { label: 
   );
 }
 
-function ProductCard({ product, mode }: { product: CommerceProduct; mode: "sales" | "profit" | "repeat" | "month" | "quarter" }) {
+function ProductCard({ product, mode }: { product: CommerceProduct; mode: "sales" | "profit" | "repeat" | "seasonal" | "margin" | "month" | "quarter" }) {
   const mainScore =
     mode === "profit"
       ? product.estimatedProfitIndex
       : mode === "repeat"
         ? product.lowServiceRepeatScore
+      : mode === "seasonal"
+        ? product.seasonalHotScore
+      : mode === "margin"
+        ? product.lowCostHighMarginScore
       : mode === "month"
         ? product.nextMonthScore
         : mode === "quarter"
@@ -125,6 +129,10 @@ function ProductCard({ product, mode }: { product: CommerceProduct; mode: "sales
       ? "利潤指數"
       : mode === "repeat"
         ? "低售服回購分"
+      : mode === "seasonal"
+        ? "季節熱賣分"
+      : mode === "margin"
+        ? "低成本高毛利分"
       : mode === "month"
         ? "下月大賣分"
         : mode === "quarter"
@@ -175,6 +183,12 @@ function ProductCard({ product, mode }: { product: CommerceProduct; mode: "sales
             <MiniMetric label="低售服回購分" value={score(product.lowServiceRepeatScore)} tone={scoreTone(product.lowServiceRepeatScore)} sub="回購/售服/熱度/淨利綜合" />
           </div>
 
+          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            <MiniMetric label="季節熱賣分" value={score(product.seasonalHotScore)} tone={scoreTone(product.seasonalHotScore)} sub={product.seasonalReason} />
+            <MiniMetric label="低成本高毛利" value={score(product.lowCostHighMarginScore)} tone={scoreTone(product.lowCostHighMarginScore)} sub={`估毛利 ${money(product.estimatedGrossProfit)}`} />
+            <MiniMetric label="成本效率" value={pct(product.grossMarginRate)} tone={scoreTone(product.lowCostHighMarginScore)} sub={`進貨成本率 ${pct(product.costRate)}`} />
+          </div>
+
           <p className="mt-3 text-sm leading-6 text-slate-300">{product.salesSignalLabel}</p>
           <div className="mt-3 flex flex-wrap gap-2 text-xs">
             <span className="rounded-full bg-blue-400/15 px-3 py-1 text-blue-100">{product.parentCategory}</span>
@@ -182,6 +196,8 @@ function ProductCard({ product, mode }: { product: CommerceProduct; mode: "sales
             <span className="rounded-full bg-slate-700/60 px-3 py-1 text-slate-200">預設毛利 {pct(product.grossMarginRate)}</span>
             <span className="rounded-full bg-emerald-400/15 px-3 py-1 text-emerald-100">回購 {score(product.repurchaseScore)}</span>
             <span className="rounded-full bg-cyan-400/15 px-3 py-1 text-cyan-100">售服 {product.afterSalesBurden}</span>
+            <span className="rounded-full bg-orange-400/15 px-3 py-1 text-orange-100">季節 {score(product.seasonalHotScore)}</span>
+            <span className="rounded-full bg-lime-400/15 px-3 py-1 text-lime-100">低成本高毛利 {score(product.lowCostHighMarginScore)}</span>
             {product.discountPct > 0 ? <span className="rounded-full bg-rose-400/15 px-3 py-1 text-rose-200">折扣 {product.discountPct.toFixed(1)}%</span> : null}
           </div>
           <a href={product.url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-blue-300 hover:text-blue-200">
@@ -213,6 +229,10 @@ function CategoryCard({ item }: { item: CommerceCategorySummary }) {
         <MiniMetric label="平均低售服分" value={score(item.averageLowAfterSalesScore)} tone={scoreTone(item.averageLowAfterSalesScore)} />
         <MiniMetric label="低售服回購分" value={score(item.averageLowServiceRepeatScore)} tone={scoreTone(item.averageLowServiceRepeatScore)} />
       </div>
+      <div className="mt-2 grid gap-2 sm:grid-cols-2">
+        <MiniMetric label="平均季節熱賣分" value={score(item.averageSeasonalHotScore)} tone={scoreTone(item.averageSeasonalHotScore)} />
+        <MiniMetric label="平均低成本高毛利" value={score(item.averageLowCostHighMarginScore)} tone={scoreTone(item.averageLowCostHighMarginScore)} />
+      </div>
       {item.bestProductTitle ? (
         <a href={item.bestProductUrl} target="_blank" rel="noreferrer" className="mt-3 block line-clamp-2 text-sm font-bold text-blue-300 hover:text-blue-200">
           高利潤代表：{item.bestProductTitle}
@@ -226,15 +246,18 @@ function ProductTable({ products }: { products: CommerceProduct[] }) {
   return (
     <div className="overflow-hidden rounded-3xl border border-slate-700/70">
       <div className="max-h-[620px] overflow-auto">
-        <table className="w-full min-w-[1380px] border-collapse text-left text-sm">
+        <table className="w-full min-w-[1580px] border-collapse text-left text-sm">
           <thead className="sticky top-0 bg-slate-950 text-slate-300">
             <tr>
               <th className="px-4 py-3">商品</th>
               <th className="px-4 py-3">分類</th>
               <th className="px-4 py-3">售價</th>
               <th className="px-4 py-3">進貨成本</th>
+              <th className="px-4 py-3">估毛利</th>
               <th className="px-4 py-3">總成本</th>
               <th className="px-4 py-3">估淨利</th>
+              <th className="px-4 py-3">季節熱賣</th>
+              <th className="px-4 py-3">低成本高毛利</th>
               <th className="px-4 py-3">回購分</th>
               <th className="px-4 py-3">售服負擔</th>
               <th className="px-4 py-3">低售服回購</th>
@@ -261,8 +284,11 @@ function ProductTable({ products }: { products: CommerceProduct[] }) {
                 </td>
                 <td className="px-4 py-3 font-bold text-white">{money(product.price)}</td>
                 <td className="px-4 py-3">{money(product.estimatedProductCost)}</td>
+                <td className="px-4 py-3 text-lime-300">{money(product.estimatedGrossProfit)}</td>
                 <td className="px-4 py-3">{money(product.estimatedTotalCost)}</td>
                 <td className={`px-4 py-3 font-black ${profitTone(product.estimatedNetProfit)}`}>{money(product.estimatedNetProfit)} <span className="text-xs">({pct(product.estimatedNetMarginRate)})</span></td>
+                <td className="px-4 py-3 text-orange-300">{score(product.seasonalHotScore)}</td>
+                <td className="px-4 py-3 text-lime-300">{score(product.lowCostHighMarginScore)}</td>
                 <td className="px-4 py-3 text-emerald-300">{score(product.repurchaseScore)}</td>
                 <td className={`px-4 py-3 font-black ${product.afterSalesBurden === "低" ? "text-emerald-300" : product.afterSalesBurden === "中" ? "text-amber-300" : "text-rose-300"}`}>{product.afterSalesBurden}</td>
                 <td className="px-4 py-3 text-cyan-300">{score(product.lowServiceRepeatScore)}</td>
@@ -333,6 +359,8 @@ export function EcommerceRadarClient() {
   const topSales = report?.topSales[0];
   const topProfit = report?.topProfit[0];
   const topRepeat = report?.lowServiceHighRepurchase[0];
+  const topSeasonal = report?.seasonalHotProducts[0];
+  const topMargin = report?.lowCostHighMarginProducts[0];
   const topMonth = report?.nextMonthWinners[0];
   const topQuarter = report?.nextQuarterWinners[0];
 
@@ -418,10 +446,12 @@ export function EcommerceRadarClient() {
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
         <SummaryCard icon={TrendingUp} label="目前銷售熱度最大" value={topSales?.title || (loading ? "讀取中" : "-")} sub={topSales ? `${topSales.salesSignalLabel}，熱銷分 ${topSales.salesSignal}` : "依 PChome 熱銷排序訊號"} tone="text-emerald-300" />
         <SummaryCard icon={DollarSign} label="估算淨利最高" value={topProfit?.title || (loading ? "讀取中" : "-")} sub={topProfit ? `淨利 ${money(topProfit.estimatedNetProfit)}，淨利率 ${pct(topProfit.estimatedNetMarginRate)}` : "依成本模型與熱銷分"} tone="text-amber-300" />
         <SummaryCard icon={Repeat2} label="低售服高回購" value={topRepeat?.title || (loading ? "讀取中" : "-")} sub={topRepeat ? `回購分 ${score(topRepeat.repurchaseScore)}，售服 ${topRepeat.afterSalesBurden}，綜合 ${score(topRepeat.lowServiceRepeatScore)}` : "依回購、客服負擔、熱度與淨利"} tone="text-cyan-200" />
+        <SummaryCard icon={CalendarClock} label="季節熱賣商品" value={topSeasonal?.title || (loading ? "讀取中" : "-")} sub={topSeasonal ? `季節分 ${score(topSeasonal.seasonalHotScore)}：${topSeasonal.seasonalReason}` : "依月份、類別與熱銷分"} tone="text-orange-200" />
+        <SummaryCard icon={DollarSign} label="低成本高毛利" value={topMargin?.title || (loading ? "讀取中" : "-")} sub={topMargin ? `毛利 ${money(topMargin.estimatedGrossProfit)}，分數 ${score(topMargin.lowCostHighMarginScore)}` : "依成本率、毛利率與淨利率"} tone="text-lime-200" />
         <SummaryCard icon={CalendarClock} label="下個月可能大賣" value={topMonth?.title || (loading ? "讀取中" : "-")} sub={topMonth ? `下月大賣分 ${topMonth.nextMonthScore}，分類 ${topMonth.category}` : "依熱度、成本與季節性"} tone="text-blue-200" />
         <SummaryCard icon={ShoppingBag} label="下一季可能大賣" value={topQuarter?.title || (loading ? "讀取中" : "-")} sub={topQuarter ? `下季大賣分 ${topQuarter.nextQuarterScore}，可信度 ${topQuarter.confidence}` : "依季節性與分類毛利推估"} tone="text-fuchsia-200" />
       </section>
@@ -474,6 +504,29 @@ export function EcommerceRadarClient() {
             </div>
             <div className="mt-4 grid gap-4 xl:grid-cols-2">
               {report.lowServiceHighRepurchase.slice(0, 4).map((product) => <ProductCard key={`repeat-${product.id}`} product={product} mode="repeat" />)}
+            </div>
+          </section>
+
+          <section className="grid gap-4 xl:grid-cols-2">
+            <div className="space-y-4">
+              <div className="glass rounded-3xl p-5">
+                <p className="text-sm text-slate-400">Seasonal Demand</p>
+                <h2 className="text-2xl font-black text-white">季節因素熱賣商品</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-300">
+                  依目前月份、分類季節字、熱銷排序、折扣與成本效率排序，適合拿來看短期活動檔期與季節性備貨。
+                </p>
+              </div>
+              {report.seasonalHotProducts.slice(0, 3).map((product) => <ProductCard key={`seasonal-${product.id}`} product={product} mode="seasonal" />)}
+            </div>
+            <div className="space-y-4">
+              <div className="glass rounded-3xl p-5">
+                <p className="text-sm text-slate-400">Low Cost / High Margin</p>
+                <h2 className="text-2xl font-black text-white">低成本高毛利獲利商品</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-300">
+                  依毛利率、淨利率、售價門檻、熱銷分與售服負擔排序，更適合找小資金可測、可複製上架的商品。
+                </p>
+              </div>
+              {report.lowCostHighMarginProducts.slice(0, 3).map((product) => <ProductCard key={`margin-${product.id}`} product={product} mode="margin" />)}
             </div>
           </section>
 

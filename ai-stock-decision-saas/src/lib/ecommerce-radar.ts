@@ -24,6 +24,8 @@ export type CommerceCategorySummary = {
   averageRepurchaseScore: number;
   averageLowAfterSalesScore: number;
   averageLowServiceRepeatScore: number;
+  averageSeasonalHotScore: number;
+  averageLowCostHighMarginScore: number;
   bestProductTitle: string;
   bestProductUrl: string;
 };
@@ -51,9 +53,13 @@ export type CommerceProduct = {
   afterSalesBurden: "低" | "中" | "高";
   lowAfterSalesScore: number;
   lowServiceRepeatScore: number;
+  seasonalHotScore: number;
+  seasonalReason: string;
+  lowCostHighMarginScore: number;
   grossMarginRate: number;
   costRate: number;
   estimatedProductCost: number;
+  estimatedGrossProfit: number;
   estimatedPlatformFee: number;
   estimatedPaymentFee: number;
   estimatedShippingCost: number;
@@ -82,6 +88,8 @@ export type CommerceRadarReport = {
   topSales: CommerceProduct[];
   topProfit: CommerceProduct[];
   lowServiceHighRepurchase: CommerceProduct[];
+  seasonalHotProducts: CommerceProduct[];
+  lowCostHighMarginProducts: CommerceProduct[];
   nextMonthWinners: CommerceProduct[];
   nextQuarterWinners: CommerceProduct[];
   limitations: string[];
@@ -274,19 +282,79 @@ function buildLowServiceRepeatScore(args: {
 function seasonalityBoost(title: string, rule: CategoryRule, target: "month" | "quarter") {
   const month = new Date().getMonth() + 1;
   const targetMonth = target === "month" ? ((month % 12) + 1) : (((month + 2) % 12) + 1);
-  const text = `${title} ${rule.parentCategory} ${rule.category}`;
+  const text = title;
+  const categoryText = `${rule.parentCategory} ${rule.category}`;
   let boost = 50;
 
-  if ([6, 7, 8].includes(targetMonth) && /電風扇|冷氣|清淨|除濕|防曬|露營|飲料|冰|涼感/.test(text)) boost += 22;
-  if ([9].includes(targetMonth) && /3C|耳機|行動電源|滑鼠|鍵盤|SSD|背包|咖啡|中秋|烤肉|文具/.test(text)) boost += 22;
-  if ([10, 11, 12].includes(targetMonth) && /3C|美妝|保養|咖啡|小家電|玩具|禮|耳機|掃地|氣炸|清淨|香水/.test(text)) boost += 26;
-  if ([1, 2].includes(targetMonth) && /清潔|收納|年節|禮盒|保健|家電|美妝|玩具|零食/.test(text)) boost += 22;
-  if ([3, 4, 5].includes(targetMonth) && /除濕|清淨|防曬|露營|保養|運動|換季/.test(text)) boost += 18;
+  if ([6, 7, 8].includes(targetMonth) && (/電風扇|冷氣|清淨|除濕|防曬|露營|飲料|冰|涼感/.test(text) || /空調環境|露營戶外/.test(categoryText))) boost += 22;
+  if ([9].includes(targetMonth) && (/耳機|行動電源|滑鼠|鍵盤|SSD|背包|咖啡|中秋|烤肉|文具/.test(text) || /3C 電子|辦公文具/.test(categoryText))) boost += 22;
+  if ([10, 11, 12].includes(targetMonth) && (/美妝|保養|咖啡|小家電|玩具|禮|耳機|掃地|氣炸|清淨|香水/.test(text) || /美妝保養|小家電|母嬰玩具/.test(categoryText))) boost += 26;
+  if ([1, 2].includes(targetMonth) && (/清潔|收納|年節|禮盒|保健|家電|美妝|玩具|零食/.test(text) || /居家生活|健康保健|食品飲料/.test(categoryText))) boost += 22;
+  if ([3, 4, 5].includes(targetMonth) && (/除濕|清淨|防曬|露營|保養|運動|換季/.test(text) || /空調環境|美妝保養|運動戶外/.test(categoryText))) boost += 18;
 
   if (rule.seasonalKeywords?.some((keyword) => text.includes(keyword))) boost += 8;
   if (target === "quarter" && ["美妝保養", "健康保健", "母嬰玩具", "服飾鞋包"].includes(rule.parentCategory)) boost += 6;
 
   return clamp(boost, 0, 100);
+}
+
+function seasonalProfile(title: string, rule: CategoryRule) {
+  const month = new Date().getMonth() + 1;
+  const text = title;
+  const categoryText = `${rule.parentCategory} ${rule.category}`;
+  const reasons: string[] = [];
+  let score = 50;
+
+  const add = (condition: boolean, points: number, reason: string) => {
+    if (!condition) return;
+    score += points;
+    reasons.push(reason);
+  };
+
+  add([6, 7, 8].includes(month) && (/電風扇|冷氣|清淨|除濕|防曬|露營|飲料|冰|涼感|戶外/.test(text) || /空調環境|露營戶外/.test(categoryText)), 26, "夏季高溫/戶外/防曬需求");
+  add([8, 9].includes(month) && (/耳機|滑鼠|鍵盤|SSD|文具|背包|行動電源|手機殼|保護貼/.test(text) || /3C 電子|辦公文具/.test(categoryText)), 24, "開學與換機準備需求");
+  add([9, 10].includes(month) && /中秋|烤肉|咖啡|零食|茶|飲料|禮盒|露營/.test(text), 22, "中秋送禮與聚會需求");
+  add([10, 11, 12].includes(month) && (/美妝|保養|香水|禮|玩具|小家電|耳機|咖啡|清淨|掃地/.test(text) || /美妝保養|小家電|母嬰玩具/.test(categoryText)), 25, "雙 11、年末送禮與換新需求");
+  add([1, 2].includes(month) && (/清潔|收納|洗衣精|衛生紙|零食|保健|禮盒|玩具|家電|美妝/.test(text) || /居家生活|健康保健|食品飲料/.test(categoryText)), 24, "年節囤貨與大掃除需求");
+  add([3, 4, 5].includes(month) && (/除濕|清淨|防曬|露營|保養|換季|運動/.test(text) || /空調環境|美妝保養|運動戶外/.test(categoryText)), 20, "梅雨、換季與戶外活動需求");
+  add(rule.seasonalKeywords?.some((keyword) => text.includes(keyword)) || false, 10, `分類季節字：${rule.seasonalKeywords?.join("/")}`);
+  add(["健康保健", "寵物用品", "食品飲料", "居家生活"].includes(rule.parentCategory), 6, "日常補貨型品類需求穩定");
+
+  return {
+    score: clamp(score, 0, 100),
+    reason: reasons.length ? reasons.join("、") : "目前沒有明顯季節催化，主要看熱銷排序與價格競爭力"
+  };
+}
+
+function buildLowCostHighMarginScore(args: {
+  price: number;
+  grossMarginRate: number;
+  estimatedNetMarginRate: number;
+  estimatedNetProfit: number;
+  salesSignal: number;
+  lowAfterSalesScore: number;
+}) {
+  const grossMarginScore = clamp(args.grossMarginRate * 170, 0, 100);
+  const netMarginScore = clamp(Math.max(args.estimatedNetMarginRate, 0) * 230, 0, 100);
+  const capitalEfficiencyScore =
+    args.price <= 300 ? 95 :
+    args.price <= 800 ? 90 :
+    args.price <= 1500 ? 78 :
+    args.price <= 3000 ? 62 :
+    args.price <= 6000 ? 48 :
+    32;
+  const profitFloorScore = args.estimatedNetProfit > 0 ? clamp(Math.log10(args.estimatedNetProfit + 1) * 34, 0, 100) : 0;
+
+  return clamp(
+    grossMarginScore * 0.27 +
+      netMarginScore * 0.30 +
+      capitalEfficiencyScore * 0.18 +
+      args.salesSignal * 0.11 +
+      args.lowAfterSalesScore * 0.07 +
+      profitFloorScore * 0.07,
+    0,
+    100
+  );
 }
 
 function productUrl(id: string) {
@@ -302,6 +370,7 @@ function imageUrl(path?: string) {
 function buildCostModel(price: number, grossMarginRate: number, settings: CostSettings) {
   const costRate = clamp(1 - grossMarginRate, 0.2, 0.92);
   const estimatedProductCost = price * costRate;
+  const estimatedGrossProfit = price - estimatedProductCost;
   const estimatedPlatformFee = price * settings.platformFeeRate;
   const estimatedPaymentFee = price * settings.paymentFeeRate;
   const estimatedShippingCost = settings.shippingCost;
@@ -321,6 +390,7 @@ function buildCostModel(price: number, grossMarginRate: number, settings: CostSe
   return {
     costRate,
     estimatedProductCost: round(estimatedProductCost),
+    estimatedGrossProfit: round(estimatedGrossProfit),
     estimatedPlatformFee: round(estimatedPlatformFee),
     estimatedPaymentFee: round(estimatedPaymentFee),
     estimatedShippingCost: round(estimatedShippingCost),
@@ -376,10 +446,20 @@ async function fetchPchomeKeyword(keyword: string, limit: number, costSettings: 
         estimatedNetMarginRate: costs.estimatedNetMarginRate,
         price
       });
+      const seasonNow = seasonalProfile(title, category);
+      const lowCostHighMarginScore = buildLowCostHighMarginScore({
+        price,
+        grossMarginRate: category.grossMarginRate,
+        estimatedNetMarginRate: costs.estimatedNetMarginRate,
+        estimatedNetProfit: costs.estimatedNetProfit,
+        salesSignal,
+        lowAfterSalesScore
+      });
       const seasonMonth = seasonalityBoost(title, category, "month");
       const seasonQuarter = seasonalityBoost(title, category, "quarter");
-      const nextMonthScore = clamp(salesSignal * 0.48 + seasonMonth * 0.22 + lowServiceRepeatScore * 0.16 + Math.max(costs.estimatedNetMarginRate, 0) * 42 + (discountPct > 0 ? 6 : 0), 0, 100);
-      const nextQuarterScore = clamp(salesSignal * 0.42 + seasonQuarter * 0.30 + lowServiceRepeatScore * 0.18 + Math.max(costs.estimatedNetMarginRate, 0) * 48 + (price < 3000 ? 4 : 0), 0, 100);
+      const seasonalHotScore = clamp(salesSignal * 0.40 + seasonNow.score * 0.34 + lowCostHighMarginScore * 0.10 + lowServiceRepeatScore * 0.08 + (discountPct > 0 ? 6 : 0), 0, 100);
+      const nextMonthScore = clamp(salesSignal * 0.44 + seasonMonth * 0.22 + lowServiceRepeatScore * 0.14 + lowCostHighMarginScore * 0.10 + Math.max(costs.estimatedNetMarginRate, 0) * 36 + (discountPct > 0 ? 6 : 0), 0, 100);
+      const nextQuarterScore = clamp(salesSignal * 0.38 + seasonQuarter * 0.30 + lowServiceRepeatScore * 0.16 + lowCostHighMarginScore * 0.10 + Math.max(costs.estimatedNetMarginRate, 0) * 42 + (price < 3000 ? 4 : 0), 0, 100);
 
       return {
         id,
@@ -404,6 +484,9 @@ async function fetchPchomeKeyword(keyword: string, limit: number, costSettings: 
         afterSalesBurden: category.afterSalesBurden,
         lowAfterSalesScore: round(lowAfterSalesScore, 1),
         lowServiceRepeatScore: round(lowServiceRepeatScore, 1),
+        seasonalHotScore: round(seasonalHotScore, 1),
+        seasonalReason: seasonNow.reason,
+        lowCostHighMarginScore: round(lowCostHighMarginScore, 1),
         grossMarginRate: category.grossMarginRate,
         ...costs,
         estimatedProfitIndex: round(estimatedProfitIndex, 1),
@@ -415,6 +498,8 @@ async function fetchPchomeKeyword(keyword: string, limit: number, costSettings: 
           `搜尋池共有 ${totalRows.toLocaleString()} 件，需求廣度${totalRows >= 1000 ? "大" : totalRows >= 200 ? "中等" : "偏小"}。`,
           `分類為 ${category.parentCategory} / ${category.category}，分類可信度 ${category.categoryConfidence}。`,
           `回購分 ${round(repurchaseScore, 1)}，售服負擔 ${category.afterSalesBurden}，低售服回購分 ${round(lowServiceRepeatScore, 1)}。`,
+          `季節熱賣分 ${round(seasonalHotScore, 1)}：${seasonNow.reason}。`,
+          `低成本高毛利分 ${round(lowCostHighMarginScore, 1)}，估毛利 ${costs.estimatedGrossProfit.toLocaleString()} 元，估淨利 ${costs.estimatedNetProfit.toLocaleString()} 元。`,
           `估進貨成本 ${round(costs.costRate * 100, 1)}%，加上平台費、金流、物流、廣告與退貨準備後，估淨利 ${costs.estimatedNetProfit.toLocaleString()} 元。`
         ],
         riskNotes: [
@@ -483,10 +568,12 @@ function buildCategorySummary(products: CommerceProduct[]) {
       averageRepurchaseScore: round(rows.reduce((sum, product) => sum + product.repurchaseScore, 0) / rows.length, 1),
       averageLowAfterSalesScore: round(rows.reduce((sum, product) => sum + product.lowAfterSalesScore, 0) / rows.length, 1),
       averageLowServiceRepeatScore: round(rows.reduce((sum, product) => sum + product.lowServiceRepeatScore, 0) / rows.length, 1),
+      averageSeasonalHotScore: round(rows.reduce((sum, product) => sum + product.seasonalHotScore, 0) / rows.length, 1),
+      averageLowCostHighMarginScore: round(rows.reduce((sum, product) => sum + product.lowCostHighMarginScore, 0) / rows.length, 1),
       bestProductTitle: best?.title || "",
       bestProductUrl: best?.url || ""
     };
-  }).sort((a, b) => b.averageLowServiceRepeatScore - a.averageLowServiceRepeatScore || b.productCount - a.productCount);
+  }).sort((a, b) => Math.max(b.averageSeasonalHotScore, b.averageLowCostHighMarginScore, b.averageLowServiceRepeatScore) - Math.max(a.averageSeasonalHotScore, a.averageLowCostHighMarginScore, a.averageLowServiceRepeatScore));
 }
 
 export async function runEcommerceRadar(options?: { keywords?: string | null; perKeywordLimit?: number; costSettings?: Partial<CostSettings> }) {
@@ -499,6 +586,8 @@ export async function runEcommerceRadar(options?: { keywords?: string | null; pe
   const topSales = sortDesc(products, (product) => product.salesSignal).slice(0, 10);
   const topProfit = sortDesc(products, (product) => product.estimatedProfitIndex).slice(0, 10);
   const lowServiceHighRepurchase = sortDesc(products, (product) => product.lowServiceRepeatScore).slice(0, 10);
+  const seasonalHotProducts = sortDesc(products, (product) => product.seasonalHotScore).slice(0, 10);
+  const lowCostHighMarginProducts = sortDesc(products, (product) => product.lowCostHighMarginScore).slice(0, 10);
   const nextMonthWinners = sortDesc(products, (product) => product.nextMonthScore).slice(0, 10);
   const nextQuarterWinners = sortDesc(products, (product) => product.nextQuarterScore).slice(0, 10);
 
@@ -513,12 +602,16 @@ export async function runEcommerceRadar(options?: { keywords?: string | null; pe
     topSales,
     topProfit,
     lowServiceHighRepurchase,
+    seasonalHotProducts,
+    lowCostHighMarginProducts,
     nextMonthWinners,
     nextQuarterWinners,
     limitations: [
       "目前使用 PChome 24h 公開搜尋 JSON：商品、價格、折扣、搜尋池與熱銷排序是真實公開資料。",
       "PChome 沒有公開實際成交件數，所以「銷售量最大」以熱銷排序分數呈現，不顯示假件數。",
       "回購分與售服負擔是依商品分類、商品關鍵字、價格與耗材特徵推估；若要精準，需要接實際訂單回購率、客服工單與退貨資料。",
+      "季節熱賣分是依目前月份、類別季節字、熱銷排序、折扣與成本效率推估；它是進貨輔助，不是平台保證銷量。",
+      "低成本高毛利分是依毛利率、淨利率、售價門檻、熱銷分與售服負擔推估；真正獲利仍需要接真實進貨成本、廣告成本與退貨率。",
       "成本為模型估算，包含進貨成本、平台費、金流費、物流、廣告與退貨準備金；若要真正精準，必須接你的進貨成本與店鋪報表。",
       "預估下月/下季爆品使用熱銷排序、搜尋池、折扣、價格帶、分類成本與季節性，屬於決策輔助，不是保證銷售。"
     ]
