@@ -1,15 +1,15 @@
 {
   "initialCapital": 100000,
-  "cash": 83655.69999999997,
-  "realizedPnl": -2821.900000000004,
+  "cash": 84236.49999999996,
+  "realizedPnl": -2786.400000000004,
   "positions": [
     {
       "id": "position-1784882384944-5c1a1e232ec4f",
       "symbol": "4127.TWO",
       "name": "天良",
-      "shares": 12,
+      "shares": 6,
       "entryPrice": 78.9,
-      "entryAmount": 946.8000000000001,
+      "entryAmount": 473.40000000000003,
       "stopLossPrice": 73.28,
       "takeProfit1": 94.03,
       "takeProfit2": 101.64,
@@ -19,10 +19,10 @@
       "automationAction": "小量試單",
       "positionSizePct": 20,
       "lastPrice": 84.9,
-      "lastValue": 1018.8000000000001,
-      "unrealizedPnl": 72,
+      "lastValue": 509.40000000000003,
+      "unrealizedPnl": 36,
       "unrealizedPnlPct": 7.604562737642586,
-      "lastAnalysisAt": "2026-08-05T03:53:35.997Z"
+      "lastAnalysisAt": "2026-08-05T06:20:18.688Z"
     },
     {
       "id": "position-1784882384944-048c8bef0ec22",
@@ -31,40 +31,40 @@
       "shares": 7,
       "entryPrice": 71.4,
       "entryAmount": 499.80000000000007,
-      "stopLossPrice": 62.52,
+      "stopLossPrice": 52.69,
       "takeProfit1": 81.6,
       "takeProfit2": 91.48,
       "openedAt": "2026-07-24T08:39:44.944Z",
       "openedTradingDate": "2026-07-24",
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "positionSizePct": 20,
-      "lastPrice": 66.7,
-      "lastValue": 466.90000000000003,
-      "unrealizedPnl": -32.900000000000034,
-      "unrealizedPnlPct": -6.582633053221294,
-      "lastAnalysisAt": "2026-08-05T03:53:36.702Z"
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "positionSizePct": 0,
+      "lastPrice": 66,
+      "lastValue": 462,
+      "unrealizedPnl": -37.80000000000007,
+      "unrealizedPnlPct": -7.563025210084046,
+      "lastAnalysisAt": "2026-08-05T06:20:19.720Z"
     },
     {
       "id": "position-1785489265233-a76a90ea2adfc",
       "symbol": "2887.TW",
       "name": "台新新光金",
-      "shares": 4,
+      "shares": 2,
       "entryPrice": 35.95,
-      "entryAmount": 143.8,
+      "entryAmount": 71.9,
       "stopLossPrice": 34.25,
-      "takeProfit1": 38.14,
-      "takeProfit2": 40.04,
+      "takeProfit1": 37.99,
+      "takeProfit2": 39.89,
       "openedAt": "2026-07-31T09:14:25.233Z",
       "openedTradingDate": "2026-07-31",
-      "tradeStyle": "中線常抱",
-      "automationAction": "續抱",
-      "positionSizePct": 40,
-      "lastPrice": 35.85,
-      "lastValue": 143.4,
-      "unrealizedPnl": -0.4000000000000057,
-      "unrealizedPnlPct": -0.278164116828933,
-      "lastAnalysisAt": "2026-08-05T03:53:37.016Z"
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "positionSizePct": 20,
+      "lastPrice": 35.7,
+      "lastValue": 71.4,
+      "unrealizedPnl": -0.5,
+      "unrealizedPnlPct": -0.6954102920723226,
+      "lastAnalysisAt": "2026-08-05T06:20:20.194Z"
     },
     {
       "id": "position-1785824837537-c98792356d8e5",
@@ -73,22 +73,52 @@
       "shares": 76,
       "entryPrice": 157,
       "entryAmount": 11932,
-      "stopLossPrice": 148.91,
-      "takeProfit1": 195.04,
-      "takeProfit2": 215.08,
+      "stopLossPrice": 148.81,
+      "takeProfit1": 193.04,
+      "takeProfit2": 213.08,
       "openedAt": "2026-08-04T06:27:17.537Z",
       "openedTradingDate": "2026-08-04",
       "tradeStyle": "短進短出",
       "automationAction": "小量試單",
       "positionSizePct": 12,
-      "lastPrice": 171,
-      "lastValue": 12996,
-      "unrealizedPnl": 1064,
-      "unrealizedPnlPct": 8.9171974522293,
-      "lastAnalysisAt": "2026-08-05T03:53:37.364Z"
+      "lastPrice": 169,
+      "lastValue": 12844,
+      "unrealizedPnl": 912,
+      "unrealizedPnlPct": 7.643312101910828,
+      "lastAnalysisAt": "2026-08-05T06:20:20.692Z"
     }
   ],
   "trades": [
+    {
+      "side": "PARTIAL_SELL",
+      "symbol": "2887.TW",
+      "name": "台新新光金",
+      "price": 35.7,
+      "shares": 2,
+      "amount": 71.4,
+      "cashAfter": 84236.49999999996,
+      "reason": "AI 顯示減碼訊號：第一目標 37.99 元 先賣 1/3 到 1/2，第二目標 39.89 元 再分批。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1785489265233-a76a90ea2adfc",
+      "id": "trade-1785910820194-e1957242ebf63",
+      "createdAt": "2026-08-05T06:20:20.194Z",
+      "tradingDate": "2026-08-05"
+    },
+    {
+      "side": "PARTIAL_SELL",
+      "symbol": "4127.TWO",
+      "name": "天良",
+      "price": 84.9,
+      "shares": 6,
+      "amount": 509.40000000000003,
+      "cashAfter": 84165.09999999996,
+      "reason": "AI 顯示減碼訊號：第一目標 94.03 元 先賣 1/3 到 1/2，第二目標 101.64 元 再分批。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1784882384944-5c1a1e232ec4f",
+      "id": "trade-1785910818688-fce7a3a58b64a",
+      "createdAt": "2026-08-05T06:20:18.688Z",
+      "tradingDate": "2026-08-05"
+    },
     {
       "side": "PARTIAL_SELL",
       "symbol": "2887.TW",
@@ -1261,6 +1291,63 @@
     }
   ],
   "decisions": [
+    {
+      "symbol": "CASH",
+      "name": "資金控管",
+      "decision": "暫停買入",
+      "reason": "已持有 4 檔，避免過度分散。",
+      "id": "decision-1785910820692-63f7d16c2c9e3",
+      "createdAt": "2026-08-05T06:20:20.692Z",
+      "tradingDate": "2026-08-05"
+    },
+    {
+      "symbol": "2344.TW",
+      "name": "華邦電",
+      "decision": "續抱",
+      "reason": "短線停損要更緊，收盤或盤中跌破 148.81 元 就不戀戰。",
+      "finalScore": 55,
+      "tradeStyle": "短進短出",
+      "automationAction": "小量試單",
+      "id": "decision-1785910820692-d3ff1668e9ea6",
+      "createdAt": "2026-08-05T06:20:20.692Z",
+      "tradingDate": "2026-08-05"
+    },
+    {
+      "symbol": "2887.TW",
+      "name": "台新新光金",
+      "decision": "部分賣出",
+      "reason": "AI 顯示減碼訊號：第一目標 37.99 元 先賣 1/3 到 1/2，第二目標 39.89 元 再分批。",
+      "finalScore": 57,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1785910820194-061ee2d8280bb",
+      "createdAt": "2026-08-05T06:20:20.194Z",
+      "tradingDate": "2026-08-05"
+    },
+    {
+      "symbol": "4541.TWO",
+      "name": "晟田",
+      "decision": "續抱",
+      "reason": "停損線 52.69 元 不可下修。",
+      "finalScore": 47,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1785910819720-8b9fa0780e22e",
+      "createdAt": "2026-08-05T06:20:19.720Z",
+      "tradingDate": "2026-08-05"
+    },
+    {
+      "symbol": "4127.TWO",
+      "name": "天良",
+      "decision": "部分賣出",
+      "reason": "AI 顯示減碼訊號：第一目標 94.03 元 先賣 1/3 到 1/2，第二目標 101.64 元 再分批。",
+      "finalScore": 55,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1785910818688-4b7f4977be124",
+      "createdAt": "2026-08-05T06:20:18.688Z",
+      "tradingDate": "2026-08-05"
+    },
     {
       "symbol": "CASH",
       "name": "資金控管",
@@ -2950,6 +3037,15 @@
   ],
   "equity": [
     {
+      "id": "equity-1785910820692-33509906b00c3",
+      "createdAt": "2026-08-05T06:20:20.692Z",
+      "tradingDate": "2026-08-05",
+      "cash": 84236.49999999996,
+      "positionValue": 13886.8,
+      "totalEquity": 98123.29999999996,
+      "realizedPnl": -2786.400000000004
+    },
+    {
       "id": "equity-1785902017364-204a808fd04ea",
       "createdAt": "2026-08-05T03:53:37.364Z",
       "tradingDate": "2026-08-05",
@@ -3211,5 +3307,5 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-08-05T03:53:29.561Z"
+  "lastRunAt": "2026-08-05T06:20:09.604Z"
 }
