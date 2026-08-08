@@ -45,6 +45,21 @@ export type LifestyleSmallItemSummary = {
 };
 
 export type ProductSizeClass = "small" | "medium" | "large" | "unknown";
+export type HealthAdRiskLevel = "低" | "中" | "高" | "極高";
+
+export type HealthSupplementGroupSummary = {
+  group: string;
+  productCount: number;
+  averageRiskScore: number;
+  averageOpportunityScore: number;
+  averagePrice: number;
+  riskLevel: HealthAdRiskLevel;
+  attentionNotes: string[];
+  forbiddenTerms: string[];
+  saferClaimTips: string[];
+  topProductTitle: string;
+  topProductUrl: string;
+};
 
 export type CommerceProduct = {
   id: string;
@@ -84,6 +99,15 @@ export type CommerceProduct = {
   selectionReasons: string[];
   compactLifestyleScore: number;
   compactLifestyleReason: string;
+  isHealthSupplement: boolean;
+  healthSupplementType: string;
+  healthAdRiskLevel: HealthAdRiskLevel;
+  healthAdRiskScore: number;
+  healthAdRiskReason: string;
+  healthAdAttentionNotes: string[];
+  healthAdForbiddenTerms: string[];
+  healthAdSaferClaimTips: string[];
+  healthOpportunityScore: number;
   grossMarginRate: number;
   costRate: number;
   estimatedProductCost: number;
@@ -124,6 +148,8 @@ export type CommerceRadarReport = {
   lifestyleLowCostHighProfitProducts: CommerceProduct[];
   compactLifestyleRecommendations: CommerceProduct[];
   productSelectionRecommendations: CommerceProduct[];
+  healthSupplementCategoryRankings: HealthSupplementGroupSummary[];
+  healthSupplementProductRankings: CommerceProduct[];
   nextMonthWinners: CommerceProduct[];
   nextQuarterWinners: CommerceProduct[];
   limitations: string[];
@@ -647,6 +673,217 @@ function compactLifestyleReason(product: {
   ].join("，");
 }
 
+const HEALTH_GROUP_RULES = [
+  {
+    group: "體重管理/代謝",
+    terms: ["減肥", "瘦身", "燃脂", "體脂", "代謝", "窈窕", "藤黃果", "酵素", "阻斷"],
+    riskBias: 28,
+    notes: ["減重、燃脂、阻斷吸收等詞很容易被認定為誇大或醫療效能，廣告應避免承諾效果。", "建議只描述成分、熱量、食用方式與搭配運動飲食。"],
+    saferClaimTips: ["營養補充", "每日飲食管理輔助", "搭配均衡飲食與運動"],
+    forbiddenTerms: ["減肥", "瘦身", "燃脂", "阻斷吸收", "快速見效"]
+  },
+  {
+    group: "睡眠/情緒調節",
+    terms: ["睡眠", "失眠", "好眠", "GABA", "褪黑", "色胺酸", "舒壓", "焦慮"],
+    riskBias: 24,
+    notes: ["失眠、焦慮、憂鬱等屬疾病或醫療語境，食品廣告不應暗示治療。", "含特定成分時需確認食品添加與輸入規範。"],
+    saferClaimTips: ["夜間營養補給", "放鬆時刻補充", "依標示建議食用"],
+    forbiddenTerms: ["治失眠", "改善焦慮", "安眠", "抗憂鬱"]
+  },
+  {
+    group: "男性精力/私密",
+    terms: ["瑪卡", "精胺酸", "鋅", "男性", "壯陽", "持久", "勃起", "性功能"],
+    riskBias: 30,
+    notes: ["性功能、壯陽、持久等詞高度接近醫療或藥品效能，商品頁與廣告要特別保守。", "避免使用暗示治療性功能障礙的圖片、文案與見證。"],
+    saferClaimTips: ["男性營養補給", "鋅與胺基酸補充", "日常活力補充"],
+    forbiddenTerms: ["壯陽", "持久", "勃起", "性功能改善"]
+  },
+  {
+    group: "血脂/循環保健",
+    terms: ["魚油", "omega", "DHA", "EPA", "紅麴", "納豆", "納豆激酶", "Q10", "膽固醇", "三酸甘油酯", "血脂"],
+    riskBias: 20,
+    notes: ["血脂、膽固醇、三酸甘油酯屬高度敏感功效字，未確認健康食品許可前不應宣稱調節或降低。", "魚油與紅麴若宣稱健康食品功效，需核對許可證與核准文字。"],
+    saferClaimTips: ["Omega-3 營養補充", "魚油來源與含量標示", "日常營養保養"],
+    forbiddenTerms: ["降血脂", "降膽固醇", "清血管", "預防中風"]
+  },
+  {
+    group: "血糖/血壓管理",
+    terms: ["血糖", "血壓", "糖尿", "苦瓜", "肉桂", "鉻", "胰島素"],
+    riskBias: 32,
+    notes: ["血糖、血壓、糖尿病是醫療高敏感區，食品廣告不應宣稱調節、降低、治療或替代藥物。", "若沒有合法健康食品許可，不建議作為主要選品。"],
+    saferClaimTips: ["營養補充", "飲食控制輔助資訊", "依產品標示食用"],
+    forbiddenTerms: ["降血糖", "降血壓", "治糖尿病", "穩血糖"]
+  },
+  {
+    group: "眼睛保健",
+    terms: ["葉黃素", "玉米黃素", "花青素", "蝦紅素", "視力", "眼睛", "藍光", "乾眼"],
+    riskBias: 14,
+    notes: ["避免宣稱改善視力、治療乾眼或預防眼疾；可偏向成分與日常營養補充。", "若使用研究佐證，需避免把研究結果直接轉成療效承諾。"],
+    saferClaimTips: ["葉黃素營養補充", "長時間用眼族群日常保養", "晶亮營養補給"],
+    forbiddenTerms: ["改善近視", "治乾眼", "恢復視力", "預防黃斑部病變"]
+  },
+  {
+    group: "腸胃/益生菌",
+    terms: ["益生菌", "乳酸菌", "酵素", "膳食纖維", "便秘", "排便", "腸胃", "消化"],
+    riskBias: 16,
+    notes: ["便秘、腹瀉、胃痛等症狀詞要避免做治療承諾；可描述菌株、膳食纖維與食用方式。", "若宣稱胃腸功能改善，需確認是否有健康食品許可與核准範圍。"],
+    saferClaimTips: ["菌株與含量標示", "調整體質請用保守語氣", "每日營養補充"],
+    forbiddenTerms: ["治便秘", "止瀉", "改善胃病", "排毒"]
+  },
+  {
+    group: "骨骼/關節",
+    terms: ["鈣", "葡萄糖胺", "UC-II", "MSM", "關節", "軟骨", "骨質", "膝蓋"],
+    riskBias: 18,
+    notes: ["關節疼痛、退化、骨質疏鬆屬醫療語境，避免宣稱治療或修復。", "可描述鈣質、膠原蛋白或營養補充，不要承諾止痛。"],
+    saferClaimTips: ["骨骼營養補充", "行動族群日常保養", "成分含量清楚揭露"],
+    forbiddenTerms: ["止痛", "修復軟骨", "治退化", "改善骨質疏鬆"]
+  },
+  {
+    group: "美容/膠原保養",
+    terms: ["膠原", "玻尿酸", "賽洛美", "美白", "亮白", "彈力", "抗老", "凍齡"],
+    riskBias: 12,
+    notes: ["美容類常見誇大詞很多，避免保證美白、抗老、淡斑或前後對比療效。", "建議用成分、口味、食用情境與營養補充描述。"],
+    saferClaimTips: ["美麗營養補給", "膠原蛋白補充", "日常保養"],
+    forbiddenTerms: ["美白有效", "淡斑", "除皺", "逆齡"]
+  },
+  {
+    group: "維生素/礦物質",
+    terms: ["維他命", "維生素", "B群", "維他命C", "維他命D", "鋅", "鐵", "鎂", "硒", "葉酸"],
+    riskBias: 8,
+    notes: ["維生素礦物質相對好操作，但仍不可宣稱治病、增強免疫可抵抗疾病。", "注意含量、每日攝取量、適用族群與警語。"],
+    saferClaimTips: ["每日營養補充", "補充維生素與礦物質", "依建議攝取量食用"],
+    forbiddenTerms: ["治療缺乏症", "預防感冒", "抗病毒", "增強免疫治病"]
+  },
+  {
+    group: "一般營養補充",
+    terms: ["保健", "營養", "健康", "補充", "膠囊", "錠", "粉", "飲"],
+    riskBias: 10,
+    notes: ["一般保健食品多屬一般食品，只能作為營養補充，不能直接宣稱健康食品功效。", "若頁面使用健康食品、功效、療效等字樣，需先核對許可證。"],
+    saferClaimTips: ["營養補充", "日常保養", "成分與含量揭露"],
+    forbiddenTerms: ["健康食品", "療效", "治療", "保證有效"]
+  }
+];
+
+const HEALTH_FORBIDDEN_PATTERNS = [
+  "治療", "治癒", "根治", "療效", "藥效", "預防疾病", "改善疾病", "抗癌", "防癌", "消炎", "止痛",
+  "降血糖", "降血壓", "降血脂", "降膽固醇", "清血管", "排毒", "解毒", "護肝解毒",
+  "糖尿病", "高血壓", "脂肪肝", "失眠", "憂鬱", "焦慮", "退化性關節炎", "骨質疏鬆",
+  "快速見效", "保證有效", "立即有效", "無副作用", "替代藥物"
+];
+
+function includesAnyText(text: string, terms: string[]) {
+  const normalized = text.toLowerCase();
+  return terms.some((term) => normalized.includes(term.toLowerCase()));
+}
+
+function matchedTerms(text: string, terms: string[]) {
+  const normalized = text.toLowerCase();
+  return terms.filter((term) => normalized.includes(term.toLowerCase()));
+}
+
+function healthRiskLevel(score: number): HealthAdRiskLevel {
+  if (score >= 82) return "極高";
+  if (score >= 65) return "高";
+  if (score >= 45) return "中";
+  return "低";
+}
+
+function detectHealthSupplementProfile(text: string, category: CategoryRule, product: {
+  salesSignal: number;
+  lowCostHighMarginScore: number;
+  repurchaseScore: number;
+  lowAfterSalesScore: number;
+  estimatedNetMarginRate: number;
+}) {
+  const matchedRule = HEALTH_GROUP_RULES.find((rule) => includesAnyText(text, rule.terms));
+  const isHealthSupplement = Boolean(matchedRule) || category.parentCategory === "健康保健";
+
+  if (!isHealthSupplement) {
+    return {
+      isHealthSupplement: false,
+      healthSupplementType: "-",
+      healthAdRiskScore: 0,
+      healthAdRiskLevel: "低" as HealthAdRiskLevel,
+      healthAdRiskReason: "非保健食品類，未套用食品廣告高風險規則。",
+      healthAdAttentionNotes: [] as string[],
+      healthAdForbiddenTerms: [] as string[],
+      healthAdSaferClaimTips: [] as string[],
+      healthOpportunityScore: 0
+    };
+  }
+
+  const rule = matchedRule || HEALTH_GROUP_RULES[HEALTH_GROUP_RULES.length - 1];
+  const commonForbidden = matchedTerms(text, HEALTH_FORBIDDEN_PATTERNS);
+  const groupForbidden = matchedTerms(text, rule.forbiddenTerms);
+  const mentionsHealthyFood = /健康食品|健食字|衛部健食|衛署健食/.test(text);
+  const riskScore = clamp(
+    28 +
+      rule.riskBias +
+      commonForbidden.length * 16 +
+      groupForbidden.length * 12 +
+      (mentionsHealthyFood ? 18 : 0),
+    0,
+    100
+  );
+  const attentionNotes = [
+    ...rule.notes,
+    "食品廣告不得有不實、誇張或易生誤解，也不得涉及醫療效能。",
+    "未取得健康食品許可證者，不要稱為健康食品，也不要宣稱健康食品保健功效。",
+    mentionsHealthyFood ? "頁面含健康食品或健食字樣，務必核對許可證字號、標章、有效期限與核准功效文字。" : "若供應商提供健康食品宣稱，仍需核對許可證與核准功效範圍。"
+  ];
+  const forbiddenTerms = Array.from(new Set([...groupForbidden, ...commonForbidden, ...rule.forbiddenTerms])).slice(0, 10);
+  const opportunityScore = clamp(
+    product.repurchaseScore * 0.24 +
+      product.lowCostHighMarginScore * 0.22 +
+      product.salesSignal * 0.18 +
+      product.lowAfterSalesScore * 0.10 +
+      Math.max(product.estimatedNetMarginRate, 0) * 55 -
+      riskScore * 0.28,
+    0,
+    100
+  );
+
+  return {
+    isHealthSupplement,
+    healthSupplementType: rule.group,
+    healthAdRiskScore: round(riskScore, 1),
+    healthAdRiskLevel: healthRiskLevel(riskScore),
+    healthAdRiskReason: `${rule.group}：法規風險分 ${round(riskScore, 1)}；命中敏感詞 ${commonForbidden.concat(groupForbidden).slice(0, 5).join("、") || "無明顯醫療詞"}。`,
+    healthAdAttentionNotes: attentionNotes,
+    healthAdForbiddenTerms: forbiddenTerms,
+    healthAdSaferClaimTips: rule.saferClaimTips,
+    healthOpportunityScore: round(opportunityScore, 1)
+  };
+}
+
+function buildHealthSupplementCategoryRankings(products: CommerceProduct[]): HealthSupplementGroupSummary[] {
+  const rows = products.filter((product) => product.isHealthSupplement);
+  const groups = Array.from(new Set(rows.map((product) => product.healthSupplementType)));
+
+  return sortDesc(
+    groups.map((group) => {
+      const groupProducts = rows.filter((product) => product.healthSupplementType === group);
+      const top = sortDesc(groupProducts, (product) => product.healthOpportunityScore)[0];
+      const averageRiskScore = groupProducts.reduce((sum, product) => sum + product.healthAdRiskScore, 0) / groupProducts.length;
+      const averageOpportunityScore = groupProducts.reduce((sum, product) => sum + product.healthOpportunityScore, 0) / groupProducts.length;
+      return {
+        group,
+        productCount: groupProducts.length,
+        averageRiskScore: round(averageRiskScore, 1),
+        averageOpportunityScore: round(averageOpportunityScore, 1),
+        averagePrice: round(groupProducts.reduce((sum, product) => sum + product.price, 0) / groupProducts.length),
+        riskLevel: healthRiskLevel(averageRiskScore),
+        attentionNotes: Array.from(new Set(groupProducts.flatMap((product) => product.healthAdAttentionNotes))).slice(0, 4),
+        forbiddenTerms: Array.from(new Set(groupProducts.flatMap((product) => product.healthAdForbiddenTerms))).slice(0, 8),
+        saferClaimTips: Array.from(new Set(groupProducts.flatMap((product) => product.healthAdSaferClaimTips))).slice(0, 6),
+        topProductTitle: top?.title || "",
+        topProductUrl: top?.url || ""
+      };
+    }),
+    (group) => group.averageOpportunityScore
+  );
+}
+
 function productUrl(id: string) {
   return `https://24h.pchome.com.tw/prod/${encodeURIComponent(id)}`;
 }
@@ -772,6 +1009,13 @@ function buildCommerceProduct(input: RawCommerceInput, costSettings: CostSetting
     lowAfterSalesScore,
     lowCostHighMarginScore
   });
+  const healthProfile = detectHealthSupplementProfile(searchText, category, {
+    salesSignal,
+    lowCostHighMarginScore,
+    repurchaseScore,
+    lowAfterSalesScore,
+    estimatedNetMarginRate: costs.estimatedNetMarginRate
+  });
   const soldText = input.externalSoldSignal ? ` / 銷售訊號 ${input.externalSoldSignal.toLocaleString()}` : "";
 
   return {
@@ -826,6 +1070,7 @@ function buildCommerceProduct(input: RawCommerceInput, costSettings: CostSetting
       estimatedNetProfit: costs.estimatedNetProfit,
       estimatedNetMarginRate: costs.estimatedNetMarginRate
     }),
+    ...healthProfile,
     grossMarginRate: category.grossMarginRate,
     ...costs,
     estimatedProfitIndex: round(estimatedProfitIndex, 1),
@@ -1176,6 +1421,11 @@ export async function runEcommerceRadar(options?: { keywords?: string | null; pe
     products.filter((product) => product.estimatedNetProfit > 0),
     (product) => product.selectionScore
   ).slice(0, 15);
+  const healthSupplementCategoryRankings = buildHealthSupplementCategoryRankings(products);
+  const healthSupplementProductRankings = sortDesc(
+    products.filter((product) => product.isHealthSupplement),
+    (product) => product.healthOpportunityScore
+  ).slice(0, 20);
   const nextMonthWinners = sortDesc(products, (product) => product.nextMonthScore).slice(0, 10);
   const nextQuarterWinners = sortDesc(products, (product) => product.nextQuarterScore).slice(0, 10);
 
@@ -1197,6 +1447,8 @@ export async function runEcommerceRadar(options?: { keywords?: string | null; pe
     lifestyleLowCostHighProfitProducts,
     compactLifestyleRecommendations,
     productSelectionRecommendations,
+    healthSupplementCategoryRankings,
+    healthSupplementProductRankings,
     nextMonthWinners,
     nextQuarterWinners,
     limitations: [

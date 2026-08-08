@@ -3,7 +3,7 @@
 import type { LucideIcon } from "lucide-react";
 import { AlertTriangle, BadgeCheck, CalendarClock, DollarSign, ExternalLink, Filter, RefreshCw, Repeat2, Search, Settings2, ShieldCheck, ShoppingBag, TrendingUp } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import type { CommerceCategorySummary, CommerceProduct, CommerceRadarReport } from "@/lib/ecommerce-radar";
+import type { CommerceCategorySummary, CommerceProduct, CommerceRadarReport, HealthSupplementGroupSummary } from "@/lib/ecommerce-radar";
 
 const DEFAULT_KEYWORDS = "藍牙耳機, 行動電源, 手機殼, 保護貼, 掃地機器人, 氣炸鍋, 除濕機, 空氣清淨機, 電競滑鼠, SSD, 咖啡機, 保健食品, 葉黃素, 魚油, 益生菌, 貓砂, 狗飼料, 尿布, 濕紙巾, 美妝保養, 防曬, 筋膜槍, 兒童玩具, 露營燈, 收納箱, 洗衣精, 衛生紙, 洗髮精, 牙膏, 零食, 咖啡豆, 車用吸塵器, 掛勾, 置物架, 廚房小物, 浴室收納, 電線收納, 保溫杯, 小夜燈, 防塵罩, 密封袋, 桌面收納";
 
@@ -64,6 +64,12 @@ function confidenceTone(confidence: CommerceProduct["confidence"] | CommerceProd
   if (confidence === "高") return "bg-emerald-400/15 text-emerald-200";
   if (confidence === "中") return "bg-amber-400/15 text-amber-200";
   return "bg-slate-500/20 text-slate-200";
+}
+
+function healthRiskTone(score: number) {
+  if (score >= 65) return "text-rose-300";
+  if (score >= 45) return "text-amber-300";
+  return "text-emerald-300";
 }
 
 function SummaryCard({ icon: Icon, label, value, sub, tone = "text-white" }: { icon: LucideIcon; label: string; value: string; sub: string; tone?: string }) {
@@ -212,6 +218,30 @@ function ProductCard({ product, mode }: { product: CommerceProduct; mode: "sales
             <MiniMetric label="小物推薦理由" value={product.sizeClass === "large" ? "排除大型" : "符合小物"} sub={product.compactLifestyleReason} />
           </div>
 
+          {product.isHealthSupplement ? (
+            <div className="mt-3 rounded-3xl border border-amber-400/30 bg-amber-400/10 p-4">
+              <div className="grid gap-3 sm:grid-cols-3">
+                <MiniMetric label="保健品類別" value={product.healthSupplementType} sub="依商品名稱與關鍵字初判" />
+                <MiniMetric label="廣告風險" value={`${product.healthAdRiskLevel} ${score(product.healthAdRiskScore)}`} tone={product.healthAdRiskScore >= 65 ? "text-rose-300" : product.healthAdRiskScore >= 45 ? "text-amber-300" : "text-emerald-300"} sub={product.healthAdRiskReason} />
+                <MiniMetric label="保健品機會分" value={score(product.healthOpportunityScore)} tone={scoreTone(product.healthOpportunityScore)} sub="扣除法規風險後排序" />
+              </div>
+              <div className="mt-3 grid gap-3 lg:grid-cols-2">
+                <div>
+                  <p className="text-xs font-black text-amber-100">注意事項</p>
+                  <ul className="mt-1 space-y-1 text-xs leading-5 text-slate-300">
+                    {product.healthAdAttentionNotes.slice(0, 3).map((note) => <li key={note}>• {note}</li>)}
+                  </ul>
+                </div>
+                <div>
+                  <p className="text-xs font-black text-rose-100">避免用語</p>
+                  <p className="mt-1 text-xs leading-5 text-slate-300">{product.healthAdForbiddenTerms.slice(0, 8).join("、") || "無明顯高風險詞"}</p>
+                  <p className="mt-2 text-xs font-black text-emerald-100">較安全方向</p>
+                  <p className="mt-1 text-xs leading-5 text-slate-300">{product.healthAdSaferClaimTips.join("、")}</p>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
           <p className="mt-3 text-sm leading-6 text-slate-300">{product.salesSignalLabel}</p>
           <div className="mt-3 flex flex-wrap gap-2 text-xs">
             <span className="rounded-full bg-blue-400/15 px-3 py-1 text-blue-100">{product.parentCategory}</span>
@@ -224,6 +254,7 @@ function ProductCard({ product, mode }: { product: CommerceProduct; mode: "sales
             <span className="rounded-full bg-sky-400/15 px-3 py-1 text-sky-100">尺寸 {product.sizeLabel} {score(product.sizeScore)}</span>
             <span className="rounded-full bg-emerald-400/15 px-3 py-1 text-emerald-100">選品 {score(product.selectionScore)} / {product.selectionAdvice}</span>
             {product.isLifestyleSmallItem ? <span className="rounded-full bg-teal-400/15 px-3 py-1 text-teal-100">小物精選 {score(product.compactLifestyleScore)}</span> : null}
+            {product.isHealthSupplement ? <span className="rounded-full bg-amber-400/15 px-3 py-1 text-amber-100">保健風險 {product.healthAdRiskLevel} {score(product.healthAdRiskScore)}</span> : null}
             {product.isLifestyleSmallItem ? <span className="rounded-full bg-violet-400/15 px-3 py-1 text-violet-100">生活小物 {score(product.lifestyleScore)}</span> : null}
             {product.discountPct > 0 ? <span className="rounded-full bg-rose-400/15 px-3 py-1 text-rose-200">折扣 {product.discountPct.toFixed(1)}%</span> : null}
           </div>
@@ -269,11 +300,44 @@ function CategoryCard({ item }: { item: CommerceCategorySummary }) {
   );
 }
 
+function HealthCategoryCard({ item }: { item: HealthSupplementGroupSummary }) {
+  return (
+    <article className="rounded-3xl border border-amber-400/30 bg-amber-400/10 p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs text-amber-200">Health Supplement Risk</p>
+          <h3 className="mt-1 text-lg font-black text-white">{item.group}</h3>
+        </div>
+        <span className={`rounded-full px-3 py-1 text-xs font-black ${item.averageRiskScore >= 65 ? "bg-rose-400/15 text-rose-200" : item.averageRiskScore >= 45 ? "bg-amber-400/15 text-amber-200" : "bg-emerald-400/15 text-emerald-200"}`}>
+          {item.riskLevel}
+        </span>
+      </div>
+      <div className="mt-4 grid gap-2 sm:grid-cols-2">
+        <MiniMetric label="商品數" value={`${item.productCount} 件`} />
+        <MiniMetric label="平均風險" value={score(item.averageRiskScore)} tone={healthRiskTone(item.averageRiskScore)} />
+        <MiniMetric label="平均機會分" value={score(item.averageOpportunityScore)} tone={scoreTone(item.averageOpportunityScore)} />
+        <MiniMetric label="平均售價" value={money(item.averagePrice)} />
+      </div>
+      <div className="mt-3 rounded-2xl border border-slate-700/70 bg-slate-950/35 p-3">
+        <p className="text-xs font-black text-rose-100">避免用語</p>
+        <p className="mt-1 text-xs leading-5 text-slate-300">{item.forbiddenTerms.join("、") || "無明顯高風險詞"}</p>
+        <p className="mt-2 text-xs font-black text-emerald-100">較安全方向</p>
+        <p className="mt-1 text-xs leading-5 text-slate-300">{item.saferClaimTips.join("、")}</p>
+      </div>
+      {item.topProductTitle ? (
+        <a href={item.topProductUrl} target="_blank" rel="noreferrer" className="mt-3 block line-clamp-2 text-sm font-bold text-blue-300 hover:text-blue-200">
+          類別機會商品：{item.topProductTitle}
+        </a>
+      ) : null}
+    </article>
+  );
+}
+
 function ProductTable({ products }: { products: CommerceProduct[] }) {
   return (
     <div className="overflow-hidden rounded-3xl border border-slate-700/70">
       <div className="max-h-[620px] overflow-auto">
-        <table className="w-full min-w-[2040px] border-collapse text-left text-sm">
+        <table className="w-full min-w-[2320px] border-collapse text-left text-sm">
           <thead className="sticky top-0 bg-slate-950 text-slate-300">
             <tr>
               <th className="px-4 py-3">商品</th>
@@ -290,6 +354,9 @@ function ProductTable({ products }: { products: CommerceProduct[] }) {
               <th className="px-4 py-3">尺寸</th>
               <th className="px-4 py-3">選品分</th>
               <th className="px-4 py-3">選品建議</th>
+              <th className="px-4 py-3">保健類別</th>
+              <th className="px-4 py-3">廣告風險</th>
+              <th className="px-4 py-3">保健機會</th>
               <th className="px-4 py-3">回購分</th>
               <th className="px-4 py-3">售服負擔</th>
               <th className="px-4 py-3">低售服回購</th>
@@ -326,6 +393,9 @@ function ProductTable({ products }: { products: CommerceProduct[] }) {
                 <td className="px-4 py-3 text-sky-300">{product.sizeLabel} <span className="text-xs text-slate-500">({score(product.sizeScore)})</span></td>
                 <td className="px-4 py-3 text-emerald-300">{score(product.selectionScore)}</td>
                 <td className="px-4 py-3 font-black text-white">{product.selectionAdvice}</td>
+                <td className="px-4 py-3 text-amber-200">{product.isHealthSupplement ? product.healthSupplementType : "-"}</td>
+                <td className={`px-4 py-3 font-black ${product.healthAdRiskScore >= 65 ? "text-rose-300" : product.healthAdRiskScore >= 45 ? "text-amber-300" : "text-emerald-300"}`}>{product.isHealthSupplement ? `${product.healthAdRiskLevel} ${score(product.healthAdRiskScore)}` : "-"}</td>
+                <td className="px-4 py-3 text-cyan-300">{product.isHealthSupplement ? score(product.healthOpportunityScore) : "-"}</td>
                 <td className="px-4 py-3 text-emerald-300">{score(product.repurchaseScore)}</td>
                 <td className={`px-4 py-3 font-black ${product.afterSalesBurden === "低" ? "text-emerald-300" : product.afterSalesBurden === "中" ? "text-amber-300" : "text-rose-300"}`}>{product.afterSalesBurden}</td>
                 <td className="px-4 py-3 text-cyan-300">{score(product.lowServiceRepeatScore)}</td>
@@ -403,6 +473,7 @@ export function EcommerceRadarClient() {
   const topLifestyle = report?.lifestyleLowCostHighProfitProducts[0];
   const topCompactLifestyle = report?.compactLifestyleRecommendations[0];
   const topSelection = report?.productSelectionRecommendations[0];
+  const topHealth = report?.healthSupplementProductRankings[0];
   const topMonth = report?.nextMonthWinners[0];
   const topQuarter = report?.nextQuarterWinners[0];
 
@@ -500,9 +571,10 @@ export function EcommerceRadarClient() {
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-10">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-11">
         <SummaryCard icon={BadgeCheck} label="AI 選品首選" value={topSelection?.title || (loading ? "讀取中" : "-")} sub={topSelection ? `選品分 ${score(topSelection.selectionScore)}，${topSelection.selectionAdvice}，尺寸 ${topSelection.sizeLabel}` : "依季節、回購、成本、毛利、尺寸與售後評分"} tone="text-emerald-200" />
         <SummaryCard icon={ShoppingBag} label="低價小體積生活小物" value={topCompactLifestyle?.title || (loading ? "讀取中" : "-")} sub={topCompactLifestyle ? `小物精選分 ${score(topCompactLifestyle.compactLifestyleScore)}，售價 ${money(topCompactLifestyle.price)}，成本 ${money(topCompactLifestyle.estimatedProductCost)}，尺寸 ${topCompactLifestyle.sizeLabel}` : "低售價、低成本、高回購、非大型"} tone="text-teal-200" />
+        <SummaryCard icon={ShieldCheck} label="保健品低風險機會" value={topHealth?.title || (loading ? "讀取中" : "-")} sub={topHealth ? `${topHealth.healthSupplementType}，機會分 ${score(topHealth.healthOpportunityScore)}，風險 ${topHealth.healthAdRiskLevel} ${score(topHealth.healthAdRiskScore)}` : "依類別、注意事項、禁用詞與機會分排序"} tone="text-amber-200" />
         <SummaryCard icon={TrendingUp} label="目前銷售熱度最大" value={topSales?.title || (loading ? "讀取中" : "-")} sub={topSales ? `${topSales.salesSignalLabel}，熱銷分 ${topSales.salesSignal}` : "依 PChome 熱銷排序訊號"} tone="text-emerald-300" />
         <SummaryCard icon={DollarSign} label="估算淨利最高" value={topProfit?.title || (loading ? "讀取中" : "-")} sub={topProfit ? `淨利 ${money(topProfit.estimatedNetProfit)}，淨利率 ${pct(topProfit.estimatedNetMarginRate)}` : "依成本模型與熱銷分"} tone="text-amber-300" />
         <SummaryCard icon={Repeat2} label="低售服高回購" value={topRepeat?.title || (loading ? "讀取中" : "-")} sub={topRepeat ? `回購分 ${score(topRepeat.repurchaseScore)}，售服 ${topRepeat.afterSalesBurden}，綜合 ${score(topRepeat.lowServiceRepeatScore)}` : "依回購、客服負擔、熱度與淨利"} tone="text-cyan-200" />
@@ -542,6 +614,43 @@ export function EcommerceRadarClient() {
                     </ul>
                   </div>
                 </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="glass rounded-3xl p-5">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <p className="text-sm text-slate-400">Health Supplement Compliance Risk</p>
+                <h2 className="flex items-center gap-2 text-2xl font-black text-white">
+                  <ShieldCheck className="h-6 w-6 text-amber-300" />
+                  保健食品法規風險分類與排名
+                </h2>
+                <p className="mt-2 max-w-4xl text-sm leading-6 text-slate-300">
+                  保健食品在電商廣告風險較高，系統會把商品分成魚油血脂、益生菌腸胃、葉黃素眼睛、維生素礦物質、體重管理、睡眠情緒、男性精力等類別，再依扣除廣告風險後的機會分排序。
+                </p>
+                <p className="mt-2 max-w-4xl text-xs leading-5 text-amber-100">
+                  注意：此區為風險篩選工具，不是法律意見。上架前仍需人工核對商品標示、許可證、核准功效與實際廣告文案。
+                </p>
+              </div>
+              <div className="rounded-2xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
+                已辨識 {report.healthSupplementProductRankings.length} 件保健類商品
+              </div>
+            </div>
+
+            <div className="mt-4 rounded-3xl border border-rose-400/30 bg-rose-400/10 p-4 text-sm leading-6 text-rose-100">
+              官方原則摘要：食品廣告不得不實、誇張、易生誤解或涉及醫療效能；未取得健康食品許可證，不要稱為健康食品或宣稱健康食品保健功效；即使有許可證，也不可超出核准功效範圍。
+            </div>
+
+            <div className="mt-5 grid gap-4 xl:grid-cols-3">
+              {report.healthSupplementCategoryRankings.slice(0, 9).map((item) => (
+                <HealthCategoryCard key={item.group} item={item} />
+              ))}
+            </div>
+
+            <div className="mt-6 grid gap-4 xl:grid-cols-2">
+              {report.healthSupplementProductRankings.slice(0, 6).map((product) => (
+                <ProductCard key={`health-${product.source}-${product.id}`} product={product} mode="selection" />
               ))}
             </div>
           </section>
