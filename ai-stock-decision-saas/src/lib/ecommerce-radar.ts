@@ -82,6 +82,8 @@ export type CommerceProduct = {
   selectionScore: number;
   selectionAdvice: "優先測品" | "可小量測試" | "等待比價" | "暫不建議";
   selectionReasons: string[];
+  compactLifestyleScore: number;
+  compactLifestyleReason: string;
   grossMarginRate: number;
   costRate: number;
   estimatedProductCost: number;
@@ -120,6 +122,7 @@ export type CommerceRadarReport = {
   lowCostHighMarginProducts: CommerceProduct[];
   lifestyleProducts: CommerceProduct[];
   lifestyleLowCostHighProfitProducts: CommerceProduct[];
+  compactLifestyleRecommendations: CommerceProduct[];
   productSelectionRecommendations: CommerceProduct[];
   nextMonthWinners: CommerceProduct[];
   nextQuarterWinners: CommerceProduct[];
@@ -578,6 +581,72 @@ function buildSelectionReasons(product: {
   ];
 }
 
+function buildCompactLifestyleScore(args: {
+  isLifestyleSmallItem: boolean;
+  price: number;
+  estimatedProductCost: number;
+  estimatedNetProfit: number;
+  repurchaseScore: number;
+  sizeClass: ProductSizeClass;
+  sizeScore: number;
+  lowAfterSalesScore: number;
+  lowCostHighMarginScore: number;
+}) {
+  if (!args.isLifestyleSmallItem) return 0;
+
+  const priceScore =
+    args.price <= 199 ? 100 :
+    args.price <= 399 ? 94 :
+    args.price <= 699 ? 86 :
+    args.price <= 999 ? 76 :
+    args.price <= 1500 ? 58 :
+    36;
+  const costScore =
+    args.estimatedProductCost <= 100 ? 100 :
+    args.estimatedProductCost <= 250 ? 92 :
+    args.estimatedProductCost <= 500 ? 80 :
+    args.estimatedProductCost <= 800 ? 66 :
+    args.estimatedProductCost <= 1200 ? 50 :
+    30;
+  const sizeFitScore =
+    args.sizeClass === "small" ? 100 :
+    args.sizeClass === "medium" ? 72 :
+    args.sizeClass === "unknown" ? 54 :
+    15;
+
+  const raw =
+    priceScore * 0.20 +
+    costScore * 0.22 +
+    args.repurchaseScore * 0.24 +
+    sizeFitScore * 0.18 +
+    args.lowAfterSalesScore * 0.08 +
+    args.lowCostHighMarginScore * 0.08;
+
+  if (args.estimatedNetProfit <= 0) return Math.min(clamp(raw, 0, 100), 48);
+  if (args.sizeClass === "large") return Math.min(clamp(raw, 0, 100), 38);
+  return clamp(raw, 0, 100);
+}
+
+function compactLifestyleReason(product: {
+  price: number;
+  estimatedProductCost: number;
+  repurchaseScore: number;
+  sizeLabel: string;
+  sizeReason: string;
+  estimatedNetProfit: number;
+  estimatedNetMarginRate: number;
+}) {
+  return [
+    `售價 ${round(product.price).toLocaleString()} 元`,
+    `估成本 ${round(product.estimatedProductCost).toLocaleString()} 元`,
+    `回購分 ${round(product.repurchaseScore, 1)}`,
+    `尺寸 ${product.sizeLabel}`,
+    `估淨利 ${round(product.estimatedNetProfit).toLocaleString()} 元`,
+    `估淨利率 ${round(product.estimatedNetMarginRate * 100, 1)}%`,
+    product.sizeReason
+  ].join("，");
+}
+
 function productUrl(id: string) {
   return `https://24h.pchome.com.tw/prod/${encodeURIComponent(id)}`;
 }
@@ -692,6 +761,17 @@ function buildCommerceProduct(input: RawCommerceInput, costSettings: CostSetting
     estimatedNetProfit: costs.estimatedNetProfit,
     estimatedNetMarginRate: costs.estimatedNetMarginRate
   });
+  const compactLifestyleScore = buildCompactLifestyleScore({
+    isLifestyleSmallItem,
+    price,
+    estimatedProductCost: costs.estimatedProductCost,
+    estimatedNetProfit: costs.estimatedNetProfit,
+    repurchaseScore,
+    sizeClass: sizeProfile.className,
+    sizeScore: sizeProfile.score,
+    lowAfterSalesScore,
+    lowCostHighMarginScore
+  });
   const soldText = input.externalSoldSignal ? ` / 銷售訊號 ${input.externalSoldSignal.toLocaleString()}` : "";
 
   return {
@@ -736,6 +816,16 @@ function buildCommerceProduct(input: RawCommerceInput, costSettings: CostSetting
     selectionScore: round(selectionScore, 1),
     selectionAdvice: selectionAdvice(selectionScore, sizeProfile.className, costs.estimatedNetProfit),
     selectionReasons,
+    compactLifestyleScore: round(compactLifestyleScore, 1),
+    compactLifestyleReason: compactLifestyleReason({
+      price,
+      estimatedProductCost: costs.estimatedProductCost,
+      repurchaseScore,
+      sizeLabel: sizeProfile.label,
+      sizeReason: sizeProfile.reason,
+      estimatedNetProfit: costs.estimatedNetProfit,
+      estimatedNetMarginRate: costs.estimatedNetMarginRate
+    }),
     grossMarginRate: category.grossMarginRate,
     ...costs,
     estimatedProfitIndex: round(estimatedProfitIndex, 1),
@@ -1067,6 +1157,21 @@ export async function runEcommerceRadar(options?: { keywords?: string | null; pe
     products.filter((product) => product.isLifestyleSmallItem && product.estimatedNetProfit > 0),
     (product) => product.lifestyleScore * 0.42 + product.lowCostHighMarginScore * 0.40 + product.salesSignal * 0.18
   ).slice(0, 12);
+  const compactLifestylePool = products.filter((product) =>
+    product.isLifestyleSmallItem &&
+    product.estimatedNetProfit > 0 &&
+    product.sizeClass !== "large"
+  );
+  const strictCompactLifestylePool = compactLifestylePool.filter((product) =>
+    product.price <= 1200 &&
+    product.estimatedProductCost <= 800 &&
+    product.repurchaseScore >= 55 &&
+    product.compactLifestyleScore >= 60
+  );
+  const compactLifestyleRecommendations = sortDesc(
+    strictCompactLifestylePool.length ? strictCompactLifestylePool : compactLifestylePool,
+    (product) => product.compactLifestyleScore
+  ).slice(0, 12);
   const productSelectionRecommendations = sortDesc(
     products.filter((product) => product.estimatedNetProfit > 0),
     (product) => product.selectionScore
@@ -1090,6 +1195,7 @@ export async function runEcommerceRadar(options?: { keywords?: string | null; pe
     lowCostHighMarginProducts,
     lifestyleProducts,
     lifestyleLowCostHighProfitProducts,
+    compactLifestyleRecommendations,
     productSelectionRecommendations,
     nextMonthWinners,
     nextQuarterWinners,

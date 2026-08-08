@@ -109,7 +109,7 @@ function CostInput({ label, value, suffix, min, max, step, onChange }: { label: 
   );
 }
 
-function ProductCard({ product, mode }: { product: CommerceProduct; mode: "sales" | "profit" | "repeat" | "seasonal" | "margin" | "lifestyle" | "selection" | "month" | "quarter" }) {
+function ProductCard({ product, mode }: { product: CommerceProduct; mode: "sales" | "profit" | "repeat" | "seasonal" | "margin" | "lifestyle" | "compact" | "selection" | "month" | "quarter" }) {
   const mainScore =
     mode === "profit"
       ? product.estimatedProfitIndex
@@ -121,6 +121,8 @@ function ProductCard({ product, mode }: { product: CommerceProduct; mode: "sales
         ? product.lowCostHighMarginScore
       : mode === "lifestyle"
         ? product.lifestyleScore
+      : mode === "compact"
+        ? product.compactLifestyleScore
       : mode === "selection"
         ? product.selectionScore
       : mode === "month"
@@ -139,6 +141,8 @@ function ProductCard({ product, mode }: { product: CommerceProduct; mode: "sales
         ? "低成本高毛利分"
       : mode === "lifestyle"
         ? "生活小物分"
+      : mode === "compact"
+        ? "小物精選分"
       : mode === "selection"
         ? "AI 選品分"
       : mode === "month"
@@ -203,6 +207,11 @@ function ProductCard({ product, mode }: { product: CommerceProduct; mode: "sales
             <MiniMetric label="尺寸理由" value={product.sizeClass === "large" ? "需控風險" : "適合測品"} sub={product.sizeReason} />
           </div>
 
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <MiniMetric label="小物精選分" value={score(product.compactLifestyleScore)} tone={scoreTone(product.compactLifestyleScore)} sub="低售價 / 低成本 / 高回購 / 小體積" />
+            <MiniMetric label="小物推薦理由" value={product.sizeClass === "large" ? "排除大型" : "符合小物"} sub={product.compactLifestyleReason} />
+          </div>
+
           <p className="mt-3 text-sm leading-6 text-slate-300">{product.salesSignalLabel}</p>
           <div className="mt-3 flex flex-wrap gap-2 text-xs">
             <span className="rounded-full bg-blue-400/15 px-3 py-1 text-blue-100">{product.parentCategory}</span>
@@ -214,6 +223,7 @@ function ProductCard({ product, mode }: { product: CommerceProduct; mode: "sales
             <span className="rounded-full bg-lime-400/15 px-3 py-1 text-lime-100">低成本高毛利 {score(product.lowCostHighMarginScore)}</span>
             <span className="rounded-full bg-sky-400/15 px-3 py-1 text-sky-100">尺寸 {product.sizeLabel} {score(product.sizeScore)}</span>
             <span className="rounded-full bg-emerald-400/15 px-3 py-1 text-emerald-100">選品 {score(product.selectionScore)} / {product.selectionAdvice}</span>
+            {product.isLifestyleSmallItem ? <span className="rounded-full bg-teal-400/15 px-3 py-1 text-teal-100">小物精選 {score(product.compactLifestyleScore)}</span> : null}
             {product.isLifestyleSmallItem ? <span className="rounded-full bg-violet-400/15 px-3 py-1 text-violet-100">生活小物 {score(product.lifestyleScore)}</span> : null}
             {product.discountPct > 0 ? <span className="rounded-full bg-rose-400/15 px-3 py-1 text-rose-200">折扣 {product.discountPct.toFixed(1)}%</span> : null}
           </div>
@@ -263,7 +273,7 @@ function ProductTable({ products }: { products: CommerceProduct[] }) {
   return (
     <div className="overflow-hidden rounded-3xl border border-slate-700/70">
       <div className="max-h-[620px] overflow-auto">
-        <table className="w-full min-w-[1920px] border-collapse text-left text-sm">
+        <table className="w-full min-w-[2040px] border-collapse text-left text-sm">
           <thead className="sticky top-0 bg-slate-950 text-slate-300">
             <tr>
               <th className="px-4 py-3">商品</th>
@@ -276,6 +286,7 @@ function ProductTable({ products }: { products: CommerceProduct[] }) {
               <th className="px-4 py-3">季節熱賣</th>
               <th className="px-4 py-3">低成本高毛利</th>
               <th className="px-4 py-3">生活小物</th>
+              <th className="px-4 py-3">小物精選</th>
               <th className="px-4 py-3">尺寸</th>
               <th className="px-4 py-3">選品分</th>
               <th className="px-4 py-3">選品建議</th>
@@ -311,6 +322,7 @@ function ProductTable({ products }: { products: CommerceProduct[] }) {
                 <td className="px-4 py-3 text-orange-300">{score(product.seasonalHotScore)}</td>
                 <td className="px-4 py-3 text-lime-300">{score(product.lowCostHighMarginScore)}</td>
                 <td className="px-4 py-3 text-violet-300">{product.isLifestyleSmallItem ? score(product.lifestyleScore) : "-"}</td>
+                <td className="px-4 py-3 text-teal-300">{product.isLifestyleSmallItem ? score(product.compactLifestyleScore) : "-"}</td>
                 <td className="px-4 py-3 text-sky-300">{product.sizeLabel} <span className="text-xs text-slate-500">({score(product.sizeScore)})</span></td>
                 <td className="px-4 py-3 text-emerald-300">{score(product.selectionScore)}</td>
                 <td className="px-4 py-3 font-black text-white">{product.selectionAdvice}</td>
@@ -389,6 +401,7 @@ export function EcommerceRadarClient() {
   const topSeasonal = report?.seasonalHotProducts[0];
   const topMargin = report?.lowCostHighMarginProducts[0];
   const topLifestyle = report?.lifestyleLowCostHighProfitProducts[0];
+  const topCompactLifestyle = report?.compactLifestyleRecommendations[0];
   const topSelection = report?.productSelectionRecommendations[0];
   const topMonth = report?.nextMonthWinners[0];
   const topQuarter = report?.nextQuarterWinners[0];
@@ -487,8 +500,9 @@ export function EcommerceRadarClient() {
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-9">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-10">
         <SummaryCard icon={BadgeCheck} label="AI 選品首選" value={topSelection?.title || (loading ? "讀取中" : "-")} sub={topSelection ? `選品分 ${score(topSelection.selectionScore)}，${topSelection.selectionAdvice}，尺寸 ${topSelection.sizeLabel}` : "依季節、回購、成本、毛利、尺寸與售後評分"} tone="text-emerald-200" />
+        <SummaryCard icon={ShoppingBag} label="低價小體積生活小物" value={topCompactLifestyle?.title || (loading ? "讀取中" : "-")} sub={topCompactLifestyle ? `小物精選分 ${score(topCompactLifestyle.compactLifestyleScore)}，售價 ${money(topCompactLifestyle.price)}，成本 ${money(topCompactLifestyle.estimatedProductCost)}，尺寸 ${topCompactLifestyle.sizeLabel}` : "低售價、低成本、高回購、非大型"} tone="text-teal-200" />
         <SummaryCard icon={TrendingUp} label="目前銷售熱度最大" value={topSales?.title || (loading ? "讀取中" : "-")} sub={topSales ? `${topSales.salesSignalLabel}，熱銷分 ${topSales.salesSignal}` : "依 PChome 熱銷排序訊號"} tone="text-emerald-300" />
         <SummaryCard icon={DollarSign} label="估算淨利最高" value={topProfit?.title || (loading ? "讀取中" : "-")} sub={topProfit ? `淨利 ${money(topProfit.estimatedNetProfit)}，淨利率 ${pct(topProfit.estimatedNetMarginRate)}` : "依成本模型與熱銷分"} tone="text-amber-300" />
         <SummaryCard icon={Repeat2} label="低售服高回購" value={topRepeat?.title || (loading ? "讀取中" : "-")} sub={topRepeat ? `回購分 ${score(topRepeat.repurchaseScore)}，售服 ${topRepeat.afterSalesBurden}，綜合 ${score(topRepeat.lowServiceRepeatScore)}` : "依回購、客服負擔、熱度與淨利"} tone="text-cyan-200" />
@@ -526,6 +540,35 @@ export function EcommerceRadarClient() {
                     <ul className="mt-2 space-y-1 text-sm leading-6 text-slate-300">
                       {product.selectionReasons.map((reason) => <li key={reason}>• {reason}</li>)}
                     </ul>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="glass rounded-3xl p-5">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <p className="text-sm text-slate-400">Compact Lifestyle Picks</p>
+                <h2 className="flex items-center gap-2 text-2xl font-black text-white">
+                  <ShoppingBag className="h-6 w-6 text-teal-300" />
+                  低價小體積生活小物推薦
+                </h2>
+                <p className="mt-2 max-w-4xl text-sm leading-6 text-slate-300">
+                  這區只看生活小物，優先挑售價低、估成本低、回購率高、體積不要大的商品。大型品、物流壓力高或淨利為負的商品會被排除或降分。
+                </p>
+              </div>
+              <div className="rounded-2xl border border-teal-400/30 bg-teal-400/10 px-4 py-3 text-sm text-teal-100">
+                符合條件 {report.compactLifestyleRecommendations.length} 件
+              </div>
+            </div>
+            <div className="mt-4 grid gap-4 xl:grid-cols-2">
+              {report.compactLifestyleRecommendations.slice(0, 6).map((product) => (
+                <div key={`compact-${product.source}-${product.id}`} className="space-y-3">
+                  <ProductCard product={product} mode="compact" />
+                  <div className="rounded-3xl border border-teal-400/20 bg-teal-400/10 p-4">
+                    <p className="font-black text-teal-100">符合原因</p>
+                    <p className="mt-2 text-sm leading-6 text-slate-300">{product.compactLifestyleReason}</p>
                   </div>
                 </div>
               ))}
