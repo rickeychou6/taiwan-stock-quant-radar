@@ -44,6 +44,8 @@ export type LifestyleSmallItemSummary = {
   topProductUrl: string;
 };
 
+export type ProductSizeClass = "small" | "medium" | "large" | "unknown";
+
 export type CommerceProduct = {
   id: string;
   title: string;
@@ -73,6 +75,13 @@ export type CommerceProduct = {
   isLifestyleSmallItem: boolean;
   lifestyleScore: number;
   lifestyleReason: string;
+  sizeClass: ProductSizeClass;
+  sizeLabel: string;
+  sizeScore: number;
+  sizeReason: string;
+  selectionScore: number;
+  selectionAdvice: "優先測品" | "可小量測試" | "等待比價" | "暫不建議";
+  selectionReasons: string[];
   grossMarginRate: number;
   costRate: number;
   estimatedProductCost: number;
@@ -111,6 +120,7 @@ export type CommerceRadarReport = {
   lowCostHighMarginProducts: CommerceProduct[];
   lifestyleProducts: CommerceProduct[];
   lifestyleLowCostHighProfitProducts: CommerceProduct[];
+  productSelectionRecommendations: CommerceProduct[];
   nextMonthWinners: CommerceProduct[];
   nextQuarterWinners: CommerceProduct[];
   limitations: string[];
@@ -477,6 +487,97 @@ function lifestyleReason(product: {
   return parts.length ? parts.join("、") : "生活小物屬性明確，但需確認實際進貨價與退貨率";
 }
 
+const SMALL_SIZE_PATTERN = /掛勾|杯墊|束線|理線|旅行瓶|口罩盒|肥皂盒|牙刷架|防塵罩|密封袋|菜瓜布|抹布|清潔刷|小夜燈|香氛|除臭|鑰匙圈|保護貼|手機殼|充電線|杯刷|餐具|文具|資料夾|標籤|耳機|隨身碟|記憶卡/;
+const MEDIUM_SIZE_PATTERN = /置物架|收納盒|收納箱|桌面收納|浴室收納|廚房小物|瀝水|保溫杯|水壺|便當盒|保鮮盒|馬桶刷|拖把|露營燈|抱枕|枕頭|玩具|筋膜槍|滑鼠|鍵盤/;
+const LARGE_SIZE_PATTERN = /掃地機器人|洗地|吸塵器|除濕機|空氣清淨|清淨機|氣炸鍋|咖啡機|烤箱|電鍋|螢幕|筆電|帳篷|睡袋|棉被|沙發|地毯|推車|安全座椅|冷氣/;
+
+function detectSizeProfile(text: string, rule: CategoryRule, price: number): { className: ProductSizeClass; label: string; score: number; reason: string } {
+  const lowerRiskCategory = ["生活小物", "辦公文具", "美妝保養", "健康保健", "食品飲料"].includes(rule.parentCategory);
+
+  if (LARGE_SIZE_PATTERN.test(text) || price >= 8000) {
+    return {
+      className: "large",
+      label: "大型",
+      score: price >= 12000 ? 28 : 36,
+      reason: "體積或單價偏大，倉儲、物流、退貨與售後成本較高。"
+    };
+  }
+
+  if (SMALL_SIZE_PATTERN.test(text) || (price <= 699 && lowerRiskCategory)) {
+    return {
+      className: "small",
+      label: "小型",
+      score: price <= 399 ? 94 : 88,
+      reason: "體積小、寄送與倉儲壓力低，適合先用小量測品。"
+    };
+  }
+
+  if (MEDIUM_SIZE_PATTERN.test(text) || price <= 2500) {
+    return {
+      className: "medium",
+      label: "中型",
+      score: price <= 1500 ? 74 : 66,
+      reason: "體積與物流壓力中等，需確認包材、材積與退貨率。"
+    };
+  }
+
+  return {
+    className: "unknown",
+    label: "不明",
+    score: 55,
+    reason: "公開資料未揭露實際尺寸，建議補上供應商長寬高與材積再判斷。"
+  };
+}
+
+function buildSelectionScore(args: {
+  seasonalHotScore: number;
+  repurchaseScore: number;
+  lowCostHighMarginScore: number;
+  sizeScore: number;
+  lowAfterSalesScore: number;
+  salesSignal: number;
+  estimatedNetMarginRate: number;
+}) {
+  return clamp(
+    args.seasonalHotScore * 0.24 +
+      args.repurchaseScore * 0.18 +
+      args.lowCostHighMarginScore * 0.24 +
+      args.sizeScore * 0.14 +
+      args.lowAfterSalesScore * 0.08 +
+      args.salesSignal * 0.08 +
+      Math.max(args.estimatedNetMarginRate, 0) * 38,
+    0,
+    100
+  );
+}
+
+function selectionAdvice(score: number, sizeClass: ProductSizeClass, netProfit: number) {
+  if (score >= 78 && netProfit > 0 && sizeClass !== "large") return "優先測品" as const;
+  if (score >= 65 && netProfit > 0) return "可小量測試" as const;
+  if (score >= 52) return "等待比價" as const;
+  return "暫不建議" as const;
+}
+
+function buildSelectionReasons(product: {
+  seasonalHotScore: number;
+  repurchaseScore: number;
+  lowCostHighMarginScore: number;
+  sizeLabel: string;
+  sizeScore: number;
+  sizeReason: string;
+  lowAfterSalesScore: number;
+  estimatedNetProfit: number;
+  estimatedNetMarginRate: number;
+}) {
+  return [
+    `季節性 ${round(product.seasonalHotScore, 1)} 分，代表近期或下一季需求熱度。`,
+    `回購率 ${round(product.repurchaseScore, 1)} 分，分數越高越適合做長期品項。`,
+    `低成本高毛利 ${round(product.lowCostHighMarginScore, 1)} 分，估淨利 ${round(product.estimatedNetProfit).toLocaleString()} 元，估淨利率 ${round(product.estimatedNetMarginRate * 100, 1)}%。`,
+    `尺寸 ${product.sizeLabel}，尺寸分 ${round(product.sizeScore, 1)}：${product.sizeReason}`,
+    `售後負擔安全分 ${round(product.lowAfterSalesScore, 1)}，分數越高代表退換貨與客服壓力相對低。`
+  ];
+}
+
 function productUrl(id: string) {
   return `https://24h.pchome.com.tw/prod/${encodeURIComponent(id)}`;
 }
@@ -570,6 +671,27 @@ function buildCommerceProduct(input: RawCommerceInput, costSettings: CostSetting
   const seasonalHotScore = clamp(salesSignal * 0.40 + seasonNow.score * 0.34 + lowCostHighMarginScore * 0.10 + lowServiceRepeatScore * 0.08 + (discountPct > 0 ? 6 : 0), 0, 100);
   const nextMonthScore = clamp(salesSignal * 0.44 + seasonMonth * 0.22 + lowServiceRepeatScore * 0.14 + lowCostHighMarginScore * 0.10 + Math.max(costs.estimatedNetMarginRate, 0) * 36 + (discountPct > 0 ? 6 : 0), 0, 100);
   const nextQuarterScore = clamp(salesSignal * 0.38 + seasonQuarter * 0.30 + lowServiceRepeatScore * 0.16 + lowCostHighMarginScore * 0.10 + Math.max(costs.estimatedNetMarginRate, 0) * 42 + (price < 3000 ? 4 : 0), 0, 100);
+  const sizeProfile = detectSizeProfile(searchText, category, price);
+  const selectionScore = buildSelectionScore({
+    seasonalHotScore,
+    repurchaseScore,
+    lowCostHighMarginScore,
+    sizeScore: sizeProfile.score,
+    lowAfterSalesScore,
+    salesSignal,
+    estimatedNetMarginRate: costs.estimatedNetMarginRate
+  });
+  const selectionReasons = buildSelectionReasons({
+    seasonalHotScore,
+    repurchaseScore,
+    lowCostHighMarginScore,
+    sizeLabel: sizeProfile.label,
+    sizeScore: sizeProfile.score,
+    sizeReason: sizeProfile.reason,
+    lowAfterSalesScore,
+    estimatedNetProfit: costs.estimatedNetProfit,
+    estimatedNetMarginRate: costs.estimatedNetMarginRate
+  });
   const soldText = input.externalSoldSignal ? ` / 銷售訊號 ${input.externalSoldSignal.toLocaleString()}` : "";
 
   return {
@@ -607,6 +729,13 @@ function buildCommerceProduct(input: RawCommerceInput, costSettings: CostSetting
       afterSalesBurden: category.afterSalesBurden,
       estimatedNetMarginRate: costs.estimatedNetMarginRate
     }),
+    sizeClass: sizeProfile.className,
+    sizeLabel: sizeProfile.label,
+    sizeScore: round(sizeProfile.score, 1),
+    sizeReason: sizeProfile.reason,
+    selectionScore: round(selectionScore, 1),
+    selectionAdvice: selectionAdvice(selectionScore, sizeProfile.className, costs.estimatedNetProfit),
+    selectionReasons,
     grossMarginRate: category.grossMarginRate,
     ...costs,
     estimatedProfitIndex: round(estimatedProfitIndex, 1),
@@ -938,6 +1067,10 @@ export async function runEcommerceRadar(options?: { keywords?: string | null; pe
     products.filter((product) => product.isLifestyleSmallItem && product.estimatedNetProfit > 0),
     (product) => product.lifestyleScore * 0.42 + product.lowCostHighMarginScore * 0.40 + product.salesSignal * 0.18
   ).slice(0, 12);
+  const productSelectionRecommendations = sortDesc(
+    products.filter((product) => product.estimatedNetProfit > 0),
+    (product) => product.selectionScore
+  ).slice(0, 15);
   const nextMonthWinners = sortDesc(products, (product) => product.nextMonthScore).slice(0, 10);
   const nextQuarterWinners = sortDesc(products, (product) => product.nextQuarterScore).slice(0, 10);
 
@@ -957,6 +1090,7 @@ export async function runEcommerceRadar(options?: { keywords?: string | null; pe
     lowCostHighMarginProducts,
     lifestyleProducts,
     lifestyleLowCostHighProfitProducts,
+    productSelectionRecommendations,
     nextMonthWinners,
     nextQuarterWinners,
     limitations: [

@@ -1,7 +1,7 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { AlertTriangle, CalendarClock, DollarSign, ExternalLink, Filter, RefreshCw, Repeat2, Search, Settings2, ShieldCheck, ShoppingBag, TrendingUp } from "lucide-react";
+import { AlertTriangle, BadgeCheck, CalendarClock, DollarSign, ExternalLink, Filter, RefreshCw, Repeat2, Search, Settings2, ShieldCheck, ShoppingBag, TrendingUp } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { CommerceCategorySummary, CommerceProduct, CommerceRadarReport } from "@/lib/ecommerce-radar";
 
@@ -109,7 +109,7 @@ function CostInput({ label, value, suffix, min, max, step, onChange }: { label: 
   );
 }
 
-function ProductCard({ product, mode }: { product: CommerceProduct; mode: "sales" | "profit" | "repeat" | "seasonal" | "margin" | "lifestyle" | "month" | "quarter" }) {
+function ProductCard({ product, mode }: { product: CommerceProduct; mode: "sales" | "profit" | "repeat" | "seasonal" | "margin" | "lifestyle" | "selection" | "month" | "quarter" }) {
   const mainScore =
     mode === "profit"
       ? product.estimatedProfitIndex
@@ -121,6 +121,8 @@ function ProductCard({ product, mode }: { product: CommerceProduct; mode: "sales
         ? product.lowCostHighMarginScore
       : mode === "lifestyle"
         ? product.lifestyleScore
+      : mode === "selection"
+        ? product.selectionScore
       : mode === "month"
         ? product.nextMonthScore
         : mode === "quarter"
@@ -137,6 +139,8 @@ function ProductCard({ product, mode }: { product: CommerceProduct; mode: "sales
         ? "低成本高毛利分"
       : mode === "lifestyle"
         ? "生活小物分"
+      : mode === "selection"
+        ? "AI 選品分"
       : mode === "month"
         ? "下月大賣分"
         : mode === "quarter"
@@ -193,6 +197,12 @@ function ProductCard({ product, mode }: { product: CommerceProduct; mode: "sales
             <MiniMetric label="生活小物分" value={score(product.lifestyleScore)} tone={scoreTone(product.lifestyleScore)} sub={product.lifestyleReason} />
           </div>
 
+          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            <MiniMetric label="尺寸等級" value={product.sizeLabel} tone={scoreTone(product.sizeScore)} sub={`尺寸分 ${score(product.sizeScore)}`} />
+            <MiniMetric label="AI 選品分" value={score(product.selectionScore)} tone={scoreTone(product.selectionScore)} sub={product.selectionAdvice} />
+            <MiniMetric label="尺寸理由" value={product.sizeClass === "large" ? "需控風險" : "適合測品"} sub={product.sizeReason} />
+          </div>
+
           <p className="mt-3 text-sm leading-6 text-slate-300">{product.salesSignalLabel}</p>
           <div className="mt-3 flex flex-wrap gap-2 text-xs">
             <span className="rounded-full bg-blue-400/15 px-3 py-1 text-blue-100">{product.parentCategory}</span>
@@ -202,6 +212,8 @@ function ProductCard({ product, mode }: { product: CommerceProduct; mode: "sales
             <span className="rounded-full bg-cyan-400/15 px-3 py-1 text-cyan-100">售服 {product.afterSalesBurden}</span>
             <span className="rounded-full bg-orange-400/15 px-3 py-1 text-orange-100">季節 {score(product.seasonalHotScore)}</span>
             <span className="rounded-full bg-lime-400/15 px-3 py-1 text-lime-100">低成本高毛利 {score(product.lowCostHighMarginScore)}</span>
+            <span className="rounded-full bg-sky-400/15 px-3 py-1 text-sky-100">尺寸 {product.sizeLabel} {score(product.sizeScore)}</span>
+            <span className="rounded-full bg-emerald-400/15 px-3 py-1 text-emerald-100">選品 {score(product.selectionScore)} / {product.selectionAdvice}</span>
             {product.isLifestyleSmallItem ? <span className="rounded-full bg-violet-400/15 px-3 py-1 text-violet-100">生活小物 {score(product.lifestyleScore)}</span> : null}
             {product.discountPct > 0 ? <span className="rounded-full bg-rose-400/15 px-3 py-1 text-rose-200">折扣 {product.discountPct.toFixed(1)}%</span> : null}
           </div>
@@ -251,7 +263,7 @@ function ProductTable({ products }: { products: CommerceProduct[] }) {
   return (
     <div className="overflow-hidden rounded-3xl border border-slate-700/70">
       <div className="max-h-[620px] overflow-auto">
-        <table className="w-full min-w-[1680px] border-collapse text-left text-sm">
+        <table className="w-full min-w-[1920px] border-collapse text-left text-sm">
           <thead className="sticky top-0 bg-slate-950 text-slate-300">
             <tr>
               <th className="px-4 py-3">商品</th>
@@ -264,6 +276,9 @@ function ProductTable({ products }: { products: CommerceProduct[] }) {
               <th className="px-4 py-3">季節熱賣</th>
               <th className="px-4 py-3">低成本高毛利</th>
               <th className="px-4 py-3">生活小物</th>
+              <th className="px-4 py-3">尺寸</th>
+              <th className="px-4 py-3">選品分</th>
+              <th className="px-4 py-3">選品建議</th>
               <th className="px-4 py-3">回購分</th>
               <th className="px-4 py-3">售服負擔</th>
               <th className="px-4 py-3">低售服回購</th>
@@ -296,6 +311,9 @@ function ProductTable({ products }: { products: CommerceProduct[] }) {
                 <td className="px-4 py-3 text-orange-300">{score(product.seasonalHotScore)}</td>
                 <td className="px-4 py-3 text-lime-300">{score(product.lowCostHighMarginScore)}</td>
                 <td className="px-4 py-3 text-violet-300">{product.isLifestyleSmallItem ? score(product.lifestyleScore) : "-"}</td>
+                <td className="px-4 py-3 text-sky-300">{product.sizeLabel} <span className="text-xs text-slate-500">({score(product.sizeScore)})</span></td>
+                <td className="px-4 py-3 text-emerald-300">{score(product.selectionScore)}</td>
+                <td className="px-4 py-3 font-black text-white">{product.selectionAdvice}</td>
                 <td className="px-4 py-3 text-emerald-300">{score(product.repurchaseScore)}</td>
                 <td className={`px-4 py-3 font-black ${product.afterSalesBurden === "低" ? "text-emerald-300" : product.afterSalesBurden === "中" ? "text-amber-300" : "text-rose-300"}`}>{product.afterSalesBurden}</td>
                 <td className="px-4 py-3 text-cyan-300">{score(product.lowServiceRepeatScore)}</td>
@@ -371,6 +389,7 @@ export function EcommerceRadarClient() {
   const topSeasonal = report?.seasonalHotProducts[0];
   const topMargin = report?.lowCostHighMarginProducts[0];
   const topLifestyle = report?.lifestyleLowCostHighProfitProducts[0];
+  const topSelection = report?.productSelectionRecommendations[0];
   const topMonth = report?.nextMonthWinners[0];
   const topQuarter = report?.nextQuarterWinners[0];
 
@@ -468,7 +487,8 @@ export function EcommerceRadarClient() {
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-8">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-9">
+        <SummaryCard icon={BadgeCheck} label="AI 選品首選" value={topSelection?.title || (loading ? "讀取中" : "-")} sub={topSelection ? `選品分 ${score(topSelection.selectionScore)}，${topSelection.selectionAdvice}，尺寸 ${topSelection.sizeLabel}` : "依季節、回購、成本、毛利、尺寸與售後評分"} tone="text-emerald-200" />
         <SummaryCard icon={TrendingUp} label="目前銷售熱度最大" value={topSales?.title || (loading ? "讀取中" : "-")} sub={topSales ? `${topSales.salesSignalLabel}，熱銷分 ${topSales.salesSignal}` : "依 PChome 熱銷排序訊號"} tone="text-emerald-300" />
         <SummaryCard icon={DollarSign} label="估算淨利最高" value={topProfit?.title || (loading ? "讀取中" : "-")} sub={topProfit ? `淨利 ${money(topProfit.estimatedNetProfit)}，淨利率 ${pct(topProfit.estimatedNetMarginRate)}` : "依成本模型與熱銷分"} tone="text-amber-300" />
         <SummaryCard icon={Repeat2} label="低售服高回購" value={topRepeat?.title || (loading ? "讀取中" : "-")} sub={topRepeat ? `回購分 ${score(topRepeat.repurchaseScore)}，售服 ${topRepeat.afterSalesBurden}，綜合 ${score(topRepeat.lowServiceRepeatScore)}` : "依回購、客服負擔、熱度與淨利"} tone="text-cyan-200" />
@@ -481,6 +501,37 @@ export function EcommerceRadarClient() {
 
       {report ? (
         <>
+          <section className="glass rounded-3xl p-5">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <p className="text-sm text-slate-400">AI Product Selection</p>
+                <h2 className="flex items-center gap-2 text-2xl font-black text-white">
+                  <BadgeCheck className="h-6 w-6 text-emerald-300" />
+                  AI 選品推薦
+                </h2>
+                <p className="mt-2 max-w-4xl text-sm leading-6 text-slate-300">
+                  依照季節性、回購率、低成本、毛利率、尺寸與售後負擔一起評分。小型、低單價、低退貨壓力、能重複購買且毛利足夠的商品會優先排在前面。
+                </p>
+              </div>
+              <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">
+                共推薦 {report.productSelectionRecommendations.length} 件可評估商品
+              </div>
+            </div>
+            <div className="mt-4 grid gap-4 xl:grid-cols-2">
+              {report.productSelectionRecommendations.slice(0, 4).map((product) => (
+                <div key={`selection-${product.source}-${product.id}`} className="space-y-3">
+                  <ProductCard product={product} mode="selection" />
+                  <div className="rounded-3xl border border-emerald-400/20 bg-emerald-400/10 p-4">
+                    <p className="font-black text-emerald-100">推薦原因：{product.selectionAdvice}</p>
+                    <ul className="mt-2 space-y-1 text-sm leading-6 text-slate-300">
+                      {product.selectionReasons.map((reason) => <li key={reason}>• {reason}</li>)}
+                    </ul>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
           <section className="glass rounded-3xl p-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
