@@ -3,7 +3,7 @@
 import type { LucideIcon } from "lucide-react";
 import { AlertTriangle, BadgeCheck, CalendarClock, DollarSign, ExternalLink, Filter, RefreshCw, Repeat2, Search, Settings2, ShieldCheck, ShoppingBag, TrendingUp } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import type { CommerceCategorySummary, CommerceProduct, CommerceRadarReport, HealthSupplementGroupSummary } from "@/lib/ecommerce-radar";
+import type { CategoryProductRanking, CommerceCategorySummary, CommerceProduct, CommerceRadarReport, HealthSupplementGroupSummary } from "@/lib/ecommerce-radar";
 
 const DEFAULT_KEYWORDS = "藍牙耳機, 行動電源, 手機殼, 保護貼, 掃地機器人, 氣炸鍋, 除濕機, 空氣清淨機, 電競滑鼠, SSD, 咖啡機, 保健食品, 葉黃素, 魚油, 益生菌, 貓砂, 狗飼料, 尿布, 濕紙巾, 美妝保養, 防曬, 筋膜槍, 兒童玩具, 露營燈, 收納箱, 洗衣精, 衛生紙, 洗髮精, 牙膏, 零食, 咖啡豆, 車用吸塵器, 掛勾, 置物架, 廚房小物, 浴室收納, 電線收納, 保溫杯, 小夜燈, 防塵罩, 密封袋, 桌面收納";
 
@@ -242,6 +242,17 @@ function ProductCard({ product, mode }: { product: CommerceProduct; mode: "sales
             </div>
           ) : null}
 
+          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            <MiniMetric label="平台銷售價" value={money(product.sellingPrice)} sub={`${product.sellingPriceSource} / ${product.sellingPriceCurrency} ${product.sellingPriceOriginalAmount}`} />
+            <MiniMetric label="估進貨價" value={money(product.estimatedPurchasePrice)} sub={product.purchasePriceSource} />
+            <MiniMetric label="分類試賣分" value={score(product.categoryTrialScore)} tone={scoreTone(product.categoryTrialScore)} sub={`分類內第 ${product.categoryRank || "-"} 名`} />
+          </div>
+
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <MiniMetric label="價差毛利" value={money(product.grossSpread)} tone={profitTone(product.grossSpread)} sub={`毛利率 ${pct(product.grossSpreadPct)}`} />
+            <MiniMetric label="進貨價說明" value="估算值" sub="真實採購價需接供應商或自行輸入報價，目前以品類毛利率與成本參數推估。" />
+          </div>
+
           <p className="mt-3 text-sm leading-6 text-slate-300">{product.salesSignalLabel}</p>
           <div className="mt-3 flex flex-wrap gap-2 text-xs">
             <span className="rounded-full bg-blue-400/15 px-3 py-1 text-blue-100">{product.parentCategory}</span>
@@ -333,11 +344,57 @@ function HealthCategoryCard({ item }: { item: HealthSupplementGroupSummary }) {
   );
 }
 
+function CategoryRankingCard({ item }: { item: CategoryProductRanking }) {
+  return (
+    <article className="rounded-3xl border border-blue-400/25 bg-blue-400/10 p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs text-blue-200">{item.parentCategory}</p>
+          <h3 className="mt-1 text-lg font-black text-white">{item.category}</h3>
+        </div>
+        <span className="rounded-full bg-blue-400/15 px-3 py-1 text-xs font-black text-blue-100">
+          {item.productCount} 件
+        </span>
+      </div>
+      <div className="mt-4 grid gap-2 sm:grid-cols-4">
+        <MiniMetric label="平均試賣分" value={score(item.averageTrialScore)} tone={scoreTone(item.averageTrialScore)} />
+        <MiniMetric label="最高試賣分" value={score(item.topTrialScore)} tone={scoreTone(item.topTrialScore)} />
+        <MiniMetric label="平均銷售價" value={money(item.averageSellingPrice)} />
+        <MiniMetric label="平均估進貨價" value={money(item.averageEstimatedPurchasePrice)} />
+      </div>
+      <div className="mt-4 space-y-2">
+        {item.products.slice(0, 5).map((product) => (
+          <a
+            key={`${product.source}-${product.id}`}
+            href={product.url}
+            target="_blank"
+            rel="noreferrer"
+            className="block rounded-2xl border border-slate-700/70 bg-slate-950/35 p-3 transition hover:border-blue-300/60"
+          >
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="line-clamp-2 text-sm font-black text-white">#{product.categoryRank} {product.title}</p>
+                <p className="mt-1 text-xs text-slate-400">{product.marketplace} / {product.keyword}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs sm:min-w-[280px]">
+                <span className="rounded-xl bg-emerald-400/10 px-2 py-1 text-emerald-100">試賣 {score(product.categoryTrialScore)}</span>
+                <span className="rounded-xl bg-blue-400/10 px-2 py-1 text-blue-100">售價 {money(product.sellingPrice)}</span>
+                <span className="rounded-xl bg-lime-400/10 px-2 py-1 text-lime-100">進貨 {money(product.estimatedPurchasePrice)}</span>
+                <span className="rounded-xl bg-amber-400/10 px-2 py-1 text-amber-100">毛利 {money(product.grossSpread)}</span>
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+    </article>
+  );
+}
+
 function ProductTable({ products }: { products: CommerceProduct[] }) {
   return (
     <div className="overflow-hidden rounded-3xl border border-slate-700/70">
       <div className="max-h-[620px] overflow-auto">
-        <table className="w-full min-w-[2320px] border-collapse text-left text-sm">
+        <table className="w-full min-w-[2680px] border-collapse text-left text-sm">
           <thead className="sticky top-0 bg-slate-950 text-slate-300">
             <tr>
               <th className="px-4 py-3">商品</th>
@@ -614,6 +671,29 @@ export function EcommerceRadarClient() {
                     </ul>
                   </div>
                 </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="glass rounded-3xl p-5">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <p className="text-sm text-slate-400">Category Trial Rankings</p>
+                <h2 className="flex items-center gap-2 text-2xl font-black text-white">
+                  <Filter className="h-6 w-6 text-blue-300" />
+                  各商品分類試賣排名
+                </h2>
+                <p className="mt-2 max-w-4xl text-sm leading-6 text-slate-300">
+                  先完成商品分類，再針對每一類分別排名。每件商品都有分類試賣分、分類內排名、平台銷售價、估進貨價與價差毛利，方便判斷哪一類可以先小量進貨測試。
+                </p>
+              </div>
+              <div className="rounded-2xl border border-blue-400/30 bg-blue-400/10 px-4 py-3 text-sm text-blue-100">
+                共 {report.categoryProductRankings.length} 個分類
+              </div>
+            </div>
+            <div className="mt-5 grid gap-4 xl:grid-cols-2">
+              {report.categoryProductRankings.slice(0, 10).map((item) => (
+                <CategoryRankingCard key={`${item.parentCategory}/${item.category}`} item={item} />
               ))}
             </div>
           </section>

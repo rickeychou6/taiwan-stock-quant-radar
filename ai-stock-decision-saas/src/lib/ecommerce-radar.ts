@@ -1,3 +1,5 @@
+import { createHash, createHmac } from "crypto";
+
 export type CommerceSourceStatus = {
   source: string;
   ok: boolean;
@@ -29,6 +31,17 @@ export type CommerceCategorySummary = {
   averageLifestyleScore: number;
   bestProductTitle: string;
   bestProductUrl: string;
+};
+
+export type CategoryProductRanking = {
+  parentCategory: string;
+  category: string;
+  productCount: number;
+  averageTrialScore: number;
+  topTrialScore: number;
+  averageSellingPrice: number;
+  averageEstimatedPurchasePrice: number;
+  products: CommerceProduct[];
 };
 
 export type LifestyleSmallItemSummary = {
@@ -71,6 +84,10 @@ export type CommerceProduct = {
   url: string;
   imageUrl: string;
   price: number;
+  sellingPrice: number;
+  sellingPriceSource: string;
+  sellingPriceCurrency: string;
+  sellingPriceOriginalAmount: number;
   originalPrice: number;
   currency: "TWD";
   discountPct: number;
@@ -97,6 +114,8 @@ export type CommerceProduct = {
   selectionScore: number;
   selectionAdvice: "優先測品" | "可小量測試" | "等待比價" | "暫不建議";
   selectionReasons: string[];
+  categoryTrialScore: number;
+  categoryRank: number;
   compactLifestyleScore: number;
   compactLifestyleReason: string;
   isHealthSupplement: boolean;
@@ -111,7 +130,11 @@ export type CommerceProduct = {
   grossMarginRate: number;
   costRate: number;
   estimatedProductCost: number;
+  estimatedPurchasePrice: number;
+  purchasePriceSource: string;
   estimatedGrossProfit: number;
+  grossSpread: number;
+  grossSpreadPct: number;
   estimatedPlatformFee: number;
   estimatedPaymentFee: number;
   estimatedShippingCost: number;
@@ -137,6 +160,7 @@ export type CommerceRadarReport = {
   sources: CommerceSourceStatus[];
   scannedKeywords: string[];
   categorySummary: CommerceCategorySummary[];
+  categoryProductRankings: CategoryProductRanking[];
   lifestyleSummary: LifestyleSmallItemSummary;
   products: CommerceProduct[];
   topSales: CommerceProduct[];
@@ -188,6 +212,44 @@ type ShopeeSearchResponse = {
   }>;
 };
 
+type AmazonSearchItemsResponse = {
+  SearchResult?: {
+    TotalResultCount?: number;
+    Items?: Array<{
+      ASIN?: string;
+      DetailPageURL?: string;
+      ItemInfo?: {
+        Title?: {
+          DisplayValue?: string;
+        };
+      };
+      Images?: {
+        Primary?: {
+          Medium?: {
+            URL?: string;
+          };
+        };
+      };
+      Offers?: {
+        Listings?: Array<{
+          Price?: {
+            Amount?: number;
+            Currency?: string;
+            DisplayAmount?: string;
+          };
+          SavingBasis?: {
+            Amount?: number;
+          };
+        }>;
+      };
+    }>;
+  };
+  Errors?: Array<{
+    Code?: string;
+    Message?: string;
+  }>;
+};
+
 type RawCommerceInput = {
   id: string;
   title: string;
@@ -200,6 +262,8 @@ type RawCommerceInput = {
   imageUrl: string;
   price: number;
   originalPrice: number;
+  sourcePriceAmount?: number;
+  sourcePriceCurrency?: string;
   searchTotalRows: number;
   externalSoldSignal?: number;
 };
@@ -884,6 +948,35 @@ function buildHealthSupplementCategoryRankings(products: CommerceProduct[]): Hea
   );
 }
 
+function buildCategoryTrialScore(args: {
+  selectionScore: number;
+  lowCostHighMarginScore: number;
+  salesSignal: number;
+  lowServiceRepeatScore: number;
+  repurchaseScore: number;
+  sizeScore: number;
+  estimatedNetMarginRate: number;
+  isHealthSupplement: boolean;
+  healthOpportunityScore: number;
+  healthAdRiskScore: number;
+}) {
+  const healthComponent = args.isHealthSupplement
+    ? args.healthOpportunityScore * 0.12 - args.healthAdRiskScore * 0.10
+    : args.repurchaseScore * 0.08;
+
+  return clamp(
+    args.selectionScore * 0.30 +
+      args.lowCostHighMarginScore * 0.20 +
+      args.salesSignal * 0.14 +
+      args.lowServiceRepeatScore * 0.12 +
+      args.sizeScore * 0.08 +
+      Math.max(args.estimatedNetMarginRate, 0) * 45 +
+      healthComponent,
+    0,
+    100
+  );
+}
+
 function productUrl(id: string) {
   return `https://24h.pchome.com.tw/prod/${encodeURIComponent(id)}`;
 }
@@ -917,7 +1010,10 @@ function buildCostModel(price: number, grossMarginRate: number, settings: CostSe
   return {
     costRate,
     estimatedProductCost: round(estimatedProductCost),
+    estimatedPurchasePrice: round(estimatedProductCost),
     estimatedGrossProfit: round(estimatedGrossProfit),
+    grossSpread: round(estimatedGrossProfit),
+    grossSpreadPct: round(price > 0 ? estimatedGrossProfit / price : 0, 4),
     estimatedPlatformFee: round(estimatedPlatformFee),
     estimatedPaymentFee: round(estimatedPaymentFee),
     estimatedShippingCost: round(estimatedShippingCost),
@@ -1016,6 +1112,18 @@ function buildCommerceProduct(input: RawCommerceInput, costSettings: CostSetting
     lowAfterSalesScore,
     estimatedNetMarginRate: costs.estimatedNetMarginRate
   });
+  const categoryTrialScore = buildCategoryTrialScore({
+    selectionScore,
+    lowCostHighMarginScore,
+    salesSignal,
+    lowServiceRepeatScore,
+    repurchaseScore,
+    sizeScore: sizeProfile.score,
+    estimatedNetMarginRate: costs.estimatedNetMarginRate,
+    isHealthSupplement: healthProfile.isHealthSupplement,
+    healthOpportunityScore: healthProfile.healthOpportunityScore,
+    healthAdRiskScore: healthProfile.healthAdRiskScore
+  });
   const soldText = input.externalSoldSignal ? ` / 銷售訊號 ${input.externalSoldSignal.toLocaleString()}` : "";
 
   return {
@@ -1028,6 +1136,10 @@ function buildCommerceProduct(input: RawCommerceInput, costSettings: CostSetting
     url: input.url,
     imageUrl: input.imageUrl,
     price,
+    sellingPrice: price,
+    sellingPriceSource: input.marketplace,
+    sellingPriceCurrency: input.sourcePriceCurrency || "TWD",
+    sellingPriceOriginalAmount: round(Number(input.sourcePriceAmount || price), 2),
     originalPrice,
     currency: "TWD",
     discountPct: round(discountPct, 1),
@@ -1060,6 +1172,8 @@ function buildCommerceProduct(input: RawCommerceInput, costSettings: CostSetting
     selectionScore: round(selectionScore, 1),
     selectionAdvice: selectionAdvice(selectionScore, sizeProfile.className, costs.estimatedNetProfit),
     selectionReasons,
+    categoryTrialScore: round(categoryTrialScore, 1),
+    categoryRank: 0,
     compactLifestyleScore: round(compactLifestyleScore, 1),
     compactLifestyleReason: compactLifestyleReason({
       price,
@@ -1073,6 +1187,7 @@ function buildCommerceProduct(input: RawCommerceInput, costSettings: CostSetting
     ...healthProfile,
     grossMarginRate: category.grossMarginRate,
     ...costs,
+    purchasePriceSource: `依 ${category.parentCategory}/${category.category} 毛利率與成本參數估算`,
     estimatedProfitIndex: round(estimatedProfitIndex, 1),
     breakEvenPrice: costs.breakEvenPrice,
     externalSoldSignal: input.externalSoldSignal,
@@ -1132,6 +1247,8 @@ async function fetchPchomeKeyword(keyword: string, limit: number, costSettings: 
         imageUrl: imageUrl(item.picS || item.picB),
         price: Number(item.price || 0),
         originalPrice: Number(item.originPrice || item.price || 0),
+        sourcePriceAmount: Number(item.price || 0),
+        sourcePriceCurrency: "TWD",
         searchTotalRows: totalRows
       }, costSettings);
     });
@@ -1176,6 +1293,163 @@ function normalizeShopeePrice(value?: number) {
   return Math.round(raw / 100000);
 }
 
+function currencyToTwd(amount: number, currency = "TWD") {
+  const rates: Record<string, number> = {
+    TWD: 1,
+    USD: Number(process.env.AMAZON_USD_TWD_RATE || 32),
+    JPY: Number(process.env.AMAZON_JPY_TWD_RATE || 0.22),
+    CNY: Number(process.env.AMAZON_CNY_TWD_RATE || 4.5)
+  };
+  return round(amount * (rates[currency.toUpperCase()] || 1));
+}
+
+function sha256Hex(value: string) {
+  return createHash("sha256").update(value, "utf8").digest("hex");
+}
+
+function hmac(key: Buffer | string, value: string) {
+  return createHmac("sha256", key).update(value, "utf8").digest();
+}
+
+function hmacHex(key: Buffer, value: string) {
+  return createHmac("sha256", key).update(value, "utf8").digest("hex");
+}
+
+function amazonTimestamp(date = new Date()) {
+  const iso = date.toISOString().replace(/[:-]|\.\d{3}/g, "");
+  return {
+    amzDate: iso,
+    dateStamp: iso.slice(0, 8)
+  };
+}
+
+function amazonSigningKey(secretKey: string, dateStamp: string, region: string, service: string) {
+  const kDate = hmac(`AWS4${secretKey}`, dateStamp);
+  const kRegion = hmac(kDate, region);
+  const kService = hmac(kRegion, service);
+  return hmac(kService, "aws4_request");
+}
+
+async function fetchAmazonKeyword(keyword: string, limit: number, costSettings: CostSettings): Promise<{ products: CommerceProduct[]; status: CommerceSourceStatus }> {
+  const fetchedAt = new Date().toISOString();
+  const accessKey = process.env.AMAZON_PAAPI_ACCESS_KEY || "";
+  const secretKey = process.env.AMAZON_PAAPI_SECRET_KEY || "";
+  const partnerTag = process.env.AMAZON_PAAPI_PARTNER_TAG || "";
+  const marketplace = process.env.AMAZON_PAAPI_MARKETPLACE || "www.amazon.com";
+  const host = process.env.AMAZON_PAAPI_HOST || "webservices.amazon.com";
+  const region = process.env.AMAZON_PAAPI_REGION || "us-east-1";
+  const service = "ProductAdvertisingAPI";
+  const url = `https://${host}/paapi5/searchitems`;
+
+  if (!accessKey || !secretKey || !partnerTag) {
+    return {
+      products: [],
+      status: {
+        source: `Amazon PA API：${keyword}`,
+        ok: false,
+        fetchedAt,
+        url,
+        message: "Amazon 價格資料需使用官方 Product Advertising API。尚未設定 AMAZON_PAAPI_ACCESS_KEY / AMAZON_PAAPI_SECRET_KEY / AMAZON_PAAPI_PARTNER_TAG，因此不硬爬頁面、不產生假價格。"
+      }
+    };
+  }
+
+  const payload = JSON.stringify({
+    Keywords: keyword,
+    Marketplace: marketplace,
+    PartnerTag: partnerTag,
+    PartnerType: "Associates",
+    ItemCount: Math.min(limit, 10),
+    Resources: [
+      "Images.Primary.Medium",
+      "ItemInfo.Title",
+      "Offers.Listings.Price",
+      "Offers.Listings.SavingBasis"
+    ]
+  });
+  const { amzDate, dateStamp } = amazonTimestamp();
+  const canonicalHeaders = `content-encoding:amz-1.0\ncontent-type:application/json; charset=utf-8\nhost:${host}\nx-amz-date:${amzDate}\nx-amz-target:com.amazon.paapi5.v1.ProductAdvertisingAPIv1.SearchItems\n`;
+  const signedHeaders = "content-encoding;content-type;host;x-amz-date;x-amz-target";
+  const canonicalRequest = `POST\n/paapi5/searchitems\n\n${canonicalHeaders}\n${signedHeaders}\n${sha256Hex(payload)}`;
+  const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`;
+  const stringToSign = `AWS4-HMAC-SHA256\n${amzDate}\n${credentialScope}\n${sha256Hex(canonicalRequest)}`;
+  const signature = hmacHex(amazonSigningKey(secretKey, dateStamp, region, service), stringToSign);
+  const authorization = `AWS4-HMAC-SHA256 Credential=${accessKey}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      cache: "no-store",
+      headers: {
+        "Content-Encoding": "amz-1.0",
+        "Content-Type": "application/json; charset=utf-8",
+        Host: host,
+        "X-Amz-Date": amzDate,
+        "X-Amz-Target": "com.amazon.paapi5.v1.ProductAdvertisingAPIv1.SearchItems",
+        Authorization: authorization
+      },
+      body: payload
+    });
+
+    if (!response.ok) throw new Error(`Amazon PA API returned HTTP ${response.status}`);
+
+    const data = (await response.json()) as AmazonSearchItemsResponse;
+    if (data.Errors?.length) throw new Error(data.Errors.map((error) => `${error.Code}: ${error.Message}`).join("; "));
+    const items = data.SearchResult?.Items || [];
+    const totalRows = Number(data.SearchResult?.TotalResultCount || items.length || 0);
+    const products = items.flatMap<CommerceProduct>((item, index) => {
+      const listing = item.Offers?.Listings?.[0];
+      const amount = Number(listing?.Price?.Amount || 0);
+      const currency = listing?.Price?.Currency || "USD";
+      if (!item.ASIN || !amount) return [];
+      const title = item.ItemInfo?.Title?.DisplayValue || `Amazon ${keyword}`;
+      const price = currencyToTwd(amount, currency);
+      const originalAmount = Number(listing?.SavingBasis?.Amount || amount);
+
+      return buildCommerceProduct({
+        id: item.ASIN,
+        title,
+        description: "",
+        source: "Amazon Product Advertising API",
+        marketplace: `Amazon ${marketplace}`,
+        keyword,
+        rank: index + 1,
+        url: item.DetailPageURL || `https://${marketplace}/dp/${item.ASIN}`,
+        imageUrl: item.Images?.Primary?.Medium?.URL || "",
+        price,
+        originalPrice: currencyToTwd(originalAmount, currency),
+        sourcePriceAmount: amount,
+        sourcePriceCurrency: currency,
+        searchTotalRows: totalRows
+      }, costSettings);
+    });
+
+    return {
+      products,
+      status: {
+        source: `Amazon：${keyword}`,
+        ok: products.length > 0,
+        fetchedAt,
+        url,
+        message: products.length > 0
+          ? `取得 ${products.length} 件 Amazon 商品，銷售價依 ${marketplace} 報價轉換台幣估算。`
+          : "Amazon API 有回應，但此關鍵字沒有可解析的價格商品。"
+      }
+    };
+  } catch (error) {
+    return {
+      products: [],
+      status: {
+        source: `Amazon：${keyword}`,
+        ok: false,
+        fetchedAt,
+        url,
+        message: error instanceof Error ? error.message : "Amazon PA API 讀取失敗。"
+      }
+    };
+  }
+}
+
 async function fetchShopeeKeyword(keyword: string, limit: number, costSettings: CostSettings): Promise<{ products: CommerceProduct[]; status: CommerceSourceStatus }> {
   const url = `https://shopee.tw/api/v4/search/search_items?by=relevancy&keyword=${encodeURIComponent(keyword)}&limit=${limit}&newest=0&order=desc&page_type=search&scenario=PAGE_GLOBAL_SEARCH&version=2`;
   const fetchedAt = new Date().toISOString();
@@ -1218,6 +1492,8 @@ async function fetchShopeeKeyword(keyword: string, limit: number, costSettings: 
         imageUrl: shopeeImageUrl(basic.image),
         price,
         originalPrice,
+        sourcePriceAmount: price,
+        sourcePriceCurrency: "TWD",
         searchTotalRows: totalRows,
         externalSoldSignal: sold > 0 ? sold : undefined
       }, costSettings);
@@ -1309,10 +1585,58 @@ function sortDesc<T>(rows: T[], selector: (row: T) => number) {
   return [...rows].sort((a, b) => selector(b) - selector(a));
 }
 
+function productKey(product: CommerceProduct) {
+  return `${product.source}:${product.id}`;
+}
+
+function applyCategoryRanks(products: CommerceProduct[]) {
+  const groups = new Map<string, CommerceProduct[]>();
+  for (const product of products) {
+    const key = `${product.parentCategory}/${product.category}`;
+    groups.set(key, [...(groups.get(key) || []), product]);
+  }
+
+  const rankMap = new Map<string, number>();
+  for (const rows of groups.values()) {
+    sortDesc(rows, (product) => product.categoryTrialScore).forEach((product, index) => {
+      rankMap.set(productKey(product), index + 1);
+    });
+  }
+
+  return products.map((product) => ({
+    ...product,
+    categoryRank: rankMap.get(productKey(product)) || 0
+  }));
+}
+
+function buildCategoryProductRankings(products: CommerceProduct[]): CategoryProductRanking[] {
+  const groups = new Map<string, CommerceProduct[]>();
+  for (const product of products) {
+    const key = `${product.parentCategory}/${product.category}`;
+    groups.set(key, [...(groups.get(key) || []), product]);
+  }
+
+  return sortDesc(
+    Array.from(groups.values()).map((rows) => {
+      const rankedProducts = sortDesc(rows, (product) => product.categoryTrialScore);
+      const averageTrialScore = rankedProducts.reduce((sum, product) => sum + product.categoryTrialScore, 0) / rankedProducts.length;
+      return {
+        parentCategory: rankedProducts[0].parentCategory,
+        category: rankedProducts[0].category,
+        productCount: rankedProducts.length,
+        averageTrialScore: round(averageTrialScore, 1),
+        topTrialScore: rankedProducts[0]?.categoryTrialScore || 0,
+        averageSellingPrice: round(rankedProducts.reduce((sum, product) => sum + product.sellingPrice, 0) / rankedProducts.length),
+        averageEstimatedPurchasePrice: round(rankedProducts.reduce((sum, product) => sum + product.estimatedPurchasePrice, 0) / rankedProducts.length),
+        products: rankedProducts.slice(0, 8)
+      };
+    }),
+    (group) => group.averageTrialScore
+  );
+}
+
 function pickExternalKeywords(keywords: string[]) {
-  const lifestyleKeywords = keywords.filter((keyword) => LIFESTYLE_SMALL_ITEM_PATTERN.test(keyword)).slice(0, 8);
-  const base = lifestyleKeywords.length ? lifestyleKeywords : keywords.slice(0, 6);
-  return Array.from(new Set(base)).slice(0, 8);
+  return Array.from(new Set(keywords)).slice(0, 10);
 }
 
 function buildCategorySummary(products: CommerceProduct[]) {
@@ -1383,14 +1707,15 @@ export async function runEcommerceRadar(options?: { keywords?: string | null; pe
   const pchomeResults = await Promise.all(keywords.map((keyword) => fetchPchomeKeyword(keyword, perKeywordLimit, costSettings)));
   const includeExternalSources = options?.includeExternalSources ?? true;
   const externalKeywords = includeExternalSources ? pickExternalKeywords(keywords) : [];
-  const [shopeeResults, pinduoduoResults] = includeExternalSources
+  const [shopeeResults, amazonResults, pinduoduoResults] = includeExternalSources
     ? await Promise.all([
         Promise.all(externalKeywords.map((keyword) => fetchShopeeKeyword(keyword, Math.min(perKeywordLimit, 6), costSettings))),
+        Promise.all(externalKeywords.map((keyword) => fetchAmazonKeyword(keyword, Math.min(perKeywordLimit, 5), costSettings))),
         Promise.all(externalKeywords.slice(0, 3).map((keyword) => fetchPinduoduoKeyword(keyword)))
       ])
-    : [[], []] as Array<Array<{ products: CommerceProduct[]; status: CommerceSourceStatus }>>;
-  const results = [...pchomeResults, ...shopeeResults, ...pinduoduoResults];
-  const products = uniqueProducts(results.flatMap((result) => result.products));
+    : [[], [], []] as Array<Array<{ products: CommerceProduct[]; status: CommerceSourceStatus }>>;
+  const results = [...pchomeResults, ...shopeeResults, ...amazonResults, ...pinduoduoResults];
+  const products = applyCategoryRanks(uniqueProducts(results.flatMap((result) => result.products)));
 
   const topSales = sortDesc(products, (product) => product.salesSignal).slice(0, 10);
   const topProfit = sortDesc(products, (product) => product.estimatedProfitIndex).slice(0, 10);
@@ -1436,6 +1761,7 @@ export async function runEcommerceRadar(options?: { keywords?: string | null; pe
     sources: results.map((result) => result.status),
     scannedKeywords: keywords,
     categorySummary: buildCategorySummary(products),
+    categoryProductRankings: buildCategoryProductRankings(products),
     lifestyleSummary: buildLifestyleSummary(products),
     products,
     topSales,
