@@ -323,6 +323,118 @@ const DEFAULT_KEYWORDS = [
   "桌面收納"
 ];
 
+export type EcommerceParentCategoryLink = {
+  slug: string;
+  label: string;
+  shortLabel: string;
+  description: string;
+  keywords: string;
+  parentCategories: string[];
+};
+
+export const ECOMMERCE_PARENT_CATEGORY_LINKS: EcommerceParentCategoryLink[] = [
+  {
+    slug: "lifestyle",
+    label: "生活小物",
+    shortLabel: "生活小物",
+    description: "低成本、小體積、高回購、低售服壓力的日用品與收納小物。",
+    keywords: "掛勾,置物架,廚房小物,浴室收納,電線收納,保溫杯,小夜燈,防塵罩,密封袋,桌面收納,收納箱,清潔刷",
+    parentCategories: ["生活小物"]
+  },
+  {
+    slug: "3c",
+    label: "3C 電子",
+    shortLabel: "3C",
+    description: "耳機、手機配件、電腦周邊與儲存零組件，會特別看售後與保固壓力。",
+    keywords: "藍牙耳機,行動電源,手機殼,保護貼,充電線,充電器,電競滑鼠,鍵盤,SSD,隨身碟,手機支架,散熱器",
+    parentCategories: ["3C 電子"]
+  },
+  {
+    slug: "appliances",
+    label: "小家電",
+    shortLabel: "小家電",
+    description: "清潔、廚房與空調環境家電，重點看單價、物流、維修與退貨風險。",
+    keywords: "掃地機器人,吸塵器,氣炸鍋,咖啡機,烤箱,除濕機,空氣清淨機,循環扇,電風扇,熱水瓶",
+    parentCategories: ["小家電"]
+  },
+  {
+    slug: "beauty",
+    label: "美妝保養",
+    shortLabel: "美妝",
+    description: "保養、洗沐與彩妝香氛，重點看回購率、毛利與季節檔期。",
+    keywords: "美妝保養,防曬,面膜,精華,乳液,洗面乳,洗髮精,牙膏,口紅,粉底,香水,化妝水",
+    parentCategories: ["美妝保養"]
+  },
+  {
+    slug: "health",
+    label: "健康保健",
+    shortLabel: "保健",
+    description: "保健食品和運動恢復品，會同步標示廣告法規風險與可試賣機會。",
+    keywords: "保健食品,葉黃素,魚油,益生菌,維他命B群,膠原蛋白,鈣片,瑪卡,紅麴,納豆,筋膜槍,護具",
+    parentCategories: ["健康保健"]
+  },
+  {
+    slug: "pets",
+    label: "寵物用品",
+    shortLabel: "寵物",
+    description: "貓狗消耗品與寵物日用品，重點看回購、重量物流與客訴風險。",
+    keywords: "貓砂,狗飼料,貓飼料,寵物罐頭,寵物尿布,貓零食,狗零食,寵物用品,寵物清潔,貓抓板",
+    parentCategories: ["寵物用品"]
+  },
+  {
+    slug: "mom-baby",
+    label: "母嬰玩具",
+    shortLabel: "母嬰",
+    description: "尿布濕巾、嬰幼兒用品與玩具親子商品，會看安全與回購屬性。",
+    keywords: "尿布,濕紙巾,奶瓶,嬰兒用品,兒童玩具,積木,桌遊,娃娃,安全座椅,推車",
+    parentCategories: ["母嬰玩具"]
+  },
+  {
+    slug: "outdoor",
+    label: "運動戶外",
+    shortLabel: "戶外",
+    description: "露營、登山、健身與戶外用品，適合看季節性和活動檔期。",
+    keywords: "筋膜槍,瑜珈,健身,露營燈,帳篷,睡袋,登山,戶外用品,護具,運動水壺",
+    parentCategories: ["運動戶外"]
+  },
+  {
+    slug: "home",
+    label: "居家生活",
+    shortLabel: "居家",
+    description: "收納、清潔、寢具與家飾，重點看消耗型需求與大件物流壓力。",
+    keywords: "收納箱,洗衣精,衛生紙,拖把,垃圾袋,床包,枕頭,棉被,涼感,地毯,置物架",
+    parentCategories: ["居家生活"]
+  },
+  {
+    slug: "food",
+    label: "食品飲料",
+    shortLabel: "食品",
+    description: "零食、咖啡、飲料與禮盒，重點看回購、保存期限與節慶需求。",
+    keywords: "零食,咖啡豆,咖啡,茶,飲料,泡麵,餅乾,巧克力,年節禮盒,中秋禮盒",
+    parentCategories: ["食品飲料"]
+  },
+  {
+    slug: "fashion",
+    label: "服飾鞋包",
+    shortLabel: "服飾",
+    description: "服飾、鞋包與配件，重點看尺寸退換貨、季節與毛利空間。",
+    keywords: "衣服,外套,鞋,包,襪,帽,內衣,涼感衣,雨衣,背包,皮夾",
+    parentCategories: ["服飾鞋包"]
+  },
+  {
+    slug: "auto-office",
+    label: "車用與辦公",
+    shortLabel: "車用/辦公",
+    description: "車用百貨與辦公文具耗材，重點看單價、耗材回購與安裝售服。",
+    keywords: "車用吸塵器,行車紀錄器,胎壓,汽車用品,機車用品,文具,辦公,印表機,標籤,資料夾",
+    parentCategories: ["車用百貨", "辦公文具"]
+  }
+];
+
+export function findEcommerceParentCategory(slug: string) {
+  return ECOMMERCE_PARENT_CATEGORY_LINKS.find((item) => item.slug === slug);
+}
+
 const DEFAULT_COST_SETTINGS: CostSettings = {
   platformFeeRate: 0.08,
   paymentFeeRate: 0.02,

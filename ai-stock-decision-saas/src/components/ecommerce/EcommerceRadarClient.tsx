@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { AlertTriangle, BadgeCheck, CalendarClock, DollarSign, ExternalLink, Filter, RefreshCw, Repeat2, Search, Settings2, ShieldCheck, ShoppingBag, TrendingUp } from "lucide-react";
+import { AlertTriangle, ArrowRight, BadgeCheck, CalendarClock, DollarSign, ExternalLink, Filter, Layers3, RefreshCw, Repeat2, Search, Settings2, ShieldCheck, ShoppingBag, TrendingUp } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { ECOMMERCE_PARENT_CATEGORY_LINKS } from "@/lib/ecommerce-radar";
 import type { CategoryProductRanking, CommerceCategorySummary, CommerceProduct, CommerceRadarReport, HealthSupplementGroupSummary } from "@/lib/ecommerce-radar";
 
 const DEFAULT_KEYWORDS = "藍牙耳機, 行動電源, 手機殼, 保護貼, 掃地機器人, 氣炸鍋, 除濕機, 空氣清淨機, 電競滑鼠, SSD, 咖啡機, 保健食品, 葉黃素, 魚油, 益生菌, 貓砂, 狗飼料, 尿布, 濕紙巾, 美妝保養, 防曬, 筋膜槍, 兒童玩具, 露營燈, 收納箱, 洗衣精, 衛生紙, 洗髮精, 牙膏, 零食, 咖啡豆, 車用吸塵器, 掛勾, 置物架, 廚房小物, 浴室收納, 電線收納, 保溫杯, 小夜燈, 防塵罩, 密封袋, 桌面收納";
@@ -480,6 +482,7 @@ export function EcommerceRadarClient() {
   const [report, setReport] = useState<CommerceRadarReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showFullDashboard, setShowFullDashboard] = useState(false);
 
   async function loadRadar(nextKeywords = keywords, nextCostForm = costForm) {
     setLoading(true);
@@ -628,7 +631,7 @@ export function EcommerceRadarClient() {
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-11">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
         <SummaryCard icon={BadgeCheck} label="AI 選品首選" value={topSelection?.title || (loading ? "讀取中" : "-")} sub={topSelection ? `選品分 ${score(topSelection.selectionScore)}，${topSelection.selectionAdvice}，尺寸 ${topSelection.sizeLabel}` : "依季節、回購、成本、毛利、尺寸與售後評分"} tone="text-emerald-200" />
         <SummaryCard icon={ShoppingBag} label="低價小體積生活小物" value={topCompactLifestyle?.title || (loading ? "讀取中" : "-")} sub={topCompactLifestyle ? `小物精選分 ${score(topCompactLifestyle.compactLifestyleScore)}，售價 ${money(topCompactLifestyle.price)}，成本 ${money(topCompactLifestyle.estimatedProductCost)}，尺寸 ${topCompactLifestyle.sizeLabel}` : "低售價、低成本、高回購、非大型"} tone="text-teal-200" />
         <SummaryCard icon={ShieldCheck} label="保健品低風險機會" value={topHealth?.title || (loading ? "讀取中" : "-")} sub={topHealth ? `${topHealth.healthSupplementType}，機會分 ${score(topHealth.healthOpportunityScore)}，風險 ${topHealth.healthAdRiskLevel} ${score(topHealth.healthAdRiskScore)}` : "依類別、注意事項、禁用詞與機會分排序"} tone="text-amber-200" />
@@ -642,7 +645,54 @@ export function EcommerceRadarClient() {
         <SummaryCard icon={ShoppingBag} label="下一季可能大賣" value={topQuarter?.title || (loading ? "讀取中" : "-")} sub={topQuarter ? `下季大賣分 ${topQuarter.nextQuarterScore}，可信度 ${topQuarter.confidence}` : "依季節性與分類毛利推估"} tone="text-fuchsia-200" />
       </section>
 
-      {report ? (
+      <section className="glass rounded-3xl p-5">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <p className="text-sm text-slate-400">Category Pages</p>
+            <h2 className="flex items-center gap-2 text-2xl font-black text-white">
+              <Layers3 className="h-6 w-6 text-blue-300" />
+              商品分類次頁
+            </h2>
+            <p className="mt-2 max-w-4xl text-sm leading-6 text-slate-300">
+              每個大分類都獨立成一頁，進去後只看該類商品的熱銷、回購、成本、毛利、尺寸、試賣分、來源狀態與進貨建議。
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowFullDashboard((current) => !current)}
+            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-700 px-5 py-3 font-black text-slate-100 transition hover:bg-slate-800"
+          >
+            {showFullDashboard ? "收合完整總覽" : "展開完整總覽"}
+          </button>
+        </div>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {ECOMMERCE_PARENT_CATEGORY_LINKS.map((item) => (
+            <Link
+              key={item.slug}
+              href={`/ecommerce-radar/category/${item.slug}`}
+              className="group rounded-3xl border border-slate-700/70 bg-slate-950/35 p-4 transition hover:border-blue-300/70 hover:bg-blue-500/10"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-bold text-blue-200">{item.shortLabel}</p>
+                  <h3 className="mt-1 text-lg font-black text-white">{item.label}</h3>
+                </div>
+                <ArrowRight className="h-5 w-5 shrink-0 text-slate-500 transition group-hover:translate-x-1 group-hover:text-blue-200" />
+              </div>
+              <p className="mt-3 line-clamp-2 text-sm leading-6 text-slate-400">{item.description}</p>
+              <p className="mt-3 line-clamp-1 text-xs text-slate-500">{item.keywords}</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {report && !showFullDashboard ? (
+        <section className="rounded-3xl border border-blue-400/25 bg-blue-400/10 p-5 text-sm leading-6 text-blue-100">
+          已把詳細排行榜整理到上方各分類次頁。需要一次看全部資料時，再按「展開完整總覽」。
+        </section>
+      ) : null}
+
+      {report && showFullDashboard ? (
         <>
           <section className="glass rounded-3xl p-5">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
@@ -914,11 +964,11 @@ export function EcommerceRadarClient() {
             </div>
           </section>
         </>
-      ) : (
+      ) : !report ? (
         <section className="glass rounded-3xl p-8 text-center text-slate-300">
           {loading ? "正在撈取 PChome 即時公開資料..." : "尚無資料"}
         </section>
-      )}
+      ) : null}
     </div>
   );
 }
