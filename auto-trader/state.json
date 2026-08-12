@@ -1,7 +1,7 @@
 {
   "initialCapital": 100000,
-  "cash": 83378.24999999991,
-  "realizedPnl": -3323.7500000000045,
+  "cash": 83791.6499999999,
+  "realizedPnl": -3311.1500000000046,
   "positions": [
     {
       "id": "position-1784882384944-048c8bef0ec22",
@@ -22,15 +22,15 @@
       "lastValue": 492.09999999999997,
       "unrealizedPnl": -7.700000000000102,
       "unrealizedPnlPct": -1.5406162464986197,
-      "lastAnalysisAt": "2026-08-12T06:41:42.990Z"
+      "lastAnalysisAt": "2026-08-12T07:47:25.843Z"
     },
     {
       "id": "position-1786337482481-42fc453457714",
       "symbol": "2426.TW",
       "name": "鼎元",
-      "shares": 12,
+      "shares": 6,
       "entryPrice": 66.8,
-      "entryAmount": 801.5999999999999,
+      "entryAmount": 400.79999999999995,
       "stopLossPrice": 55.98,
       "takeProfit1": 78.72,
       "takeProfit2": 86.9,
@@ -40,10 +40,10 @@
       "automationAction": "小量試單",
       "positionSizePct": 12,
       "lastPrice": 68.9,
-      "lastValue": 826.8000000000001,
-      "unrealizedPnl": 25.200000000000102,
+      "lastValue": 413.40000000000003,
+      "unrealizedPnl": 12.600000000000051,
       "unrealizedPnlPct": 3.1437125748503125,
-      "lastAnalysisAt": "2026-08-12T06:41:44.524Z"
+      "lastAnalysisAt": "2026-08-12T07:47:26.483Z"
     },
     {
       "id": "position-1786342005573-6f85976d5bc4e",
@@ -64,7 +64,7 @@
       "lastValue": 235.2,
       "unrealizedPnl": -38.400000000000034,
       "unrealizedPnlPct": -14.035087719298255,
-      "lastAnalysisAt": "2026-08-12T06:41:44.994Z"
+      "lastAnalysisAt": "2026-08-12T07:47:26.871Z"
     },
     {
       "id": "position-1786433040854-36453aabf28f7",
@@ -85,10 +85,25 @@
       "lastValue": 11438,
       "unrealizedPnl": -285,
       "unrealizedPnlPct": -2.4311183144246353,
-      "lastAnalysisAt": "2026-08-12T06:41:45.466Z"
+      "lastAnalysisAt": "2026-08-12T07:47:27.336Z"
     }
   ],
   "trades": [
+    {
+      "side": "PARTIAL_SELL",
+      "symbol": "2426.TW",
+      "name": "鼎元",
+      "price": 68.9,
+      "shares": 6,
+      "amount": 413.40000000000003,
+      "cashAfter": 83791.6499999999,
+      "reason": "AI 顯示減碼訊號：短線目標先看 78.72 元；若隔日開高無量，先減碼。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1786337482481-42fc453457714",
+      "id": "trade-1786520846483-b389c44827292",
+      "createdAt": "2026-08-12T07:47:26.483Z",
+      "tradingDate": "2026-08-12"
+    },
     {
       "side": "PARTIAL_SELL",
       "symbol": "2426.TW",
@@ -2011,6 +2026,63 @@
     }
   ],
   "decisions": [
+    {
+      "symbol": "CASH",
+      "name": "資金控管",
+      "decision": "暫停買入",
+      "reason": "已持有 4 檔，避免過度分散。",
+      "id": "decision-1786520847336-cbf5704b591dc",
+      "createdAt": "2026-08-12T07:47:27.336Z",
+      "tradingDate": "2026-08-12"
+    },
+    {
+      "symbol": "2327.TW",
+      "name": "國巨*",
+      "decision": "續抱",
+      "reason": "停損線 431.36 元 不下修，跌破代表交易假設失效。",
+      "finalScore": 44,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1786520847336-7d787eb6f4ba5",
+      "createdAt": "2026-08-12T07:47:27.336Z",
+      "tradingDate": "2026-08-12"
+    },
+    {
+      "symbol": "8050.TWO",
+      "name": "廣積",
+      "decision": "續抱",
+      "reason": "停損線 55.38 元 不可下修。",
+      "finalScore": 53,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1786520846871-9321f72b17ef1",
+      "createdAt": "2026-08-12T07:47:26.871Z",
+      "tradingDate": "2026-08-12"
+    },
+    {
+      "symbol": "2426.TW",
+      "name": "鼎元",
+      "decision": "部分賣出",
+      "reason": "AI 顯示減碼訊號：短線目標先看 78.72 元；若隔日開高無量，先減碼。",
+      "finalScore": 59,
+      "tradeStyle": "短進短出",
+      "automationAction": "小量試單",
+      "id": "decision-1786520846483-b523c797dae4",
+      "createdAt": "2026-08-12T07:47:26.483Z",
+      "tradingDate": "2026-08-12"
+    },
+    {
+      "symbol": "4541.TWO",
+      "name": "晟田",
+      "decision": "續抱",
+      "reason": "短線停損要更緊，收盤或盤中跌破 63.59 元 就不戀戰。",
+      "finalScore": 51,
+      "tradeStyle": "短進短出",
+      "automationAction": "小量試單",
+      "id": "decision-1786520845843-cd474e974bf65",
+      "createdAt": "2026-08-12T07:47:25.843Z",
+      "tradingDate": "2026-08-12"
+    },
     {
       "symbol": "CASH",
       "name": "資金控管",
@@ -4912,6 +4984,15 @@
   ],
   "equity": [
     {
+      "id": "equity-1786520847336-acff8a34e5bf7",
+      "createdAt": "2026-08-12T07:47:27.336Z",
+      "tradingDate": "2026-08-12",
+      "cash": 83791.6499999999,
+      "positionValue": 12578.7,
+      "totalEquity": 96370.3499999999,
+      "realizedPnl": -3311.1500000000046
+    },
+    {
       "id": "equity-1786516905466-87794dd77a5df",
       "createdAt": "2026-08-12T06:41:45.466Z",
       "tradingDate": "2026-08-12",
@@ -5362,5 +5443,5 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-08-12T06:41:22.675Z"
+  "lastRunAt": "2026-08-12T07:47:18.066Z"
 }
