@@ -1,29 +1,8 @@
 {
   "initialCapital": 100000,
-  "cash": 70269.54999999993,
-  "realizedPnl": -2654.8500000000045,
+  "cash": 70503.94999999992,
+  "realizedPnl": -2694.0500000000043,
   "positions": [
-    {
-      "id": "position-1786342005573-6f85976d5bc4e",
-      "symbol": "8050.TWO",
-      "name": "廣積",
-      "shares": 4,
-      "entryPrice": 68.4,
-      "entryAmount": 273.6,
-      "stopLossPrice": 55.59,
-      "takeProfit1": 69.4,
-      "takeProfit2": 76.47,
-      "openedAt": "2026-08-10T06:06:45.573Z",
-      "openedTradingDate": "2026-08-10",
-      "tradeStyle": "暫不交易",
-      "automationAction": "等待",
-      "positionSizePct": 0,
-      "lastPrice": 58.6,
-      "lastValue": 234.4,
-      "unrealizedPnl": -39.20000000000002,
-      "unrealizedPnlPct": -14.327485380116963,
-      "lastAnalysisAt": "2026-08-13T07:48:14.020Z"
-    },
     {
       "id": "position-1786433040854-36453aabf28f7",
       "symbol": "2327.TW",
@@ -43,7 +22,7 @@
       "lastValue": 3310,
       "unrealizedPnl": 225,
       "unrealizedPnlPct": 7.293354943273905,
-      "lastAnalysisAt": "2026-08-13T07:48:15.142Z"
+      "lastAnalysisAt": "2026-08-13T10:11:23.157Z"
     },
     {
       "id": "position-1786607321089-97660d0063291",
@@ -64,7 +43,7 @@
       "lastValue": 11747,
       "unrealizedPnl": 0,
       "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-08-13T07:48:41.089Z"
+      "lastAnalysisAt": "2026-08-13T10:11:24.236Z"
     },
     {
       "id": "position-1786607321089-d75f6a334bd5a",
@@ -85,10 +64,55 @@
       "lastValue": 11970,
       "unrealizedPnl": 0,
       "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-08-13T07:48:41.089Z"
+      "lastAnalysisAt": "2026-08-13T10:11:26.298Z"
     }
   ],
   "trades": [
+    {
+      "side": "BLOCKED_SELL",
+      "symbol": "1563.TW",
+      "name": "巧新",
+      "price": 63,
+      "shares": 0,
+      "amount": 0,
+      "cashAfter": 70503.94999999992,
+      "reason": "禁止當沖：AI 顯示減碼訊號：短線目標先看 69.44 元；若隔日開高無量，先減碼。。今天買進的股票不可今天賣出，延到下一個交易日再檢查。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1786607321089-d75f6a334bd5a",
+      "id": "trade-1786615886298-8d9ba3c63d456",
+      "createdAt": "2026-08-13T10:11:26.298Z",
+      "tradingDate": "2026-08-13"
+    },
+    {
+      "side": "BLOCKED_SELL",
+      "symbol": "3026.TW",
+      "name": "禾伸堂",
+      "price": 691,
+      "shares": 0,
+      "amount": 0,
+      "cashAfter": 70503.94999999992,
+      "reason": "禁止當沖：AI 顯示減碼訊號：短線目標先看 854.00 元；若隔日開高無量，先減碼。。今天買進的股票不可今天賣出，延到下一個交易日再檢查。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1786607321089-97660d0063291",
+      "id": "trade-1786615884236-9b8429c01a7e4",
+      "createdAt": "2026-08-13T10:11:24.236Z",
+      "tradingDate": "2026-08-13"
+    },
+    {
+      "side": "SELL",
+      "symbol": "8050.TWO",
+      "name": "廣積",
+      "price": 58.6,
+      "shares": 4,
+      "amount": 234.4,
+      "cashAfter": 70503.94999999992,
+      "reason": "現價跌破停損線 63.95 元",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1786342005573-6f85976d5bc4e",
+      "id": "trade-1786615881072-e0a5f7080f1e3",
+      "createdAt": "2026-08-13T10:11:21.072Z",
+      "tradingDate": "2026-08-13"
+    },
     {
       "side": "BUY",
       "symbol": "1563.TW",
@@ -2206,6 +2230,72 @@
     }
   ],
   "decisions": [
+    {
+      "symbol": "RISK-GATE",
+      "name": "每日買進上限",
+      "decision": "暫停買入",
+      "reason": "今日已買進 2 檔，避免同一天行情誤判時一起套住。",
+      "id": "decision-1786615909143-a30e65b6bfa6c",
+      "createdAt": "2026-08-13T10:11:49.143Z",
+      "tradingDate": "2026-08-13"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "6174.TWO 安碁：今日漲幅 7.83% 過熱，避免追高 / 2356.TW 英業達：風險報酬比 1:0.82 低於 0.9 / 3264.TWO 欣銓：風險報酬比 1:0.75 低於 0.9 / 1560.TW 中砂：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確 / 3706.TW 神達：推薦等級為 接近買點；AI 動作為 續抱",
+      "id": "decision-1786615909143-9bf8a7eb943c7",
+      "createdAt": "2026-08-13T10:11:49.143Z",
+      "tradingDate": "2026-08-13"
+    },
+    {
+      "symbol": "1563.TW",
+      "name": "巧新",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "AI 顯示減碼訊號：短線目標先看 69.44 元；若隔日開高無量，先減碼。",
+      "finalScore": 64,
+      "tradeStyle": "短進短出",
+      "automationAction": "小量試單",
+      "id": "decision-1786615886298-e3a92d36675aa",
+      "createdAt": "2026-08-13T10:11:26.298Z",
+      "tradingDate": "2026-08-13"
+    },
+    {
+      "symbol": "3026.TW",
+      "name": "禾伸堂",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "AI 顯示減碼訊號：短線目標先看 854.00 元；若隔日開高無量，先減碼。",
+      "finalScore": 60,
+      "tradeStyle": "短進短出",
+      "automationAction": "小量試單",
+      "id": "decision-1786615884236-f5011fc996c7f",
+      "createdAt": "2026-08-13T10:11:24.236Z",
+      "tradingDate": "2026-08-13"
+    },
+    {
+      "symbol": "2327.TW",
+      "name": "國巨*",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 58,
+      "tradeStyle": "短進短出",
+      "automationAction": "小量試單",
+      "id": "decision-1786615883157-8a4e5d3659a9",
+      "createdAt": "2026-08-13T10:11:23.157Z",
+      "tradingDate": "2026-08-13"
+    },
+    {
+      "symbol": "8050.TWO",
+      "name": "廣積",
+      "decision": "賣出",
+      "reason": "現價跌破停損線 63.95 元",
+      "finalScore": 50,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1786615881073-f1c7763603b32",
+      "createdAt": "2026-08-13T10:11:21.073Z",
+      "tradingDate": "2026-08-13"
+    },
     {
       "symbol": "1563.TW",
       "name": "巧新",
@@ -5407,6 +5497,15 @@
   ],
   "equity": [
     {
+      "id": "equity-1786615909143-1bb69c4680849",
+      "createdAt": "2026-08-13T10:11:49.143Z",
+      "tradingDate": "2026-08-13",
+      "cash": 70503.94999999992,
+      "positionValue": 27027,
+      "totalEquity": 97530.94999999992,
+      "realizedPnl": -2694.0500000000043
+    },
+    {
       "id": "equity-1786607321089-350b11df6b212",
       "createdAt": "2026-08-13T07:48:41.089Z",
       "tradingDate": "2026-08-13",
@@ -5902,5 +6001,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-08-13T07:47:58.668Z"
+  "lastRunAt": "2026-08-13T10:11:18.906Z",
+  "strategyVersion": "risk-guard-v2-2026-08-13"
 }
