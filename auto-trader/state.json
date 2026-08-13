@@ -22,7 +22,7 @@
       "lastValue": 3310,
       "unrealizedPnl": 225,
       "unrealizedPnlPct": 7.293354943273905,
-      "lastAnalysisAt": "2026-08-13T10:11:23.157Z"
+      "lastAnalysisAt": "2026-08-13T10:17:16.371Z"
     },
     {
       "id": "position-1786607321089-97660d0063291",
@@ -43,7 +43,7 @@
       "lastValue": 11747,
       "unrealizedPnl": 0,
       "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-08-13T10:11:24.236Z"
+      "lastAnalysisAt": "2026-08-13T10:17:17.173Z"
     },
     {
       "id": "position-1786607321089-d75f6a334bd5a",
@@ -64,7 +64,7 @@
       "lastValue": 11970,
       "unrealizedPnl": 0,
       "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-08-13T10:11:26.298Z"
+      "lastAnalysisAt": "2026-08-13T10:17:17.949Z"
     }
   ],
   "trades": [
@@ -2230,6 +2230,60 @@
     }
   ],
   "decisions": [
+    {
+      "symbol": "RISK-GATE",
+      "name": "每日買進上限",
+      "decision": "暫停買入",
+      "reason": "今日已買進 2 檔，避免同一天行情誤判時一起套住。",
+      "id": "decision-1786616257709-7c1bbd6a424b",
+      "createdAt": "2026-08-13T10:17:37.709Z",
+      "tradingDate": "2026-08-13"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "6174.TWO 安碁：今日漲幅 7.83% 過熱，避免追高 / 2356.TW 英業達：風險報酬比 1:0.82 低於 0.9 / 3264.TWO 欣銓：風險報酬比 1:0.75 低於 0.9 / 1560.TW 中砂：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確 / 3706.TW 神達：推薦等級為 接近買點；AI 動作為 續抱",
+      "id": "decision-1786616257709-5072e92576e83",
+      "createdAt": "2026-08-13T10:17:37.709Z",
+      "tradingDate": "2026-08-13"
+    },
+    {
+      "symbol": "1563.TW",
+      "name": "巧新",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "AI 顯示減碼訊號：短線目標先看 69.44 元；若隔日開高無量，先減碼。",
+      "finalScore": 64,
+      "tradeStyle": "短進短出",
+      "automationAction": "小量試單",
+      "id": "decision-1786616237949-9948154347eec",
+      "createdAt": "2026-08-13T10:17:17.949Z",
+      "tradingDate": "2026-08-13"
+    },
+    {
+      "symbol": "3026.TW",
+      "name": "禾伸堂",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "AI 顯示減碼訊號：短線目標先看 854.00 元；若隔日開高無量，先減碼。",
+      "finalScore": 60,
+      "tradeStyle": "短進短出",
+      "automationAction": "小量試單",
+      "id": "decision-1786616237173-5b81e93ca79d1",
+      "createdAt": "2026-08-13T10:17:17.173Z",
+      "tradingDate": "2026-08-13"
+    },
+    {
+      "symbol": "2327.TW",
+      "name": "國巨*",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 58,
+      "tradeStyle": "短進短出",
+      "automationAction": "小量試單",
+      "id": "decision-1786616236371-636a177d0498c",
+      "createdAt": "2026-08-13T10:17:16.371Z",
+      "tradingDate": "2026-08-13"
+    },
     {
       "symbol": "RISK-GATE",
       "name": "每日買進上限",
@@ -5497,6 +5551,15 @@
   ],
   "equity": [
     {
+      "id": "equity-1786616257709-947ffd702d7e2",
+      "createdAt": "2026-08-13T10:17:37.709Z",
+      "tradingDate": "2026-08-13",
+      "cash": 70503.94999999992,
+      "positionValue": 27027,
+      "totalEquity": 97530.94999999992,
+      "realizedPnl": -2694.0500000000043
+    },
+    {
       "id": "equity-1786615909143-1bb69c4680849",
       "createdAt": "2026-08-13T10:11:49.143Z",
       "tradingDate": "2026-08-13",
@@ -6001,6 +6064,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-08-13T10:11:18.906Z",
+  "lastRunAt": "2026-08-13T10:17:14.447Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
