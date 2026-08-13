@@ -38,6 +38,9 @@ type TradeRecord = {
   price: number;
   shares: number;
   amount: number;
+  costBasis?: number;
+  realizedPnl?: number;
+  realizedPnlPct?: number;
   cashAfter: number;
   reason: string;
   createdAt: string;
@@ -154,6 +157,11 @@ function twd(value: number) {
   return `${Math.round(value).toLocaleString()} 元`;
 }
 
+function signedTwd(value: number) {
+  if (!Number.isFinite(value)) return "-";
+  return `${value > 0 ? "+" : ""}${twd(value)}`;
+}
+
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
 }
@@ -178,6 +186,84 @@ function tradeSideLabel(side: TradeRecord["side"]) {
   if (side === "PARTIAL_SELL") return "部分賣出";
   if (side === "BLOCKED_SELL") return "禁止當沖";
   return "略過";
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+function findPositionBuyTrade(state: AutoTraderState, trade: TradeRecord) {
+  if (!trade.positionId) return null;
+  return state.trades.find((item) => item.side === "BUY" && item.positionId === trade.positionId) || null;
+}
+
+function sellTradePnl(trade: TradeRecord, state: AutoTraderState) {
+  if (!(trade.side === "SELL" || trade.side === "PARTIAL_SELL") || !trade.shares) return null;
+  const buyTrade = findPositionBuyTrade(state, trade);
+  const costBasis = isFiniteNumber(trade.costBasis)
+    ? trade.costBasis
+    : buyTrade
+      ? buyTrade.price * trade.shares
+      : undefined;
+  const pnl = isFiniteNumber(trade.realizedPnl)
+    ? trade.realizedPnl
+    : isFiniteNumber(costBasis)
+      ? trade.amount - costBasis
+      : undefined;
+  const pnlPct = isFiniteNumber(trade.realizedPnlPct)
+    ? trade.realizedPnlPct
+    : isFiniteNumber(costBasis) && costBasis > 0 && isFiniteNumber(pnl)
+      ? (pnl / costBasis) * 100
+      : undefined;
+  if (!isFiniteNumber(pnl)) return null;
+  return { pnl, pnlPct, costBasis };
+}
+
+function tradePnlInfo(trade: TradeRecord, state: AutoTraderState) {
+  if (trade.side === "SELL" || trade.side === "PARTIAL_SELL") {
+    const realized = sellTradePnl(trade, state);
+    if (!realized) return null;
+    return {
+      label: "本筆損益",
+      value: signedTwd(realized.pnl),
+      percent: isFiniteNumber(realized.pnlPct) ? pct(realized.pnlPct) : "",
+      hint: isFiniteNumber(realized.costBasis) ? `成本 ${twd(realized.costBasis)}` : "",
+      pnl: realized.pnl
+    };
+  }
+
+  if (trade.side === "BUY" && trade.positionId) {
+    const openPosition = state.positions.find((position) => position.id === trade.positionId);
+    if (openPosition) {
+      return {
+        label: "持有中損益",
+        value: signedTwd(openPosition.unrealizedPnl),
+        percent: pct(openPosition.unrealizedPnlPct),
+        hint: `現價 ${price(openPosition.lastPrice)}`,
+        pnl: openPosition.unrealizedPnl
+      };
+    }
+
+    const relatedSells = state.trades.filter((item) => item.positionId === trade.positionId && (item.side === "SELL" || item.side === "PARTIAL_SELL"));
+    if (relatedSells.length) {
+      const realizedPnl = relatedSells.reduce((sum, item) => sum + (sellTradePnl(item, state)?.pnl || 0), 0);
+      return {
+        label: "已結清損益",
+        value: signedTwd(realizedPnl),
+        percent: trade.amount > 0 ? pct((realizedPnl / trade.amount) * 100) : "",
+        hint: `買進成本 ${twd(trade.amount)}`,
+        pnl: realizedPnl
+      };
+    }
+  }
+
+  return null;
+}
+
+function tradePnlClass(pnl: number) {
+  if (pnl > 0) return "border-emerald-400/30 bg-emerald-400/10 text-emerald-200";
+  if (pnl < 0) return "border-rose-400/30 bg-rose-400/10 text-rose-200";
+  return "border-slate-500/30 bg-slate-500/10 text-slate-200";
 }
 
 async function fetchAnalysis(symbol: string) {
@@ -462,7 +548,9 @@ export function AutoTraderClient() {
             const sellAmount = sellShares * analysis.price;
             next.cash += sellAmount;
             const costBasis = marked.entryPrice * sellShares;
-            next.realizedPnl += sellAmount - costBasis;
+            const realizedPnl = sellAmount - costBasis;
+            const realizedPnlPct = costBasis > 0 ? (realizedPnl / costBasis) * 100 : 0;
+            next.realizedPnl += realizedPnl;
 
             appendTrade(next, {
               side: sellSignal.partial ? "PARTIAL_SELL" : "SELL",
@@ -471,6 +559,9 @@ export function AutoTraderClient() {
               price: analysis.price,
               shares: sellShares,
               amount: sellAmount,
+              costBasis,
+              realizedPnl,
+              realizedPnlPct,
               cashAfter: next.cash,
               reason: sellSignal.reason,
               source: "real-time-analysis",
@@ -800,20 +891,31 @@ export function AutoTraderClient() {
             <h2 className="text-xl font-black text-white">交易紀錄</h2>
           </div>
           <div className="mt-4 max-h-[520px] space-y-3 overflow-auto pr-1">
-            {state.trades.length ? state.trades.map((trade) => (
-              <div key={trade.id} className="rounded-2xl border border-slate-700/70 bg-slate-950/35 p-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-black text-white">{tradeSideLabel(trade.side)} · {trade.name} <span className="text-sm text-slate-400">{trade.symbol}</span></p>
-                  <span className={`rounded-full px-3 py-1 text-xs font-black ${trade.side === "BUY" ? "bg-emerald-400/15 text-emerald-200" : trade.side === "BLOCKED_SELL" ? "bg-amber-400/15 text-amber-200" : "bg-rose-400/15 text-rose-200"}`}>
-                    {trade.tradingDate}
-                  </span>
+            {state.trades.length ? state.trades.map((trade) => {
+              const pnlInfo = tradePnlInfo(trade, state);
+              return (
+                <div key={trade.id} className="rounded-2xl border border-slate-700/70 bg-slate-950/35 p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="font-black text-white">{tradeSideLabel(trade.side)} · {trade.name} <span className="text-sm text-slate-400">{trade.symbol}</span></p>
+                    <span className={`rounded-full px-3 py-1 text-xs font-black ${trade.side === "BUY" ? "bg-emerald-400/15 text-emerald-200" : trade.side === "BLOCKED_SELL" ? "bg-amber-400/15 text-amber-200" : "bg-rose-400/15 text-rose-200"}`}>
+                      {trade.tradingDate}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-sm text-slate-300">
+                    {trade.shares ? `${trade.shares.toLocaleString()} 股 × ${price(trade.price)} = ${twd(trade.amount)}` : "無成交"}
+                  </p>
+                  {pnlInfo ? (
+                    <div className={`mt-2 flex flex-wrap items-center gap-2 rounded-2xl border px-3 py-2 text-xs font-black ${tradePnlClass(pnlInfo.pnl)}`}>
+                      <span>{pnlInfo.label}</span>
+                      <span className="text-sm">{pnlInfo.value}</span>
+                      {pnlInfo.percent ? <span>{pnlInfo.percent}</span> : null}
+                      {pnlInfo.hint ? <span className="font-medium opacity-75">{pnlInfo.hint}</span> : null}
+                    </div>
+                  ) : null}
+                  <p className="mt-1 text-xs leading-5 text-slate-400">{trade.reason}</p>
                 </div>
-                <p className="mt-1 text-sm text-slate-300">
-                  {trade.shares ? `${trade.shares.toLocaleString()} 股 × ${price(trade.price)} = ${twd(trade.amount)}` : "無成交"}
-                </p>
-                <p className="mt-1 text-xs leading-5 text-slate-400">{trade.reason}</p>
-              </div>
-            )) : <p className="rounded-2xl bg-slate-950/35 p-4 text-slate-400">尚無交易紀錄。</p>}
+              );
+            }) : <p className="rounded-2xl bg-slate-950/35 p-4 text-slate-400">尚無交易紀錄。</p>}
           </div>
         </div>
 

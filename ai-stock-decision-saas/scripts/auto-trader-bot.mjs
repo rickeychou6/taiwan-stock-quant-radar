@@ -391,8 +391,11 @@ async function runCycle(state) {
 
         const sellShares = signal.partial ? Math.max(1, Math.floor(marked.shares / 2)) : marked.shares;
         const sellAmount = sellShares * analysis.price;
+        const costBasis = marked.entryPrice * sellShares;
+        const realizedPnl = sellAmount - costBasis;
+        const realizedPnlPct = costBasis > 0 ? (realizedPnl / costBasis) * 100 : 0;
         state.cash += sellAmount;
-        state.realizedPnl += sellAmount - marked.entryPrice * sellShares;
+        state.realizedPnl += realizedPnl;
 
         appendTrade(state, {
           side: signal.partial ? "PARTIAL_SELL" : "SELL",
@@ -401,6 +404,9 @@ async function runCycle(state) {
           price: analysis.price,
           shares: sellShares,
           amount: sellAmount,
+          costBasis,
+          realizedPnl,
+          realizedPnlPct,
           cashAfter: state.cash,
           reason: signal.reason,
           source: "github-actions-real-time-analysis",
