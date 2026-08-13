@@ -78,6 +78,7 @@ type AutoTraderState = {
   decisions: DecisionRecord[];
   equity: EquitySnapshot[];
   lastRunAt: string;
+  strategyVersion?: string;
 };
 
 type RecommendationReport = {
@@ -98,6 +99,12 @@ const STORAGE_KEY = "ai-auto-trader-v1";
 const INITIAL_CAPITAL = 100_000;
 const MAX_POSITIONS = 4;
 const CASH_RESERVE = 5_000;
+const STRATEGY_VERSION = "risk-guard-v2-2026-08-13";
+const MAX_DAILY_NEW_BUYS = 2;
+const MIN_POSITION_VALUE = 3_000;
+const SYMBOL_COOLDOWN_DAYS = 3;
+const MAX_LOSS_SHORT_PCT = 4.5;
+const MAX_LOSS_SWING_PCT = 6.5;
 const PAGE_REFRESH_INTERVAL_MS = 60_000;
 
 function emptyState(): AutoTraderState {
@@ -109,7 +116,8 @@ function emptyState(): AutoTraderState {
     trades: [],
     decisions: [],
     equity: [],
-    lastRunAt: ""
+    lastRunAt: "",
+    strategyVersion: STRATEGY_VERSION
   };
 }
 
@@ -121,7 +129,8 @@ function normalizeState(input: (Partial<AutoTraderState> & { settings?: unknown 
     trades: Array.isArray(input?.trades) ? input.trades : [],
     decisions: Array.isArray(input?.decisions) ? input.decisions : [],
     equity: Array.isArray(input?.equity) ? input.equity : [],
-    lastRunAt: typeof input?.lastRunAt === "string" ? input.lastRunAt : ""
+    lastRunAt: typeof input?.lastRunAt === "string" ? input.lastRunAt : "",
+    strategyVersion: STRATEGY_VERSION
   };
 
   delete normalized.settings;
@@ -179,7 +188,7 @@ async function fetchAnalysis(symbol: string) {
 }
 
 async function fetchRecommendations() {
-  const response = await fetch("/api/recommendations?mode=next-jump&scanLimit=48&limit=30", { cache: "no-store" });
+  const response = await fetch("/api/recommendations?scanLimit=48&limit=30", { cache: "no-store" });
   const payload = await response.json();
   if (!response.ok) throw new Error(payload.error || "推薦清單失敗");
   return payload as RecommendationReport;
@@ -204,9 +213,61 @@ function markPosition(position: AutoPosition, analysis: AnalysisResult): AutoPos
   };
 }
 
-function shouldSell(position: AutoPosition, analysis: AnalysisResult) {
-  if (analysis.price <= Math.max(position.stopLossPrice, analysis.stopLossPrice)) {
-    return { sell: true, partial: false, reason: `現價跌破停損線 ${price(Math.max(position.stopLossPrice, analysis.stopLossPrice))}` };
+function positionPnlPct(position: AutoPosition, currentPrice = position.lastPrice) {
+  if (!position.entryPrice || position.entryPrice <= 0) return 0;
+  return ((currentPrice - position.entryPrice) / position.entryPrice) * 100;
+}
+
+function hardStopPrice(position: AutoPosition) {
+  const maxLossPct = position.tradeStyle === "短進短出" ? MAX_LOSS_SHORT_PCT : MAX_LOSS_SWING_PCT;
+  return position.entryPrice * (1 - maxLossPct / 100);
+}
+
+function tradeDateValue(date: string) {
+  const parsed = Date.parse(`${date}T00:00:00+08:00`);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function daysBetween(laterDate: string, earlierDate: string) {
+  const later = tradeDateValue(laterDate);
+  const earlier = tradeDateValue(earlierDate);
+  if (!later || !earlier) return 999;
+  return Math.floor((later - earlier) / 86_400_000);
+}
+
+function tradedSymbolRecently(state: AutoTraderState, symbol: string, tradingDate: string, days = SYMBOL_COOLDOWN_DAYS) {
+  return state.trades.some((trade) => {
+    if (trade.symbol !== symbol) return false;
+    if (!(trade.side === "SELL" || trade.side === "PARTIAL_SELL" || trade.side === "BLOCKED_SELL")) return false;
+    const gap = daysBetween(tradingDate, trade.tradingDate);
+    return gap >= 0 && gap <= days;
+  });
+}
+
+function partialSoldToday(state: AutoTraderState, position: AutoPosition, tradingDate: string) {
+  return state.trades.some((trade) =>
+    trade.positionId === position.id &&
+    trade.tradingDate === tradingDate &&
+    trade.side === "PARTIAL_SELL"
+  );
+}
+
+function dailyBuyCount(state: AutoTraderState, tradingDate: string) {
+  return state.trades.filter((trade) => trade.tradingDate === tradingDate && trade.side === "BUY").length;
+}
+
+function shouldSell(position: AutoPosition, analysis: AnalysisResult, state: AutoTraderState, tradingDate: string) {
+  const pnlPct = positionPnlPct(position, analysis.price);
+  const stop = Math.max(position.stopLossPrice, analysis.stopLossPrice, hardStopPrice(position));
+
+  if (analysis.price <= stop) {
+    return { sell: true, partial: false, reason: `現價跌破停損線 ${price(stop)}` };
+  }
+  if (pnlPct <= -MAX_LOSS_SHORT_PCT && position.tradeStyle === "短進短出") {
+    return { sell: true, partial: false, reason: `短線部位虧損 ${pnlPct.toFixed(2)}%，觸發 ${MAX_LOSS_SHORT_PCT}% 硬停損。` };
+  }
+  if (pnlPct <= -MAX_LOSS_SWING_PCT) {
+    return { sell: true, partial: false, reason: `部位虧損 ${pnlPct.toFixed(2)}%，觸發 ${MAX_LOSS_SWING_PCT}% 風控停損。` };
   }
   if (analysis.tradeProfile.automationAction === "停損" || analysis.action === "STOP_LOSS" || analysis.action === "SELL") {
     return { sell: true, partial: false, reason: `AI 轉為 ${analysis.tradeProfile.automationAction} / ${analysis.action}` };
@@ -215,12 +276,46 @@ function shouldSell(position: AutoPosition, analysis: AnalysisResult) {
     return { sell: true, partial: false, reason: `已達第二目標 ${price(analysis.takeProfit2)}` };
   }
   if (analysis.tradeProfile.automationAction === "減碼" || analysis.postEntryForecast.positionAdvice === "減碼") {
+    if (position.lastValue < MIN_POSITION_VALUE || position.shares <= 2) {
+      return { sell: true, partial: false, reason: `剩餘部位低於 ${twd(MIN_POSITION_VALUE)}，不再零碎減碼，直接結束交易。` };
+    }
+    if (partialSoldToday(state, position, tradingDate)) {
+      return { sell: false, partial: false, reason: "今日已執行過一次減碼，避免排程盤中重複賣一半。" };
+    }
     return { sell: true, partial: true, reason: `AI 顯示減碼訊號：${analysis.tradeProfile.exitPlan}` };
   }
   if (analysis.price >= analysis.takeProfit1 && analysis.tradeProfile.style === "短進短出") {
+    if (partialSoldToday(state, position, tradingDate)) {
+      return { sell: false, partial: false, reason: "今日已達短線目標並減碼過一次，剩餘部位留到下一輪交易日再判斷。" };
+    }
     return { sell: true, partial: true, reason: `短線標的已達第一目標 ${price(analysis.takeProfit1)}，先鎖定部分獲利` };
   }
   return { sell: false, partial: false, reason: analysis.tradeProfile.stopPolicy };
+}
+
+function candidatePassesRiskGate(candidate: StockRecommendation, state: AutoTraderState, tradingDate: string) {
+  const reasons: string[] = [];
+  const isBuyCandidate = candidate.recommendation === "買入候選";
+  const isTrial = candidate.recommendation === "可小量試單";
+
+  if (!(isBuyCandidate || isTrial)) reasons.push(`推薦等級為 ${candidate.recommendation}`);
+  if (!(candidate.automationAction === "可開倉" || candidate.automationAction === "小量試單")) reasons.push(`AI 動作為 ${candidate.automationAction}`);
+  if (candidate.tradeMode === "區間等待") reasons.push("交易模式仍是區間等待，機器人不主動買入等待型訊號");
+  if (candidate.tradeStyle === "短進短出" && candidate.tradeMode !== "強勢動能" && candidate.tradeMode !== "支撐低接") reasons.push(`短線模式 ${candidate.tradeMode} 不夠明確`);
+  if (candidate.finalScore < 58) reasons.push(`AI 分數 ${candidate.finalScore} 低於 58`);
+  if (candidate.probabilityUp3To5 < 56) reasons.push(`3-5 天上漲機率 ${candidate.probabilityUp3To5}% 低於 56%`);
+  if (candidate.forecastDay5Pct < 0.3) reasons.push(`第 5 天預估 ${candidate.forecastDay5Pct}% 不足`);
+  if (candidate.riskReward < 0.9) reasons.push(`風險報酬比 1:${candidate.riskReward} 低於 0.9`);
+  if (candidate.changePct >= 7) reasons.push(`今日漲幅 ${candidate.changePct}% 過熱，避免追高`);
+  if (candidate.changePct <= -4) reasons.push(`今日跌幅 ${candidate.changePct}% 偏弱，避免接刀`);
+  if (candidate.marginSafetyLevel === "危險" || candidate.leverageRiskLevel === "極高") reasons.push("融資或槓桿風險過高");
+  if (candidate.overnightProbability >= 68) reasons.push(`隔日沖可能 ${candidate.overnightProbability}% 過高`);
+  if (tradedSymbolRecently(state, candidate.symbol, tradingDate)) reasons.push(`近 ${SYMBOL_COOLDOWN_DAYS} 天已賣出或禁止賣出過，先冷卻`);
+
+  return {
+    ok: reasons.length === 0,
+    reason: reasons.join("；") || "通過自動交易風控閘門"
+  };
 }
 
 function appendDecision(state: AutoTraderState, decision: Omit<DecisionRecord, "id" | "createdAt" | "tradingDate">, tradingDate: string) {
@@ -327,13 +422,14 @@ export function AutoTraderClient() {
     try {
       const next = normalizeState(JSON.parse(JSON.stringify(state)) as AutoTraderState);
       next.lastRunAt = nowIso();
+      next.strategyVersion = STRATEGY_VERSION;
 
       const markedPositions: AutoPosition[] = [];
       for (const position of next.positions) {
         try {
           const analysis = await fetchAnalysis(position.symbol);
           const marked = markPosition(position, analysis);
-          const sellSignal = shouldSell(marked, analysis);
+          const sellSignal = shouldSell(marked, analysis, next, tradingDate);
 
           if (sellSignal.sell) {
             if (!canSellToday(position, tradingDate)) {
@@ -428,18 +524,37 @@ export function AutoTraderClient() {
 
       if (next.positions.length < MAX_POSITIONS && next.cash > CASH_RESERVE + 1_000) {
         const report = await fetchRecommendations();
-        const candidates = report.recommendations.filter((item) =>
-          (item.recommendation === "買入候選" || item.recommendation === "可小量試單") &&
-          (item.automationAction === "可開倉" || item.automationAction === "小量試單") &&
-          item.price > 0 &&
-          !next.positions.some((position) => position.symbol === item.symbol) &&
-          !tradedSymbolToday(next, item.symbol, tradingDate)
-        );
+        const rejectedCandidates: Array<{ item: StockRecommendation; reason: string }> = [];
+        const candidates = report.recommendations.filter((item) => {
+          if (item.price <= 0 || next.positions.some((position) => position.symbol === item.symbol) || tradedSymbolToday(next, item.symbol, tradingDate)) return false;
+          const gate = candidatePassesRiskGate(item, next, tradingDate);
+          if (!gate.ok) rejectedCandidates.push({ item, reason: gate.reason });
+          return gate.ok;
+        });
+
+        if (rejectedCandidates.length) {
+          appendDecision(next, {
+            symbol: "RISK-GATE",
+            name: "自動交易風控",
+            decision: "過濾候選",
+            reason: rejectedCandidates.slice(0, 5).map(({ item, reason }) => `${item.symbol} ${item.name}：${reason}`).join(" / ")
+          }, tradingDate);
+        }
 
         for (const candidate of candidates) {
           if (next.positions.length >= MAX_POSITIONS) break;
-          const maxAmountByType = candidate.recommendation === "買入候選" ? 30_000 : 15_000;
-          const targetPct = clamp(candidate.positionSizePct || 10, 8, candidate.recommendation === "買入候選" ? 35 : 18);
+          if (dailyBuyCount(next, tradingDate) >= MAX_DAILY_NEW_BUYS) {
+            appendDecision(next, {
+              symbol: "RISK-GATE",
+              name: "每日買進上限",
+              decision: "暫停買入",
+              reason: `今日已買進 ${MAX_DAILY_NEW_BUYS} 檔，避免同一天行情誤判時一起套住。`
+            }, tradingDate);
+            break;
+          }
+
+          const maxAmountByType = candidate.recommendation === "買入候選" ? 24_000 : 10_000;
+          const targetPct = clamp(candidate.positionSizePct || 10, 6, candidate.recommendation === "買入候選" ? 24 : 10);
           const targetAmount = Math.min(next.cash - CASH_RESERVE, maxAmountByType, next.initialCapital * (targetPct / 100));
           const shares = Math.floor(targetAmount / candidate.price);
 
@@ -486,7 +601,7 @@ export function AutoTraderClient() {
             shares,
             amount: buyAmount,
             cashAfter: next.cash,
-            reason: `${candidate.recommendation}，${candidate.tradeStyle}/${candidate.tradeMode}，AI 動作 ${candidate.automationAction}，3-5 天上漲機率 ${candidate.probabilityUp3To5}%。`,
+            reason: `${candidate.recommendation}，${candidate.tradeStyle}/${candidate.tradeMode}，AI 動作 ${candidate.automationAction}，3-5 天上漲機率 ${candidate.probabilityUp3To5}%，風控版 ${STRATEGY_VERSION}。`,
             source: report.source,
             positionId: position.id
           }, tradingDate);
@@ -560,6 +675,7 @@ export function AutoTraderClient() {
             <p className="mt-3 max-w-4xl text-sm leading-6 text-slate-300">
               初始虛擬資金 100,000 元。AI 會用真實台股行情、推薦雷達與單股分析 API 自動找股、買進、續抱、減碼或賣出；
               只有買賣進出是模擬，不會送出券商委託。系統嚴格禁止當沖，同一天買進的股票不可同一天賣出，但可隔日沖。
+              目前已啟用風控版 {state.strategyVersion || STRATEGY_VERSION}：限制重複減碼、加入硬停損、候選冷卻期與每日買進上限。
             </p>
           </div>
           <div className="grid gap-2 sm:grid-cols-2 lg:w-[420px]">
@@ -611,11 +727,12 @@ export function AutoTraderClient() {
         </p>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-7">
         <MetricCard label="總資產" value={twd(summary.totalEquity)} sub={`損益 ${pct(summary.totalPnlPct)}`} tone={summary.totalPnl >= 0 ? "bull" : "bear"} />
         <MetricCard label="現金" value={twd(state.cash)} sub={`保留 ${twd(CASH_RESERVE)}`} />
         <MetricCard label="持股市值" value={twd(summary.positionValue)} sub={`${state.positions.length}/${MAX_POSITIONS} 檔`} />
         <MetricCard label="已實現損益" value={twd(state.realizedPnl)} tone={state.realizedPnl >= 0 ? "bull" : "bear"} />
+        <MetricCard label="風控版本" value="Risk Guard v2" sub={`${state.strategyVersion || STRATEGY_VERSION}，每日最多買 ${MAX_DAILY_NEW_BUYS} 檔`} tone="warn" />
         <MetricCard label="最後執行" value={state.lastRunAt ? new Date(state.lastRunAt).toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" }) : "-"} sub={tradingDateNow()} />
         <MetricCard
           label="雲端狀態"

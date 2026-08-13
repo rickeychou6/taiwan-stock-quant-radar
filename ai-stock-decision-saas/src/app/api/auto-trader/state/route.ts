@@ -5,6 +5,7 @@ export const revalidate = 0;
 export const runtime = "nodejs";
 
 const INITIAL_CAPITAL = 100_000;
+const STRATEGY_VERSION = "risk-guard-v2-2026-08-13";
 const STATE_REPO = process.env.AUTO_TRADER_STATE_REPO || "rickeychou6/taiwan-stock-quant-radar";
 const STATE_BRANCH = process.env.AUTO_TRADER_STATE_BRANCH || "auto-trader-state";
 const STATE_FILE = process.env.AUTO_TRADER_STATE_FILE || "auto-trader/state.json";
@@ -18,7 +19,8 @@ function emptyState() {
     trades: [],
     decisions: [],
     equity: [],
-    lastRunAt: ""
+    lastRunAt: "",
+    strategyVersion: STRATEGY_VERSION
   };
 }
 
@@ -30,7 +32,8 @@ function normalizeState(state: Record<string, unknown> | null | undefined) {
     trades: Array.isArray(state?.trades) ? state.trades : [],
     decisions: Array.isArray(state?.decisions) ? state.decisions : [],
     equity: Array.isArray(state?.equity) ? state.equity : [],
-    lastRunAt: typeof state?.lastRunAt === "string" ? state.lastRunAt : ""
+    lastRunAt: typeof state?.lastRunAt === "string" ? state.lastRunAt : "",
+    strategyVersion: typeof state?.strategyVersion === "string" ? state.strategyVersion : STRATEGY_VERSION
   };
 
   delete (normalized as { settings?: unknown }).settings;
