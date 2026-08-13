@@ -57,6 +57,10 @@ function matchesRankingParent(item: CategoryProductRanking, category: EcommerceP
   return category.parentCategories.includes(item.parentCategory);
 }
 
+function categoryHotTrialScore(product: CommerceProduct) {
+  return product.categoryTrialScore * 0.66 + (product.crossPlatformHotScore || product.salesSignal) * 0.34;
+}
+
 function MiniMetric({ label, value, tone = "text-white", sub }: { label: string; value: string; tone?: string; sub?: string }) {
   return (
     <div className="rounded-2xl border border-slate-700/70 bg-slate-950/35 p-3">
@@ -103,7 +107,8 @@ function CategoryProductCard({ product }: { product: CommerceProduct }) {
             </div>
           </div>
 
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+            <MiniMetric label="跨平台熱賣" value={`#${product.crossPlatformHotRank || "-"}`} tone={scoreTone(product.crossPlatformHotScore || product.salesSignal)} sub={`綜合分 ${score(product.crossPlatformHotScore || product.salesSignal)}`} />
             <MiniMetric label="分類試賣分" value={score(product.categoryTrialScore)} tone={scoreTone(product.categoryTrialScore)} sub={`分類內第 ${product.categoryRank || "-"} 名`} />
             <MiniMetric label="AI 選品分" value={score(product.selectionScore)} tone={scoreTone(product.selectionScore)} sub={product.selectionAdvice} />
             <MiniMetric label="平台銷售價" value={money(product.sellingPrice)} sub={product.sellingPriceSource} />
@@ -135,8 +140,10 @@ function CategoryProductCard({ product }: { product: CommerceProduct }) {
             </div>
           ) : null}
 
-          <p className="mt-3 text-sm leading-6 text-slate-300">{product.salesSignalLabel}</p>
+          <p className="mt-3 text-sm leading-6 text-slate-300">{product.crossPlatformHotReason || product.salesSignalLabel}</p>
           <div className="mt-3 flex flex-wrap gap-2 text-xs">
+            <span className="rounded-full bg-emerald-400/15 px-3 py-1 text-emerald-100">跨平台 #{product.crossPlatformHotRank || "-"} / {score(product.crossPlatformHotScore || product.salesSignal)}</span>
+            <span className="rounded-full bg-cyan-400/15 px-3 py-1 text-cyan-100">{product.crossPlatformCoverage?.join(" / ") || product.marketplace}</span>
             <span className="rounded-full bg-blue-400/15 px-3 py-1 text-blue-100">{product.parentCategory}</span>
             <span className="rounded-full bg-indigo-400/15 px-3 py-1 text-indigo-100">{product.category}</span>
             <span className="rounded-full bg-emerald-400/15 px-3 py-1 text-emerald-100">{product.selectionAdvice}</span>
@@ -183,6 +190,7 @@ function RankingGroupCard({ item }: { item: CategoryProductRanking }) {
               </div>
               <div className="grid grid-cols-2 gap-2 text-xs sm:min-w-[260px]">
                 <span className="rounded-xl bg-emerald-400/10 px-2 py-1 text-emerald-100">試賣 {score(product.categoryTrialScore)}</span>
+                <span className="rounded-xl bg-cyan-400/10 px-2 py-1 text-cyan-100">熱賣 #{product.crossPlatformHotRank || "-"} / {score(product.crossPlatformHotScore || product.salesSignal)}</span>
                 <span className="rounded-xl bg-blue-400/10 px-2 py-1 text-blue-100">售價 {money(product.sellingPrice)}</span>
                 <span className="rounded-xl bg-lime-400/10 px-2 py-1 text-lime-100">進貨 {money(product.estimatedPurchasePrice)}</span>
                 <span className="rounded-xl bg-amber-400/10 px-2 py-1 text-amber-100">毛利 {money(product.grossSpread)}</span>
@@ -231,7 +239,7 @@ export function EcommerceCategoryPageClient({ slug }: { slug: string }) {
     if (!report || !category) return [];
     return report.products
       .filter((product) => matchesParentCategory(product, category))
-      .sort((a, b) => b.categoryTrialScore - a.categoryTrialScore);
+      .sort((a, b) => categoryHotTrialScore(b) - categoryHotTrialScore(a));
   }, [category, report]);
 
   const rankingGroups = useMemo(() => {
@@ -328,7 +336,7 @@ export function EcommerceCategoryPageClient({ slug }: { slug: string }) {
       ) : null}
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <SummaryTile icon={BadgeCheck} label="此分類首選" value={topSelection?.title || (loading ? "讀取中" : "-")} sub={topSelection ? `試賣分 ${score(topSelection.categoryTrialScore)}，${topSelection.selectionAdvice}` : "依分類試賣分排序"} tone="text-emerald-200" />
+        <SummaryTile icon={BadgeCheck} label="此分類首選" value={topSelection?.title || (loading ? "讀取中" : "-")} sub={topSelection ? `試賣分 ${score(topSelection.categoryTrialScore)}，跨平台熱賣 ${score(topSelection.crossPlatformHotScore || topSelection.salesSignal)}，${topSelection.selectionAdvice}` : "依分類試賣分與跨平台熱賣排序"} tone="text-emerald-200" />
         <SummaryTile icon={DollarSign} label="估淨利最高" value={topProfit?.title || (loading ? "讀取中" : "-")} sub={topProfit ? `淨利 ${money(topProfit.estimatedNetProfit)}，淨利率 ${pct(topProfit.estimatedNetMarginRate)}` : "依成本模型推估"} tone="text-amber-200" />
         <SummaryTile icon={PackageCheck} label="低售服高回購" value={topRepeat?.title || (loading ? "讀取中" : "-")} sub={topRepeat ? `回購 ${score(topRepeat.repurchaseScore)}，售服 ${topRepeat.afterSalesBurden}` : "適合穩定測品"} tone="text-cyan-200" />
         <SummaryTile icon={TrendingUp} label="季節熱賣" value={topSeasonal?.title || (loading ? "讀取中" : "-")} sub={topSeasonal ? topSeasonal.seasonalReason : "依月份與分類季節性推估"} tone="text-orange-200" />
@@ -378,7 +386,7 @@ export function EcommerceCategoryPageClient({ slug }: { slug: string }) {
               <p className="text-sm text-slate-400">Products</p>
               <h2 className="text-2xl font-black text-white">{category.label}商品試賣清單</h2>
               <p className="mt-2 max-w-4xl text-sm leading-6 text-slate-300">
-                依分類試賣分排序，並同步顯示售價、估進貨價、毛利、淨利、回購、尺寸、季節與下月/下季分數。
+                依分類試賣分與跨平台熱賣程度排序，並同步顯示售價、估進貨價、毛利、淨利、回購、尺寸、季節與下月/下季分數。
               </p>
             </div>
             {products.length ? products.slice(0, 18).map((product) => (

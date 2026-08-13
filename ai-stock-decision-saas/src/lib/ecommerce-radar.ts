@@ -59,6 +59,7 @@ export type LifestyleSmallItemSummary = {
 
 export type ProductSizeClass = "small" | "medium" | "large" | "unknown";
 export type HealthAdRiskLevel = "低" | "中" | "高" | "極高";
+export type CommerceMarketplaceFamily = "PChome" | "Shopee" | "Amazon" | "Pinduoduo" | "Other";
 
 export type HealthSupplementGroupSummary = {
   group: string;
@@ -79,6 +80,7 @@ export type CommerceProduct = {
   title: string;
   source: string;
   marketplace: string;
+  marketplaceFamily: CommerceMarketplaceFamily;
   keyword: string;
   rank: number;
   url: string;
@@ -94,6 +96,10 @@ export type CommerceProduct = {
   searchTotalRows: number;
   salesSignal: number;
   salesSignalLabel: string;
+  crossPlatformHotScore: number;
+  crossPlatformHotRank: number;
+  crossPlatformCoverage: CommerceMarketplaceFamily[];
+  crossPlatformHotReason: string;
   parentCategory: string;
   category: string;
   categoryConfidence: "高" | "中" | "低";
@@ -163,6 +169,7 @@ export type CommerceRadarReport = {
   categoryProductRankings: CategoryProductRanking[];
   lifestyleSummary: LifestyleSmallItemSummary;
   products: CommerceProduct[];
+  crossPlatformHotProducts: CommerceProduct[];
   topSales: CommerceProduct[];
   topProfit: CommerceProduct[];
   lowServiceHighRepurchase: CommerceProduct[];
@@ -1138,12 +1145,21 @@ function buildCostModel(price: number, grossMarginRate: number, settings: CostSe
   };
 }
 
+function detectMarketplaceFamily(value: string): CommerceMarketplaceFamily {
+  if (/amazon/i.test(value)) return "Amazon";
+  if (/shopee|蝦皮/i.test(value)) return "Shopee";
+  if (/pchome/i.test(value)) return "PChome";
+  if (/pinduoduo|拼多多/i.test(value)) return "Pinduoduo";
+  return "Other";
+}
+
 function buildCommerceProduct(input: RawCommerceInput, costSettings: CostSettings): CommerceProduct {
   const price = Number(input.price || 0);
   const originalPrice = Number(input.originalPrice || price);
   const discountPct = originalPrice > price ? ((originalPrice - price) / originalPrice) * 100 : 0;
   const searchText = `${input.title} ${input.description} ${input.keyword}`;
   const category = detectCategory(searchText);
+  const marketplaceFamily = detectMarketplaceFamily(`${input.source} ${input.marketplace}`);
   const rankScore = clamp(100 - (input.rank - 1) * 10, 0, 100);
   const breadthScore = clamp(Math.log10(input.searchTotalRows + 1) * 18, 0, 70);
   const externalSoldScore = input.externalSoldSignal ? clamp(Math.log10(input.externalSoldSignal + 1) * 22, 0, 80) : 0;
@@ -1243,6 +1259,7 @@ function buildCommerceProduct(input: RawCommerceInput, costSettings: CostSetting
     title: input.title,
     source: input.source,
     marketplace: input.marketplace,
+    marketplaceFamily,
     keyword: input.keyword,
     rank: input.rank,
     url: input.url,
@@ -1258,6 +1275,10 @@ function buildCommerceProduct(input: RawCommerceInput, costSettings: CostSetting
     searchTotalRows: input.searchTotalRows,
     salesSignal: round(salesSignal, 1),
     salesSignalLabel: `熱銷排序第 ${input.rank} 名 / 搜尋池 ${input.searchTotalRows.toLocaleString()} 件${soldText}`,
+    crossPlatformHotScore: round(salesSignal, 1),
+    crossPlatformHotRank: 0,
+    crossPlatformCoverage: [marketplaceFamily],
+    crossPlatformHotReason: `${input.marketplace} 單一來源熱銷分 ${round(salesSignal, 1)}，等待跨平台彙整。`,
     parentCategory: category.parentCategory,
     category: category.category,
     categoryConfidence: category.categoryConfidence,
@@ -1701,6 +1722,70 @@ function productKey(product: CommerceProduct) {
   return `${product.source}:${product.id}`;
 }
 
+function crossPlatformGroupKey(product: CommerceProduct) {
+  const keyword = product.keyword.trim().toLowerCase().replace(/\s+/g, "");
+  return `${product.parentCategory}/${product.category}/${keyword || product.title.slice(0, 12)}`;
+}
+
+function marketplaceHotBoost(product: CommerceProduct) {
+  if (product.marketplaceFamily === "Shopee") return product.externalSoldSignal ? 5 : 3;
+  if (product.marketplaceFamily === "Amazon") return 3;
+  if (product.marketplaceFamily === "PChome") return 1;
+  return 0;
+}
+
+function applyCrossPlatformHotScores(products: CommerceProduct[]) {
+  const groups = new Map<string, CommerceProduct[]>();
+  for (const product of products) {
+    const key = crossPlatformGroupKey(product);
+    groups.set(key, [...(groups.get(key) || []), product]);
+  }
+
+  const scored = products.map((product) => {
+    const group = groups.get(crossPlatformGroupKey(product)) || [product];
+    const coverage = Array.from(new Set(group.map((row) => row.marketplaceFamily))).filter((item) => item !== "Other").sort();
+    const groupAverageSales = group.reduce((sum, row) => sum + row.salesSignal, 0) / group.length;
+    const groupMaxSales = Math.max(...group.map((row) => row.salesSignal));
+    const groupStrength = groupAverageSales * 0.55 + groupMaxSales * 0.45;
+    const coverageBoost = clamp((coverage.length - 1) * 7, 0, 16);
+    const soldBoost = product.externalSoldSignal ? clamp(Math.log10(product.externalSoldSignal + 1) * 4, 0, 12) : 0;
+    const discountBoost = product.discountPct > 0 ? 2 : 0;
+    const crossPlatformHotScore = clamp(
+      product.salesSignal * 0.62 +
+      groupStrength * 0.24 +
+      coverageBoost +
+      soldBoost +
+      marketplaceHotBoost(product) +
+      discountBoost,
+      0,
+      100
+    );
+    const coverageText = coverage.length ? coverage.join(" / ") : product.marketplaceFamily;
+    const soldText = product.externalSoldSignal ? `，${product.marketplaceFamily} 公開銷售訊號 ${product.externalSoldSignal.toLocaleString()}` : "";
+
+    return {
+      ...product,
+      crossPlatformHotScore: round(crossPlatformHotScore, 1),
+      crossPlatformCoverage: coverage.length ? coverage : [product.marketplaceFamily],
+      crossPlatformHotReason: `${coverageText} 綜整：本品熱銷 ${product.salesSignal}，同分類同關鍵字平台均分 ${round(groupAverageSales, 1)}，平台覆蓋加分 ${round(coverageBoost, 1)}${soldText}。`
+    };
+  });
+
+  const rankMap = new Map<string, number>();
+  sortDesc(scored, (product) => product.crossPlatformHotScore).forEach((product, index) => {
+    rankMap.set(productKey(product), index + 1);
+  });
+
+  return scored.map((product) => ({
+    ...product,
+    crossPlatformHotRank: rankMap.get(productKey(product)) || 0
+  }));
+}
+
+function categoryCommerceRankScore(product: CommerceProduct) {
+  return product.categoryTrialScore * 0.66 + product.crossPlatformHotScore * 0.34;
+}
+
 function applyCategoryRanks(products: CommerceProduct[]) {
   const groups = new Map<string, CommerceProduct[]>();
   for (const product of products) {
@@ -1710,7 +1795,7 @@ function applyCategoryRanks(products: CommerceProduct[]) {
 
   const rankMap = new Map<string, number>();
   for (const rows of groups.values()) {
-    sortDesc(rows, (product) => product.categoryTrialScore).forEach((product, index) => {
+    sortDesc(rows, categoryCommerceRankScore).forEach((product, index) => {
       rankMap.set(productKey(product), index + 1);
     });
   }
@@ -1730,7 +1815,7 @@ function buildCategoryProductRankings(products: CommerceProduct[]): CategoryProd
 
   return sortDesc(
     Array.from(groups.values()).map((rows) => {
-      const rankedProducts = sortDesc(rows, (product) => product.categoryTrialScore);
+      const rankedProducts = sortDesc(rows, categoryCommerceRankScore);
       const averageTrialScore = rankedProducts.reduce((sum, product) => sum + product.categoryTrialScore, 0) / rankedProducts.length;
       return {
         parentCategory: rankedProducts[0].parentCategory,
@@ -1827,9 +1912,10 @@ export async function runEcommerceRadar(options?: { keywords?: string | null; pe
       ])
     : [[], [], []] as Array<Array<{ products: CommerceProduct[]; status: CommerceSourceStatus }>>;
   const results = [...pchomeResults, ...shopeeResults, ...amazonResults, ...pinduoduoResults];
-  const products = applyCategoryRanks(uniqueProducts(results.flatMap((result) => result.products)));
+  const products = applyCategoryRanks(applyCrossPlatformHotScores(uniqueProducts(results.flatMap((result) => result.products))));
 
-  const topSales = sortDesc(products, (product) => product.salesSignal).slice(0, 10);
+  const crossPlatformHotProducts = sortDesc(products, (product) => product.crossPlatformHotScore).slice(0, 20);
+  const topSales = crossPlatformHotProducts.slice(0, 10);
   const topProfit = sortDesc(products, (product) => product.estimatedProfitIndex).slice(0, 10);
   const lowServiceHighRepurchase = sortDesc(products, (product) => product.lowServiceRepeatScore).slice(0, 10);
   const seasonalHotProducts = sortDesc(products, (product) => product.seasonalHotScore).slice(0, 10);
@@ -1876,6 +1962,7 @@ export async function runEcommerceRadar(options?: { keywords?: string | null; pe
     categoryProductRankings: buildCategoryProductRankings(products),
     lifestyleSummary: buildLifestyleSummary(products),
     products,
+    crossPlatformHotProducts,
     topSales,
     topProfit,
     lowServiceHighRepurchase,
@@ -1892,8 +1979,10 @@ export async function runEcommerceRadar(options?: { keywords?: string | null; pe
     limitations: [
       "目前使用 PChome 24h 公開搜尋 JSON：商品、價格、折扣、搜尋池與熱銷排序是真實公開資料。",
       "系統會盡量嘗試 Shopee 蝦皮公開搜尋端點；若來源要求登入 Cookie、驗證或被反爬，會在來源狀態中標示失敗，不使用假資料補值。",
+      "系統會把 Amazon 納入跨平台來源；Amazon 商品與價格必須透過官方 Product Advertising API。若未設定 AMAZON_PAAPI_ACCESS_KEY / AMAZON_PAAPI_SECRET_KEY / AMAZON_PAAPI_PARTNER_TAG，頁面會顯示來源失敗，不硬爬、不製造假銷量。",
       "拼多多匿名網頁目前沒有穩定公開 JSON 商品/價格資料；系統會嘗試連線並標示來源狀態，但不硬爬動態頁面避免錯誤資料。",
-      "PChome 沒有公開實際成交件數，所以「銷售量最大」以熱銷排序分數呈現，不顯示假件數。",
+      "跨平台熱賣排名會綜合 PChome 熱銷排序、Shopee 公開搜尋/已售訊號、Amazon 官方 API 排序與同關鍵字平台覆蓋度；若某平台受限，該平台不會被假資料補分。",
+      "PChome 與 Amazon 多數情況沒有公開實際成交件數，所以「銷售量最大」以跨平台熱賣分呈現，不顯示假件數。",
       "生活小物分是依低單價、低售服、低成本高毛利、熱銷排序、回購與淨利率推估，適合找可測品，不等於保證出單。",
       "回購分與售服負擔是依商品分類、商品關鍵字、價格與耗材特徵推估；若要精準，需要接實際訂單回購率、客服工單與退貨資料。",
       "季節熱賣分是依目前月份、類別季節字、熱銷排序、折扣與成本效率推估；它是進貨輔助，不是平台保證銷量。",

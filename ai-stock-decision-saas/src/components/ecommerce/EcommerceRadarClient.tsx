@@ -137,7 +137,7 @@ function ProductCard({ product, mode }: { product: CommerceProduct; mode: "sales
         ? product.nextMonthScore
         : mode === "quarter"
           ? product.nextQuarterScore
-          : product.salesSignal;
+          : product.crossPlatformHotScore || product.salesSignal;
   const label =
     mode === "profit"
       ? "利潤指數"
@@ -157,7 +157,7 @@ function ProductCard({ product, mode }: { product: CommerceProduct; mode: "sales
         ? "下月大賣分"
         : mode === "quarter"
           ? "下季大賣分"
-          : "熱銷分";
+          : "跨平台熱賣分";
 
   return (
     <article className="glass overflow-hidden rounded-3xl">
@@ -189,6 +189,11 @@ function ProductCard({ product, mode }: { product: CommerceProduct; mode: "sales
             <MiniMetric label="售價" value={money(product.price)} />
             <MiniMetric label={label} value={score(mainScore)} tone={scoreTone(mainScore)} />
             <MiniMetric label="估淨利" value={money(product.estimatedNetProfit)} tone={profitTone(product.estimatedNetProfit)} sub={`淨利率 ${pct(product.estimatedNetMarginRate)}`} />
+          </div>
+
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <MiniMetric label="跨平台熱賣排名" value={`#${product.crossPlatformHotRank || "-"}`} tone={scoreTone(product.crossPlatformHotScore || product.salesSignal)} sub={`綜合分 ${score(product.crossPlatformHotScore || product.salesSignal)}`} />
+            <MiniMetric label="平台覆蓋" value={product.crossPlatformCoverage?.join(" / ") || product.marketplace} sub={product.crossPlatformHotReason || product.salesSignalLabel} />
           </div>
 
           <div className="mt-3 grid gap-3 sm:grid-cols-3">
@@ -257,6 +262,7 @@ function ProductCard({ product, mode }: { product: CommerceProduct; mode: "sales
 
           <p className="mt-3 text-sm leading-6 text-slate-300">{product.salesSignalLabel}</p>
           <div className="mt-3 flex flex-wrap gap-2 text-xs">
+            <span className="rounded-full bg-emerald-400/15 px-3 py-1 text-emerald-100">跨平台 #{product.crossPlatformHotRank || "-"} / {score(product.crossPlatformHotScore || product.salesSignal)}</span>
             <span className="rounded-full bg-blue-400/15 px-3 py-1 text-blue-100">{product.parentCategory}</span>
             <span className="rounded-full bg-indigo-400/15 px-3 py-1 text-indigo-100">{product.category}</span>
             <span className="rounded-full bg-slate-700/60 px-3 py-1 text-slate-200">預設毛利 {pct(product.grossMarginRate)}</span>
@@ -380,6 +386,7 @@ function CategoryRankingCard({ item }: { item: CategoryProductRanking }) {
               </div>
               <div className="grid grid-cols-2 gap-2 text-xs sm:min-w-[280px]">
                 <span className="rounded-xl bg-emerald-400/10 px-2 py-1 text-emerald-100">試賣 {score(product.categoryTrialScore)}</span>
+                <span className="rounded-xl bg-cyan-400/10 px-2 py-1 text-cyan-100">熱賣 #{product.crossPlatformHotRank || "-"} / {score(product.crossPlatformHotScore || product.salesSignal)}</span>
                 <span className="rounded-xl bg-blue-400/10 px-2 py-1 text-blue-100">售價 {money(product.sellingPrice)}</span>
                 <span className="rounded-xl bg-lime-400/10 px-2 py-1 text-lime-100">進貨 {money(product.estimatedPurchasePrice)}</span>
                 <span className="rounded-xl bg-amber-400/10 px-2 py-1 text-amber-100">毛利 {money(product.grossSpread)}</span>
@@ -396,7 +403,7 @@ function ProductTable({ products }: { products: CommerceProduct[] }) {
   return (
     <div className="overflow-hidden rounded-3xl border border-slate-700/70">
       <div className="max-h-[620px] overflow-auto">
-        <table className="w-full min-w-[2680px] border-collapse text-left text-sm">
+        <table className="w-full min-w-[2920px] border-collapse text-left text-sm">
           <thead className="sticky top-0 bg-slate-950 text-slate-300">
             <tr>
               <th className="px-4 py-3">商品</th>
@@ -419,7 +426,10 @@ function ProductTable({ products }: { products: CommerceProduct[] }) {
               <th className="px-4 py-3">回購分</th>
               <th className="px-4 py-3">售服負擔</th>
               <th className="px-4 py-3">低售服回購</th>
-              <th className="px-4 py-3">熱銷分</th>
+              <th className="px-4 py-3">跨平台名次</th>
+              <th className="px-4 py-3">跨平台熱賣</th>
+              <th className="px-4 py-3">平台覆蓋</th>
+              <th className="px-4 py-3">單平台熱銷</th>
               <th className="px-4 py-3">下月</th>
               <th className="px-4 py-3">來源</th>
             </tr>
@@ -458,11 +468,14 @@ function ProductTable({ products }: { products: CommerceProduct[] }) {
                 <td className="px-4 py-3 text-emerald-300">{score(product.repurchaseScore)}</td>
                 <td className={`px-4 py-3 font-black ${product.afterSalesBurden === "低" ? "text-emerald-300" : product.afterSalesBurden === "中" ? "text-amber-300" : "text-rose-300"}`}>{product.afterSalesBurden}</td>
                 <td className="px-4 py-3 text-cyan-300">{score(product.lowServiceRepeatScore)}</td>
+                <td className="px-4 py-3 font-black text-emerald-200">#{product.crossPlatformHotRank || "-"}</td>
+                <td className="px-4 py-3 text-emerald-300">{score(product.crossPlatformHotScore || product.salesSignal)}</td>
+                <td className="px-4 py-3 text-slate-300">{product.crossPlatformCoverage?.join(" / ") || product.marketplaceFamily || "-"}</td>
                 <td className="px-4 py-3 text-emerald-300">{score(product.salesSignal)}</td>
                 <td className="px-4 py-3">{score(product.nextMonthScore)}</td>
                 <td className="px-4 py-3">
                   <a className="text-blue-300 hover:text-blue-200" href={product.url} target="_blank" rel="noreferrer">
-                    PChome
+                    {product.marketplace}
                   </a>
                 </td>
               </tr>
@@ -520,12 +533,12 @@ export function EcommerceRadarClient() {
   }, [report]);
 
   const filteredProducts = useMemo(() => {
-    const products = [...(report?.products || [])].sort((a, b) => b.salesSignal - a.salesSignal);
+    const products = [...(report?.products || [])].sort((a, b) => (b.crossPlatformHotScore || b.salesSignal) - (a.crossPlatformHotScore || a.salesSignal));
     if (categoryFilter === "全部") return products;
     return products.filter((product) => `${product.parentCategory}/${product.category}` === categoryFilter);
   }, [categoryFilter, report]);
 
-  const topSales = report?.topSales[0];
+  const topSales = (report?.crossPlatformHotProducts || report?.topSales || [])[0];
   const topProfit = report?.topProfit[0];
   const topRepeat = report?.lowServiceHighRepurchase[0];
   const topSeasonal = report?.seasonalHotProducts[0];
@@ -549,7 +562,7 @@ export function EcommerceRadarClient() {
             </h1>
             <p className="mt-3 max-w-4xl text-sm leading-6 text-slate-300">
               新增更多商品分類、生活小物統計、成本拆解、低售服負擔與高回購率判斷：進貨成本、平台費、金流費、物流、廣告、退貨準備金都會列入估算。
-              商品資料優先使用 PChome 24h 公開搜尋，並盡量嘗試蝦皮公開端點與拼多多來源狀態；成本與回購率為模型估算，之後可接你的真實進貨、訂單與客服報表。
+              商品資料會整合 PChome 24h、Shopee 蝦皮公開搜尋與 Amazon 官方 PA API 訊號，綜整成跨平台熱賣排名；成本與回購率為模型估算，之後可接你的真實進貨、訂單與客服報表。
             </p>
           </div>
           <button
@@ -588,7 +601,7 @@ export function EcommerceRadarClient() {
               <label className="flex items-center justify-between gap-3 rounded-2xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-sm font-bold text-slate-200">
                 <span>
                   嘗試外部來源
-                  <span className="mt-1 block text-xs font-normal text-slate-500">蝦皮公開搜尋、拼多多來源狀態</span>
+                  <span className="mt-1 block text-xs font-normal text-slate-500">Shopee 蝦皮、Amazon PA API、拼多多來源狀態</span>
                 </span>
                 <input
                   type="checkbox"
@@ -635,7 +648,7 @@ export function EcommerceRadarClient() {
         <SummaryCard icon={BadgeCheck} label="AI 選品首選" value={topSelection?.title || (loading ? "讀取中" : "-")} sub={topSelection ? `選品分 ${score(topSelection.selectionScore)}，${topSelection.selectionAdvice}，尺寸 ${topSelection.sizeLabel}` : "依季節、回購、成本、毛利、尺寸與售後評分"} tone="text-emerald-200" />
         <SummaryCard icon={ShoppingBag} label="低價小體積生活小物" value={topCompactLifestyle?.title || (loading ? "讀取中" : "-")} sub={topCompactLifestyle ? `小物精選分 ${score(topCompactLifestyle.compactLifestyleScore)}，售價 ${money(topCompactLifestyle.price)}，成本 ${money(topCompactLifestyle.estimatedProductCost)}，尺寸 ${topCompactLifestyle.sizeLabel}` : "低售價、低成本、高回購、非大型"} tone="text-teal-200" />
         <SummaryCard icon={ShieldCheck} label="保健品低風險機會" value={topHealth?.title || (loading ? "讀取中" : "-")} sub={topHealth ? `${topHealth.healthSupplementType}，機會分 ${score(topHealth.healthOpportunityScore)}，風險 ${topHealth.healthAdRiskLevel} ${score(topHealth.healthAdRiskScore)}` : "依類別、注意事項、禁用詞與機會分排序"} tone="text-amber-200" />
-        <SummaryCard icon={TrendingUp} label="目前銷售熱度最大" value={topSales?.title || (loading ? "讀取中" : "-")} sub={topSales ? `${topSales.salesSignalLabel}，熱銷分 ${topSales.salesSignal}` : "依 PChome 熱銷排序訊號"} tone="text-emerald-300" />
+        <SummaryCard icon={TrendingUp} label="跨平台銷售熱度最大" value={topSales?.title || (loading ? "讀取中" : "-")} sub={topSales ? `跨平台 #${topSales.crossPlatformHotRank}，熱賣分 ${score(topSales.crossPlatformHotScore || topSales.salesSignal)}，${topSales.crossPlatformCoverage?.join(" / ") || topSales.marketplace}` : "依 Amazon / 蝦皮 / PChome 綜合訊號"} tone="text-emerald-300" />
         <SummaryCard icon={DollarSign} label="估算淨利最高" value={topProfit?.title || (loading ? "讀取中" : "-")} sub={topProfit ? `淨利 ${money(topProfit.estimatedNetProfit)}，淨利率 ${pct(topProfit.estimatedNetMarginRate)}` : "依成本模型與熱銷分"} tone="text-amber-300" />
         <SummaryCard icon={Repeat2} label="低售服高回購" value={topRepeat?.title || (loading ? "讀取中" : "-")} sub={topRepeat ? `回購分 ${score(topRepeat.repurchaseScore)}，售服 ${topRepeat.afterSalesBurden}，綜合 ${score(topRepeat.lowServiceRepeatScore)}` : "依回購、客服負擔、熱度與淨利"} tone="text-cyan-200" />
         <SummaryCard icon={CalendarClock} label="季節熱賣商品" value={topSeasonal?.title || (loading ? "讀取中" : "-")} sub={topSeasonal ? `季節分 ${score(topSeasonal.seasonalHotScore)}：${topSeasonal.seasonalReason}` : "依月份、類別與熱銷分"} tone="text-orange-200" />
@@ -644,6 +657,31 @@ export function EcommerceRadarClient() {
         <SummaryCard icon={CalendarClock} label="下個月可能大賣" value={topMonth?.title || (loading ? "讀取中" : "-")} sub={topMonth ? `下月大賣分 ${topMonth.nextMonthScore}，分類 ${topMonth.category}` : "依熱度、成本與季節性"} tone="text-blue-200" />
         <SummaryCard icon={ShoppingBag} label="下一季可能大賣" value={topQuarter?.title || (loading ? "讀取中" : "-")} sub={topQuarter ? `下季大賣分 ${topQuarter.nextQuarterScore}，可信度 ${topQuarter.confidence}` : "依季節性與分類毛利推估"} tone="text-fuchsia-200" />
       </section>
+
+      {report ? (
+        <section className="glass rounded-3xl p-5">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <p className="text-sm text-slate-400">Amazon / Shopee / PChome Hot Ranking</p>
+              <h2 className="flex items-center gap-2 text-2xl font-black text-white">
+                <TrendingUp className="h-6 w-6 text-emerald-300" />
+                跨平台熱賣程度排名
+              </h2>
+              <p className="mt-2 max-w-4xl text-sm leading-6 text-slate-300">
+                依 PChome 熱銷排序、Shopee 公開搜尋/已售訊號、Amazon 官方 API 排序與同關鍵字平台覆蓋度綜整。分數越高，代表目前跨平台熱度越集中。
+              </p>
+            </div>
+            <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">
+              已排序 {report.crossPlatformHotProducts?.length || report.topSales.length} 件熱門商品
+            </div>
+          </div>
+          <div className="mt-4 grid gap-4 xl:grid-cols-2">
+            {(report.crossPlatformHotProducts || report.topSales).slice(0, 6).map((product) => (
+              <ProductCard key={`cross-platform-${product.source}-${product.id}`} product={product} mode="sales" />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section className="glass rounded-3xl p-5">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
@@ -867,8 +905,8 @@ export function EcommerceRadarClient() {
 
           <section className="grid gap-4 xl:grid-cols-2">
             <div className="space-y-4">
-              <h2 className="text-2xl font-black text-white">目前熱銷榜</h2>
-              {report.topSales.slice(0, 3).map((product) => <ProductCard key={`sales-${product.id}`} product={product} mode="sales" />)}
+              <h2 className="text-2xl font-black text-white">跨平台熱賣榜</h2>
+              {(report.crossPlatformHotProducts || report.topSales).slice(0, 3).map((product) => <ProductCard key={`sales-${product.id}`} product={product} mode="sales" />)}
             </div>
             <div className="space-y-4">
               <h2 className="text-2xl font-black text-white">估算淨利榜</h2>
@@ -966,7 +1004,7 @@ export function EcommerceRadarClient() {
         </>
       ) : !report ? (
         <section className="glass rounded-3xl p-8 text-center text-slate-300">
-          {loading ? "正在撈取 PChome 即時公開資料..." : "尚無資料"}
+          {loading ? "正在撈取 PChome、Shopee 與 Amazon 公開/官方資料..." : "尚無資料"}
         </section>
       ) : null}
     </div>
