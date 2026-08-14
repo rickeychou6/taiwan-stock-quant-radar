@@ -22,7 +22,7 @@
       "lastValue": 6032.5,
       "unrealizedPnl": 47.5,
       "unrealizedPnlPct": 0.7936507936507936,
-      "lastAnalysisAt": "2026-08-14T06:41:58.914Z"
+      "lastAnalysisAt": "2026-08-14T07:46:16.984Z"
     },
     {
       "id": "position-1786677609450-a2a0981e5b32a",
@@ -43,7 +43,7 @@
       "lastValue": 10090.199999999999,
       "unrealizedPnl": 120.59999999999854,
       "unrealizedPnlPct": 1.209677419354824,
-      "lastAnalysisAt": "2026-08-14T06:42:00.766Z"
+      "lastAnalysisAt": "2026-08-14T07:46:17.376Z"
     },
     {
       "id": "position-1786677609451-018934c8388d7",
@@ -64,7 +64,7 @@
       "lastValue": 10191.3,
       "unrealizedPnl": 193.1999999999989,
       "unrealizedPnlPct": 1.9323671497584431,
-      "lastAnalysisAt": "2026-08-14T06:42:01.104Z"
+      "lastAnalysisAt": "2026-08-14T07:46:17.740Z"
     }
   ],
   "trades": [
@@ -2392,6 +2392,60 @@
     }
   ],
   "decisions": [
+    {
+      "symbol": "RISK-GATE",
+      "name": "每日買進上限",
+      "decision": "暫停買入",
+      "reason": "今日已買進 2 檔，避免同一天行情誤判時一起套住。",
+      "id": "decision-1786693589732-bdbc4fc7726c7",
+      "createdAt": "2026-08-14T07:46:29.732Z",
+      "tradingDate": "2026-08-14"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "6206.TW 飛捷：今日跌幅 -8.63% 偏弱，避免接刀 / 6277.TW 宏正：推薦等級為 等待回檔；AI 動作為 續抱；風險報酬比 1:0.84 低於 0.9 / 2887.TW 台新新光金：推薦等級為 等待回檔；AI 動作為 續抱；風險報酬比 1:0.67 低於 0.9 / 2376.TW 技嘉：推薦等級為 接近買點；AI 動作為 續抱；風險報酬比 1:0.49 低於 0.9 / 8033.TW 雷虎：今日漲幅 9.81% 過熱，避免追高",
+      "id": "decision-1786693589732-4141a16f02d79",
+      "createdAt": "2026-08-14T07:46:29.732Z",
+      "tradingDate": "2026-08-14"
+    },
+    {
+      "symbol": "2883.TW",
+      "name": "凱基金",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "AI 顯示減碼訊號：第一目標 33.46 元 先檢查量價，第二目標 34.96 元 分批獲利。",
+      "finalScore": 64,
+      "tradeStyle": "中線常抱",
+      "automationAction": "續抱",
+      "id": "decision-1786693577740-1f44f7812badd",
+      "createdAt": "2026-08-14T07:46:17.740Z",
+      "tradingDate": "2026-08-14"
+    },
+    {
+      "symbol": "2884.TW",
+      "name": "玉山金",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "AI 顯示減碼訊號：第一目標 39.35 元 先賣 1/3 到 1/2，第二目標 40.77 元 再分批。",
+      "finalScore": 58,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1786693577376-e98446414b144",
+      "createdAt": "2026-08-14T07:46:17.376Z",
+      "tradingDate": "2026-08-14"
+    },
+    {
+      "symbol": "1563.TW",
+      "name": "巧新",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 64,
+      "tradeStyle": "短進短出",
+      "automationAction": "小量試單",
+      "id": "decision-1786693576985-365508fd6b9f6",
+      "createdAt": "2026-08-14T07:46:16.985Z",
+      "tradingDate": "2026-08-14"
+    },
     {
       "symbol": "RISK-GATE",
       "name": "每日買進上限",
@@ -5902,6 +5956,15 @@
   ],
   "equity": [
     {
+      "id": "equity-1786693589733-bf2b3a87ad54f",
+      "createdAt": "2026-08-14T07:46:29.733Z",
+      "tradingDate": "2026-08-14",
+      "cash": 70785.74999999991,
+      "positionValue": 26314,
+      "totalEquity": 97099.74999999991,
+      "realizedPnl": -3261.5500000000043
+    },
+    {
       "id": "equity-1786689734915-f65f5d56e2bf2",
       "createdAt": "2026-08-14T06:42:14.915Z",
       "tradingDate": "2026-08-14",
@@ -6442,6 +6505,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-08-14T06:41:57.432Z",
+  "lastRunAt": "2026-08-14T07:46:15.302Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
