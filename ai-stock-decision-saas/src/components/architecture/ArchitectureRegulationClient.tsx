@@ -17,19 +17,33 @@ import {
 import type { ArchitectureRadarResult, RiskItem, SourceStatus } from "@/lib/architecture-regulation";
 
 type FormState = {
+  mode: "personal" | "api";
   address: string;
   parcel: string;
   height: string;
   city: string;
   useType: string;
+  manualHeightLimit: string;
+  manualParcelConfirmed: boolean;
+  manualMapChecked: boolean;
+  manualZoningChecked: boolean;
+  manualAviationChecked: boolean;
+  manualSourceNote: string;
 };
 
 const initialForm: FormState = {
+  mode: "personal",
   address: "",
   parcel: "",
   height: "",
   city: "",
-  useType: "住宅/商業待確認"
+  useType: "住宅/商業待確認",
+  manualHeightLimit: "",
+  manualParcelConfirmed: false,
+  manualMapChecked: false,
+  manualZoningChecked: false,
+  manualAviationChecked: false,
+  manualSourceNote: ""
 };
 
 function toneClass(tone: string) {
@@ -94,6 +108,138 @@ function ActionBox({ title, body, icon: Icon }: { title: string; body: string; i
   );
 }
 
+function parseNumber(value: string) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function buildPersonalRiskMatrix(form: FormState): RiskItem[] {
+  const hasAddress = form.address.trim().length > 0;
+  const hasParcel = form.parcel.trim().length > 0;
+  const plannedHeight = parseNumber(form.height);
+  const manualHeightLimit = parseNumber(form.manualHeightLimit);
+  const overManualLimit =
+    plannedHeight !== null && manualHeightLimit !== null && plannedHeight > manualHeightLimit;
+
+  return [
+    {
+      id: "personal-parcel",
+      title: "人工地號確認",
+      level: hasParcel && form.manualParcelConfirmed ? "ok" : hasParcel || hasAddress ? "warning" : "blocked",
+      status: hasParcel && form.manualParcelConfirmed ? "已人工確認" : "需要人工確認",
+      detail: hasParcel
+        ? "個人驗證模式會使用你輸入的地號，但不會把它當成官方 API 回傳結果。"
+        : "請先用官方圖台或地籍資料人工取得地號，再填回系統。",
+      nextAction: "用 NLSC 圖台或地籍謄本確認地號後勾選。"
+    },
+    {
+      id: "personal-cadastral-map",
+      title: "人工地籍圖確認",
+      level: form.manualMapChecked ? "ok" : hasParcel ? "warning" : "blocked",
+      status: form.manualMapChecked ? "已人工確認" : "尚未確認基地邊界",
+      detail: "未取得 API 前，地籍圖與基地邊界必須由你人工在官方圖台或正式文件確認。",
+      nextAction: "確認基地邊界、臨路、鄰地與地號是否一致。"
+    },
+    {
+      id: "personal-zoning",
+      title: "使用分區與土地管制",
+      level: form.manualZoningChecked ? "ok" : "warning",
+      status: form.manualZoningChecked ? "已人工查核" : "需查都市計畫/土地使用",
+      detail: "建蔽率、容積率、使用分區、公共設施保留地與非都市土地編定，都會影響可建性。",
+      nextAction: "查都市計畫、土地使用分區或向主管機關確認。"
+    },
+    {
+      id: "personal-aviation",
+      title: "飛航限高人工比對",
+      level: overManualLimit ? "danger" : form.manualAviationChecked && plannedHeight !== null ? "ok" : plannedHeight !== null ? "warning" : "blocked",
+      status: overManualLimit ? "預估高度超過人工限高" : form.manualAviationChecked ? "已人工比對" : "尚未比對限高",
+      detail:
+        plannedHeight === null
+          ? "請輸入預估高度，才能和人工查得的限高做初步比對。"
+          : manualHeightLimit !== null
+            ? `預估高度 ${plannedHeight} 公尺，人工查得限高 ${manualHeightLimit} 公尺。`
+            : `預估高度 ${plannedHeight} 公尺，但尚未填入人工查得的限高。`,
+      nextAction: overManualLimit
+        ? "先視為高風險，請建築師或主管機關確認是否需降高或不能興建。"
+        : "用飛航限高條文、公告附圖或主管機關資料比對後勾選。"
+    },
+    {
+      id: "personal-source-note",
+      title: "人工來源註記",
+      level: form.manualSourceNote.trim().length > 0 ? "info" : "warning",
+      status: form.manualSourceNote.trim().length > 0 ? "已有註記" : "建議補上來源",
+      detail: form.manualSourceNote.trim() || "請記錄你查的是哪個官方圖台、哪份謄本、哪個主管機關或哪個公告附圖。",
+      nextAction: "把來源寫清楚，之後才方便比對與追蹤版本。"
+    }
+  ];
+}
+
+function buildPersonalVerdict(riskMatrix: RiskItem[]) {
+  const blockers = riskMatrix.filter((item) => item.level === "blocked");
+  const dangers = riskMatrix.filter((item) => item.level === "danger");
+  const warnings = riskMatrix.filter((item) => item.level === "warning");
+
+  if (dangers.length > 0) {
+    return {
+      label: "人工查核出現高風險",
+      tone: "danger" as const,
+      summary: "人工輸入的條件已出現衝突，例如預估高度超過人工查得限高。先不要判定可建。",
+      blockers: dangers.map((item) => item.title),
+      nextActions: ["先視為不可直接投資或送件。", "請建築師、地政士或主管機關複核。", "必要時修正高度、用途或基地條件。"]
+    };
+  }
+
+  if (blockers.length > 0) {
+    return {
+      label: "個人驗證待補資料",
+      tone: "warning" as const,
+      summary: "目前可用個人模式先查，但地址、地號、地籍圖或高度資料仍不足，不能判斷安全可建。",
+      blockers: blockers.map((item) => item.title),
+      nextActions: ["先補完整地址、地號與預估高度。", "用官方圖台或正式文件人工確認。", "保留來源註記，避免之後查不到依據。"]
+    };
+  }
+
+  if (warnings.length > 0) {
+    return {
+      label: "個人驗證進行中",
+      tone: "warning" as const,
+      summary: "資料已能做初步人工查核，但仍有項目未勾選或來源未註記。這不是安全可建結論。",
+      blockers: warnings.map((item) => item.title),
+      nextActions: ["補齊未確認項目。", "把官方查核來源寫進註記。", "完成後交由專業人員複核。"]
+    };
+  }
+
+  return {
+    label: "人工驗證可進下一步",
+    tone: "ok" as const,
+    summary: "人工檢核資料看起來完整，可進入建築師或主管機關複核；仍不代表已取得正式許可。",
+    blockers: [],
+    nextActions: ["輸出或保存人工查核紀錄。", "交由建築師確認建蔽率、容積、限高與法規適用。", "正式送件前再確認最新公告。"]
+  };
+}
+
+function ManualCheck({
+  checked,
+  label,
+  onChange
+}: {
+  checked: boolean;
+  label: string;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <label className="flex items-center gap-3 rounded-2xl border border-slate-700/80 bg-slate-950/50 p-4">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+        className="h-5 w-5 rounded border-slate-600 bg-slate-900 accent-blue-500"
+      />
+      <span className="text-sm font-bold leading-6 text-slate-200">{label}</span>
+    </label>
+  );
+}
+
 export function ArchitectureRegulationClient() {
   const [form, setForm] = useState<FormState>(initialForm);
   const [result, setResult] = useState<ArchitectureRadarResult | null>(null);
@@ -132,7 +278,10 @@ export function ArchitectureRegulationClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const verdict = result?.verdict;
+  const personalRiskMatrix = useMemo(() => buildPersonalRiskMatrix(form), [form]);
+  const personalVerdict = useMemo(() => buildPersonalVerdict(personalRiskMatrix), [personalRiskMatrix]);
+  const displayRiskMatrix = form.mode === "personal" ? personalRiskMatrix : result?.riskMatrix || [];
+  const verdict = form.mode === "personal" ? personalVerdict : result?.verdict;
 
   return (
     <div className="space-y-6">
@@ -142,13 +291,13 @@ export function ArchitectureRegulationClient() {
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-400/10 px-3 py-1 text-xs font-black text-blue-200">
                 <Building2 className="h-4 w-4" />
-                建築法規雷達 V0.1
+                建築法規雷達 V0.2
               </div>
               <h1 className="mt-4 text-3xl font-black tracking-tight text-white md:text-5xl">
                 建築基地風險查核
               </h1>
               <p className="mt-4 max-w-3xl text-base leading-8 text-slate-300">
-                先把地址、地號、預估高度丟進來，系統會即時連線官方法規與圖資來源，檢查地籍授權、飛航限高、法規版本與下一步缺口。
+                先把地址、地號、預估高度丟進來，系統會即時連線官方法規與圖資來源；驗證階段可用個人模式先做人工查核。
               </p>
             </div>
 
@@ -168,7 +317,7 @@ export function ArchitectureRegulationClient() {
             <div className="mt-5 rounded-2xl border border-current/20 bg-black/10 p-4">
               <p className="text-xs font-black opacity-70">必要提醒</p>
               <p className="mt-2 text-sm leading-6">
-                本工具只做研究與送件前檢核，不取代建築師簽證、地政資料謄本、都市計畫證明或主管機關審查。
+                目前模式：{form.mode === "personal" ? "個人驗證模式" : "API 自動模式"}。本工具只做研究與送件前檢核，不取代建築師簽證、地政資料謄本、都市計畫證明或主管機關審查。
               </p>
             </div>
           </div>
@@ -193,6 +342,27 @@ export function ArchitectureRegulationClient() {
           </div>
 
           <div className="mt-5 grid gap-4">
+            <div className="grid gap-3 rounded-3xl border border-blue-400/25 bg-blue-400/10 p-3 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => setForm((prev) => ({ ...prev, mode: "personal" }))}
+                className={`rounded-2xl px-4 py-3 text-sm font-black transition ${
+                  form.mode === "personal" ? "bg-blue-500 text-white shadow-glow" : "bg-slate-950/60 text-slate-300 hover:bg-slate-900"
+                }`}
+              >
+                個人驗證模式
+              </button>
+              <button
+                type="button"
+                onClick={() => setForm((prev) => ({ ...prev, mode: "api" }))}
+                className={`rounded-2xl px-4 py-3 text-sm font-black transition ${
+                  form.mode === "api" ? "bg-blue-500 text-white shadow-glow" : "bg-slate-950/60 text-slate-300 hover:bg-slate-900"
+                }`}
+              >
+                API 自動模式
+              </button>
+            </div>
+
             <label className="space-y-2">
               <span className="text-sm font-bold text-slate-300">地址</span>
               <input
@@ -252,6 +422,62 @@ export function ArchitectureRegulationClient() {
                 </select>
               </label>
             </div>
+
+            {form.mode === "personal" ? (
+              <div className="rounded-3xl border border-emerald-400/25 bg-emerald-400/10 p-4">
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="mt-1 h-5 w-5 text-emerald-300" />
+                  <div>
+                    <p className="font-black text-white">個人驗證清單</p>
+                    <p className="mt-1 text-sm leading-6 text-emerald-100/85">
+                      沒有 API 授權時，先用官方圖台、謄本或主管機關資料人工確認，再把結果勾回系統。
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-4 grid gap-3">
+                  <ManualCheck
+                    checked={form.manualParcelConfirmed}
+                    label="我已人工確認地號與地址相符"
+                    onChange={(checked) => setForm((prev) => ({ ...prev, manualParcelConfirmed: checked }))}
+                  />
+                  <ManualCheck
+                    checked={form.manualMapChecked}
+                    label="我已人工查看地籍圖與基地邊界"
+                    onChange={(checked) => setForm((prev) => ({ ...prev, manualMapChecked: checked }))}
+                  />
+                  <ManualCheck
+                    checked={form.manualZoningChecked}
+                    label="我已人工確認都市計畫或土地使用分區"
+                    onChange={(checked) => setForm((prev) => ({ ...prev, manualZoningChecked: checked }))}
+                  />
+                  <ManualCheck
+                    checked={form.manualAviationChecked}
+                    label="我已人工比對飛航限高或禁限建公告"
+                    onChange={(checked) => setForm((prev) => ({ ...prev, manualAviationChecked: checked }))}
+                  />
+                  <label className="space-y-2">
+                    <span className="text-sm font-bold text-slate-300">人工查得限高 M</span>
+                    <input
+                      inputMode="decimal"
+                      value={form.manualHeightLimit}
+                      onChange={(event) => setForm((prev) => ({ ...prev, manualHeightLimit: event.target.value }))}
+                      placeholder="例如：60，沒有就先留空"
+                      className="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-blue-400"
+                    />
+                  </label>
+                  <label className="space-y-2">
+                    <span className="text-sm font-bold text-slate-300">人工來源註記</span>
+                    <textarea
+                      value={form.manualSourceNote}
+                      onChange={(event) => setForm((prev) => ({ ...prev, manualSourceNote: event.target.value }))}
+                      placeholder="例如：NLSC 圖台查詢日期、地籍謄本日期、主管機關公告圖名..."
+                      rows={3}
+                      className="w-full resize-none rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-blue-400"
+                    />
+                  </label>
+                </div>
+              </div>
+            ) : null}
           </div>
 
           {error ? (
@@ -268,7 +494,7 @@ export function ArchitectureRegulationClient() {
           </div>
 
           <div className="mt-5 grid gap-3">
-            {(result?.riskMatrix || []).map((item) => {
+            {displayRiskMatrix.map((item) => {
               const Icon = riskIcon(item.level);
               return (
                 <div key={item.id} className={`rounded-2xl border p-4 ${toneClass(item.level)}`}>
