@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BarChart3, Bot, Briefcase, Gauge, Home, ListChecks, Radar, ShieldAlert, ShoppingBag, Sparkles, UserCircle } from "lucide-react";
+import { BarChart3, Bot, Briefcase, Building2, Gauge, Home, ListChecks, Radar, ShieldAlert, ShoppingBag, Sparkles, UserCircle } from "lucide-react";
 import { RiskNotice } from "@/components/RiskNotice";
 import { GlobalSignalAlerts } from "@/components/GlobalSignalAlerts";
 
@@ -8,6 +8,7 @@ const navItems = [
   { href: "/dashboard", label: "分析 Dashboard", mobileLabel: "分析", icon: Gauge },
   { href: "/recommendations", label: "個股推薦", mobileLabel: "推薦", icon: Sparkles },
   { href: "/ecommerce-radar", label: "電商雷達", mobileLabel: "電商", icon: ShoppingBag },
+  { href: "/architecture-regulation", label: "建築法規", mobileLabel: "建築", icon: Building2 },
   { href: "/auto-trader", label: "AI 模擬交易", mobileLabel: "AI 交易", icon: Bot },
   { href: "/radars", label: "多功能雷達", mobileLabel: "雷達", icon: Radar },
   { href: "/watchlist", label: "自選股", mobileLabel: "自選", icon: ListChecks },
@@ -73,4 +74,3 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-
