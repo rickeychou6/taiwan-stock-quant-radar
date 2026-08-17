@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:sites": "tsx scripts/build-global-monitor-site.ts",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
