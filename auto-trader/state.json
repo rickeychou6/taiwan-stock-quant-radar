@@ -11,18 +11,18 @@
       "entryPrice": 37.2,
       "entryAmount": 4984.8,
       "stopLossPrice": 36.64,
-      "takeProfit1": 39.46,
-      "takeProfit2": 40.96,
+      "takeProfit1": 39.56,
+      "takeProfit2": 41.06,
       "openedAt": "2026-08-14T03:20:09.450Z",
       "openedTradingDate": "2026-08-14",
       "tradeStyle": "波段持有",
       "automationAction": "小量試單",
       "positionSizePct": 20,
-      "lastPrice": 37.65,
-      "lastValue": 5045.099999999999,
-      "unrealizedPnl": 60.29999999999927,
-      "unrealizedPnlPct": 1.209677419354824,
-      "lastAnalysisAt": "2026-08-17T05:27:19.265Z"
+      "lastPrice": 37.75,
+      "lastValue": 5058.5,
+      "unrealizedPnl": 73.69999999999982,
+      "unrealizedPnlPct": 1.4784946236559102,
+      "lastAnalysisAt": "2026-08-17T05:59:15.238Z"
     },
     {
       "id": "position-1786677609451-018934c8388d7",
@@ -31,19 +31,19 @@
       "shares": 161,
       "entryPrice": 31.05,
       "entryAmount": 4999.05,
-      "stopLossPrice": 30.07,
-      "takeProfit1": 33.27,
-      "takeProfit2": 34.71,
+      "stopLossPrice": 30.06,
+      "takeProfit1": 33.12,
+      "takeProfit2": 34.56,
       "openedAt": "2026-08-14T03:20:09.451Z",
       "openedTradingDate": "2026-08-14",
       "tradeStyle": "中線常抱",
       "automationAction": "續抱",
       "positionSizePct": 40,
-      "lastPrice": 31.55,
-      "lastValue": 5079.55,
-      "unrealizedPnl": 80.5,
-      "unrealizedPnlPct": 1.610305958132045,
-      "lastAnalysisAt": "2026-08-17T05:27:19.673Z"
+      "lastPrice": 31.4,
+      "lastValue": 5055.4,
+      "unrealizedPnl": 56.349999999999454,
+      "unrealizedPnlPct": 1.1272141706924206,
+      "lastAnalysisAt": "2026-08-17T05:59:15.622Z"
     },
     {
       "id": "position-1786932873319-cc5a17553461d",
@@ -53,18 +53,18 @@
       "entryPrice": 48.4,
       "entryAmount": 9970.4,
       "stopLossPrice": 44.11,
-      "takeProfit1": 53.22,
-      "takeProfit2": 57.24,
+      "takeProfit1": 53.32,
+      "takeProfit2": 57.34,
       "openedAt": "2026-08-17T02:14:33.319Z",
       "openedTradingDate": "2026-08-17",
       "tradeStyle": "波段持有",
       "automationAction": "小量試單",
       "positionSizePct": 20,
-      "lastPrice": 48.4,
-      "lastValue": 9970.4,
-      "unrealizedPnl": 0,
-      "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-08-17T05:27:20.020Z"
+      "lastPrice": 48.5,
+      "lastValue": 9991,
+      "unrealizedPnl": 20.600000000000364,
+      "unrealizedPnlPct": 0.20661157024793753,
+      "lastAnalysisAt": "2026-08-17T05:59:16.080Z"
     },
     {
       "id": "position-1786944460643-e11f688ca9f59",
@@ -73,22 +73,52 @@
       "shares": 169,
       "entryPrice": 59,
       "entryAmount": 9971,
-      "stopLossPrice": 56.54,
+      "stopLossPrice": 56.55,
       "takeProfit1": 69.8,
-      "takeProfit2": 73.41,
+      "takeProfit2": 73.4,
       "openedAt": "2026-08-17T05:27:40.643Z",
       "openedTradingDate": "2026-08-17",
       "tradeStyle": "波段持有",
       "automationAction": "小量試單",
       "positionSizePct": 20,
-      "lastPrice": 59,
-      "lastValue": 9971,
-      "unrealizedPnl": 0,
-      "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-08-17T05:27:40.643Z"
+      "lastPrice": 59.1,
+      "lastValue": 9987.9,
+      "unrealizedPnl": 16.899999999999636,
+      "unrealizedPnlPct": 0.16949152542372517,
+      "lastAnalysisAt": "2026-08-17T05:59:16.476Z"
     }
   ],
   "trades": [
+    {
+      "side": "BLOCKED_SELL",
+      "symbol": "1301.TW",
+      "name": "台塑",
+      "price": 59.1,
+      "shares": 0,
+      "amount": 0,
+      "cashAfter": 66819.24999999991,
+      "reason": "禁止當沖：AI 顯示減碼訊號：第一目標 69.80 元 先賣 1/3 到 1/2，第二目標 73.40 元 再分批。。今天買進的股票不可今天賣出，延到下一個交易日再檢查。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1786944460643-e11f688ca9f59",
+      "id": "trade-1786946356476-cf8ac1506cfaa",
+      "createdAt": "2026-08-17T05:59:16.476Z",
+      "tradingDate": "2026-08-17"
+    },
+    {
+      "side": "BLOCKED_SELL",
+      "symbol": "2362.TW",
+      "name": "藍天",
+      "price": 48.5,
+      "shares": 0,
+      "amount": 0,
+      "cashAfter": 66819.24999999991,
+      "reason": "禁止當沖：AI 顯示減碼訊號：第一目標 53.32 元 先賣 1/3 到 1/2，第二目標 57.34 元 再分批。。今天買進的股票不可今天賣出，延到下一個交易日再檢查。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1786932873319-cc5a17553461d",
+      "id": "trade-1786946356080-b67dce28da88c",
+      "createdAt": "2026-08-17T05:59:16.080Z",
+      "tradingDate": "2026-08-17"
+    },
     {
       "side": "BUY",
       "symbol": "1301.TW",
@@ -2575,6 +2605,63 @@
     }
   ],
   "decisions": [
+    {
+      "symbol": "CASH",
+      "name": "資金控管",
+      "decision": "暫停買入",
+      "reason": "已持有 4 檔，避免過度分散。",
+      "id": "decision-1786946356476-30d741198f09",
+      "createdAt": "2026-08-17T05:59:16.476Z",
+      "tradingDate": "2026-08-17"
+    },
+    {
+      "symbol": "1301.TW",
+      "name": "台塑",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "AI 顯示減碼訊號：第一目標 69.80 元 先賣 1/3 到 1/2，第二目標 73.40 元 再分批。",
+      "finalScore": 61,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1786946356476-739a5adba3aab",
+      "createdAt": "2026-08-17T05:59:16.476Z",
+      "tradingDate": "2026-08-17"
+    },
+    {
+      "symbol": "2362.TW",
+      "name": "藍天",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "AI 顯示減碼訊號：第一目標 53.32 元 先賣 1/3 到 1/2，第二目標 57.34 元 再分批。",
+      "finalScore": 60,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1786946356080-d1c141c292222",
+      "createdAt": "2026-08-17T05:59:16.080Z",
+      "tradingDate": "2026-08-17"
+    },
+    {
+      "symbol": "2883.TW",
+      "name": "凱基金",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 65,
+      "tradeStyle": "中線常抱",
+      "automationAction": "續抱",
+      "id": "decision-1786946355622-86f586906ab1e",
+      "createdAt": "2026-08-17T05:59:15.622Z",
+      "tradingDate": "2026-08-17"
+    },
+    {
+      "symbol": "2884.TW",
+      "name": "玉山金",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 60,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1786946355239-24e55df33bfdd",
+      "createdAt": "2026-08-17T05:59:15.239Z",
+      "tradingDate": "2026-08-17"
+    },
     {
       "symbol": "1301.TW",
       "name": "台塑",
@@ -6436,6 +6523,15 @@
   ],
   "equity": [
     {
+      "id": "equity-1786946356476-9ac119b31847b",
+      "createdAt": "2026-08-17T05:59:16.476Z",
+      "tradingDate": "2026-08-17",
+      "cash": 66819.24999999991,
+      "positionValue": 30092.800000000003,
+      "totalEquity": 96912.04999999992,
+      "realizedPnl": -3255.5000000000045
+    },
+    {
       "id": "equity-1786944460643-89cdab2f76f45",
       "createdAt": "2026-08-17T05:27:40.643Z",
       "tradingDate": "2026-08-17",
@@ -7030,6 +7126,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-08-17T05:27:17.523Z",
+  "lastRunAt": "2026-08-17T05:59:12.606Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
