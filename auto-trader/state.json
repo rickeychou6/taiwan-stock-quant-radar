@@ -10,19 +10,19 @@
       "shares": 48,
       "entryPrice": 63,
       "entryAmount": 3024,
-      "stopLossPrice": 57.21,
-      "takeProfit1": 69.69,
-      "takeProfit2": 75.01,
+      "stopLossPrice": 57.2,
+      "takeProfit1": 69.59,
+      "takeProfit2": 74.91,
       "openedAt": "2026-08-13T07:48:41.089Z",
       "openedTradingDate": "2026-08-13",
       "tradeStyle": "短進短出",
       "automationAction": "小量試單",
       "positionSizePct": 12,
-      "lastPrice": 63.3,
-      "lastValue": 3038.3999999999996,
-      "unrealizedPnl": 14.399999999999636,
-      "unrealizedPnlPct": 0.4761904761904642,
-      "lastAnalysisAt": "2026-08-17T03:13:13.957Z"
+      "lastPrice": 63.2,
+      "lastValue": 3033.6000000000004,
+      "unrealizedPnl": 9.600000000000364,
+      "unrealizedPnlPct": 0.3174603174603295,
+      "lastAnalysisAt": "2026-08-17T04:02:17.950Z"
     },
     {
       "id": "position-1786677609450-a2a0981e5b32a",
@@ -39,11 +39,11 @@
       "tradeStyle": "暫不交易",
       "automationAction": "等待",
       "positionSizePct": 0,
-      "lastPrice": 37.05,
-      "lastValue": 9929.4,
-      "unrealizedPnl": -40.20000000000073,
-      "unrealizedPnlPct": -0.4032258064516202,
-      "lastAnalysisAt": "2026-08-17T03:13:14.713Z"
+      "lastPrice": 36.8,
+      "lastValue": 9862.4,
+      "unrealizedPnl": -107.20000000000073,
+      "unrealizedPnlPct": -1.0752688172043083,
+      "lastAnalysisAt": "2026-08-17T04:02:18.919Z"
     },
     {
       "id": "position-1786677609451-018934c8388d7",
@@ -52,19 +52,19 @@
       "shares": 161,
       "entryPrice": 31.05,
       "entryAmount": 4999.05,
-      "stopLossPrice": 30.06,
-      "takeProfit1": 32.91,
-      "takeProfit2": 34.34,
+      "stopLossPrice": 30.04,
+      "takeProfit1": 32.62,
+      "takeProfit2": 34.06,
       "openedAt": "2026-08-14T03:20:09.451Z",
       "openedTradingDate": "2026-08-14",
       "tradeStyle": "中線常抱",
       "automationAction": "續抱",
       "positionSizePct": 40,
-      "lastPrice": 31.2,
-      "lastValue": 5023.2,
-      "unrealizedPnl": 24.149999999999636,
-      "unrealizedPnlPct": 0.48309178743960624,
-      "lastAnalysisAt": "2026-08-17T03:13:16.514Z"
+      "lastPrice": 30.9,
+      "lastValue": 4974.9,
+      "unrealizedPnl": -24.150000000000546,
+      "unrealizedPnlPct": -0.48309178743962444,
+      "lastAnalysisAt": "2026-08-17T04:02:19.628Z"
     },
     {
       "id": "position-1786932873319-cc5a17553461d",
@@ -73,22 +73,37 @@
       "shares": 206,
       "entryPrice": 48.4,
       "entryAmount": 9970.4,
-      "stopLossPrice": 44.11,
-      "takeProfit1": 53.27,
-      "takeProfit2": 57.29,
+      "stopLossPrice": 44.12,
+      "takeProfit1": 53.47,
+      "takeProfit2": 57.49,
       "openedAt": "2026-08-17T02:14:33.319Z",
       "openedTradingDate": "2026-08-17",
       "tradeStyle": "波段持有",
       "automationAction": "小量試單",
       "positionSizePct": 20,
-      "lastPrice": 48.45,
-      "lastValue": 9980.7,
-      "unrealizedPnl": 10.300000000001091,
-      "unrealizedPnlPct": 0.1033057851239779,
-      "lastAnalysisAt": "2026-08-17T03:13:17.350Z"
+      "lastPrice": 48.65,
+      "lastValue": 10021.9,
+      "unrealizedPnl": 51.5,
+      "unrealizedPnlPct": 0.5165289256198348,
+      "lastAnalysisAt": "2026-08-17T04:02:20.348Z"
     }
   ],
   "trades": [
+    {
+      "side": "BLOCKED_SELL",
+      "symbol": "2362.TW",
+      "name": "藍天",
+      "price": 48.65,
+      "shares": 0,
+      "amount": 0,
+      "cashAfter": 68772.04999999992,
+      "reason": "禁止當沖：AI 顯示減碼訊號：第一目標 53.47 元 先賣 1/3 到 1/2，第二目標 57.49 元 再分批。。今天買進的股票不可今天賣出，延到下一個交易日再檢查。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1786932873319-cc5a17553461d",
+      "id": "trade-1786939340349-b3d2a0a0be931",
+      "createdAt": "2026-08-17T04:02:20.349Z",
+      "tradingDate": "2026-08-17"
+    },
     {
       "side": "BLOCKED_SELL",
       "symbol": "2362.TW",
@@ -2479,6 +2494,63 @@
     }
   ],
   "decisions": [
+    {
+      "symbol": "CASH",
+      "name": "資金控管",
+      "decision": "暫停買入",
+      "reason": "已持有 4 檔，避免過度分散。",
+      "id": "decision-1786939340349-0481d4c23997c",
+      "createdAt": "2026-08-17T04:02:20.349Z",
+      "tradingDate": "2026-08-17"
+    },
+    {
+      "symbol": "2362.TW",
+      "name": "藍天",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "AI 顯示減碼訊號：第一目標 53.47 元 先賣 1/3 到 1/2，第二目標 57.49 元 再分批。",
+      "finalScore": 65,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1786939340349-d64f8d7ee0752",
+      "createdAt": "2026-08-17T04:02:20.349Z",
+      "tradingDate": "2026-08-17"
+    },
+    {
+      "symbol": "2883.TW",
+      "name": "凱基金",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 59,
+      "tradeStyle": "中線常抱",
+      "automationAction": "續抱",
+      "id": "decision-1786939339628-daed23f8433bf",
+      "createdAt": "2026-08-17T04:02:19.628Z",
+      "tradingDate": "2026-08-17"
+    },
+    {
+      "symbol": "2884.TW",
+      "name": "玉山金",
+      "decision": "續抱",
+      "reason": "停損線 35.81 元 不可下修。",
+      "finalScore": 54,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1786939338919-3960bb258276d",
+      "createdAt": "2026-08-17T04:02:18.919Z",
+      "tradingDate": "2026-08-17"
+    },
+    {
+      "symbol": "1563.TW",
+      "name": "巧新",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 62,
+      "tradeStyle": "短進短出",
+      "automationAction": "小量試單",
+      "id": "decision-1786939337950-1fac164d6e639",
+      "createdAt": "2026-08-17T04:02:17.951Z",
+      "tradingDate": "2026-08-17"
+    },
     {
       "symbol": "CASH",
       "name": "資金控管",
@@ -6157,6 +6229,15 @@
   ],
   "equity": [
     {
+      "id": "equity-1786939340349-1686cd8891faa",
+      "createdAt": "2026-08-17T04:02:20.349Z",
+      "tradingDate": "2026-08-17",
+      "cash": 68772.04999999992,
+      "positionValue": 27892.800000000003,
+      "totalEquity": 96664.84999999992,
+      "realizedPnl": -3264.900000000004
+    },
+    {
       "id": "equity-1786936397351-45b8c8884190f",
       "createdAt": "2026-08-17T03:13:17.351Z",
       "tradingDate": "2026-08-17",
@@ -6724,6 +6805,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-08-17T03:13:11.985Z",
+  "lastRunAt": "2026-08-17T04:02:15.666Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
