@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BarChart3, Bot, Briefcase, Building2, Gauge, Home, ListChecks, Radar, ShieldAlert, ShoppingBag, Sparkles, UserCircle } from "lucide-react";
+import { BarChart3, Bot, Briefcase, Building2, Gauge, Globe2, Home, ListChecks, Radar, ShieldAlert, ShoppingBag, Sparkles, UserCircle } from "lucide-react";
 import { RiskNotice } from "@/components/RiskNotice";
 import { GlobalSignalAlerts } from "@/components/GlobalSignalAlerts";
 
@@ -14,6 +14,7 @@ const navItems = [
   { href: "/watchlist", label: "自選股", mobileLabel: "自選", icon: ListChecks },
   { href: "/portfolio", label: "持股管理", mobileLabel: "持股", icon: Briefcase },
   { href: "/market", label: "市場總覽", mobileLabel: "市場", icon: BarChart3 },
+  { href: "/global-monitor", label: "全球事件雷達", mobileLabel: "全球", icon: Globe2 },
   { href: "/admin", label: "管理後台", mobileLabel: "後台", icon: ShieldAlert },
   { href: "/login", label: "登入", mobileLabel: "登入", icon: UserCircle }
 ];
