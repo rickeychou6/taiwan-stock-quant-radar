@@ -22,7 +22,7 @@
       "lastValue": 4897.65,
       "unrealizedPnl": -87.55000000000018,
       "unrealizedPnlPct": -1.7561983471074418,
-      "lastAnalysisAt": "2026-08-18T03:06:52.709Z"
+      "lastAnalysisAt": "2026-08-18T03:55:08.311Z"
     },
     {
       "id": "position-1786944460643-e11f688ca9f59",
@@ -43,7 +43,7 @@
       "lastValue": 5040.5,
       "unrealizedPnl": 25.5,
       "unrealizedPnlPct": 0.5084745762711864,
-      "lastAnalysisAt": "2026-08-18T03:06:53.066Z"
+      "lastAnalysisAt": "2026-08-18T03:55:08.792Z"
     },
     {
       "id": "position-1787022428019-b5d7b5949f498",
@@ -52,19 +52,19 @@
       "shares": 70,
       "entryPrice": 142.5,
       "entryAmount": 9975,
-      "stopLossPrice": 128.13,
-      "takeProfit1": 161.85,
-      "takeProfit2": 177.97,
+      "stopLossPrice": 128.05,
+      "takeProfit1": 160.35,
+      "takeProfit2": 176.47,
       "openedAt": "2026-08-18T03:07:08.019Z",
       "openedTradingDate": "2026-08-18",
       "tradeStyle": "短進短出",
       "automationAction": "小量試單",
       "positionSizePct": 12,
-      "lastPrice": 142.5,
-      "lastValue": 9975,
-      "unrealizedPnl": 0,
-      "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-08-18T03:07:08.019Z"
+      "lastPrice": 141,
+      "lastValue": 9870,
+      "unrealizedPnl": -105,
+      "unrealizedPnlPct": -1.0526315789473684,
+      "lastAnalysisAt": "2026-08-18T03:55:09.281Z"
     },
     {
       "id": "position-1787022428019-c53172d84c57a",
@@ -73,22 +73,52 @@
       "shares": 116,
       "entryPrice": 86,
       "entryAmount": 9976,
-      "stopLossPrice": 76.16,
-      "takeProfit1": 100.3,
-      "takeProfit2": 112.21,
+      "stopLossPrice": 76.15,
+      "takeProfit1": 100.1,
+      "takeProfit2": 112.01,
       "openedAt": "2026-08-18T03:07:08.019Z",
       "openedTradingDate": "2026-08-18",
       "tradeStyle": "波段持有",
       "automationAction": "小量試單",
       "positionSizePct": 20,
-      "lastPrice": 86,
-      "lastValue": 9976,
-      "unrealizedPnl": 0,
-      "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-08-18T03:07:08.019Z"
+      "lastPrice": 85.8,
+      "lastValue": 9952.8,
+      "unrealizedPnl": -23.200000000000728,
+      "unrealizedPnlPct": -0.23255813953489102,
+      "lastAnalysisAt": "2026-08-18T03:55:09.856Z"
     }
   ],
   "trades": [
+    {
+      "side": "BLOCKED_SELL",
+      "symbol": "3441.TWO",
+      "name": "聯一光電",
+      "price": 85.8,
+      "shares": 0,
+      "amount": 0,
+      "cashAfter": 66808.19999999992,
+      "reason": "禁止當沖：AI 顯示減碼訊號：第一目標 100.10 元 先賣 1/3 到 1/2，第二目標 112.01 元 再分批。。今天買進的股票不可今天賣出，延到下一個交易日再檢查。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1787022428019-c53172d84c57a",
+      "id": "trade-1787025309856-28b2071a142f9",
+      "createdAt": "2026-08-18T03:55:09.856Z",
+      "tradingDate": "2026-08-18"
+    },
+    {
+      "side": "BLOCKED_SELL",
+      "symbol": "2481.TW",
+      "name": "強茂",
+      "price": 141,
+      "shares": 0,
+      "amount": 0,
+      "cashAfter": 66808.19999999992,
+      "reason": "禁止當沖：AI 顯示減碼訊號：短線目標先看 160.35 元；若隔日開高無量，先減碼。。今天買進的股票不可今天賣出，延到下一個交易日再檢查。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1787022428019-b5d7b5949f498",
+      "id": "trade-1787025309282-0b7b00531e12f",
+      "createdAt": "2026-08-18T03:55:09.282Z",
+      "tradingDate": "2026-08-18"
+    },
     {
       "side": "BUY",
       "symbol": "3441.TWO",
@@ -2743,6 +2773,63 @@
     }
   ],
   "decisions": [
+    {
+      "symbol": "CASH",
+      "name": "資金控管",
+      "decision": "暫停買入",
+      "reason": "已持有 4 檔，避免過度分散。",
+      "id": "decision-1787025309856-05630bdcc4fbf",
+      "createdAt": "2026-08-18T03:55:09.856Z",
+      "tradingDate": "2026-08-18"
+    },
+    {
+      "symbol": "3441.TWO",
+      "name": "聯一光電",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "AI 顯示減碼訊號：第一目標 100.10 元 先賣 1/3 到 1/2，第二目標 112.01 元 再分批。",
+      "finalScore": 58,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1787025309856-c3b3048b8405a",
+      "createdAt": "2026-08-18T03:55:09.856Z",
+      "tradingDate": "2026-08-18"
+    },
+    {
+      "symbol": "2481.TW",
+      "name": "強茂",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "AI 顯示減碼訊號：短線目標先看 160.35 元；若隔日開高無量，先減碼。",
+      "finalScore": 60,
+      "tradeStyle": "短進短出",
+      "automationAction": "小量試單",
+      "id": "decision-1787025309282-aec34274ef85d",
+      "createdAt": "2026-08-18T03:55:09.282Z",
+      "tradingDate": "2026-08-18"
+    },
+    {
+      "symbol": "1301.TW",
+      "name": "台塑",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 60,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1787025308792-9fcfca94a198a",
+      "createdAt": "2026-08-18T03:55:08.792Z",
+      "tradingDate": "2026-08-18"
+    },
+    {
+      "symbol": "2362.TW",
+      "name": "藍天",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 60,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1787025308312-bd3bd2e70d6fd",
+      "createdAt": "2026-08-18T03:55:08.312Z",
+      "tradingDate": "2026-08-18"
+    },
     {
       "symbol": "3441.TWO",
       "name": "聯一光電",
@@ -6856,6 +6943,15 @@
   ],
   "equity": [
     {
+      "id": "equity-1787025309857-34a6fde4ed23b",
+      "createdAt": "2026-08-18T03:55:09.857Z",
+      "tradingDate": "2026-08-18",
+      "cash": 66808.19999999992,
+      "positionValue": 29760.95,
+      "totalEquity": 96569.14999999992,
+      "realizedPnl": -3240.6000000000054
+    },
+    {
       "id": "equity-1787022428019-fa750e1727495",
       "createdAt": "2026-08-18T03:07:08.019Z",
       "tradingDate": "2026-08-18",
@@ -7486,6 +7582,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-08-18T03:06:50.706Z",
+  "lastRunAt": "2026-08-18T03:55:07.612Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
