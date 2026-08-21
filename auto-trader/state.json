@@ -22,7 +22,7 @@
       "lastValue": 12116.4,
       "unrealizedPnl": 124.19999999999891,
       "unrealizedPnlPct": 1.0356731875719127,
-      "lastAnalysisAt": "2026-08-21T05:55:06.163Z"
+      "lastAnalysisAt": "2026-08-21T07:03:39.936Z"
     },
     {
       "id": "position-1787195353692-598923f80b497",
@@ -43,7 +43,7 @@
       "lastValue": 5320,
       "unrealizedPnl": 252,
       "unrealizedPnlPct": 4.972375690607735,
-      "lastAnalysisAt": "2026-08-21T05:55:06.537Z"
+      "lastAnalysisAt": "2026-08-21T07:03:40.293Z"
     },
     {
       "id": "position-1787278686253-2e8c99d050c44",
@@ -64,7 +64,7 @@
       "lastValue": 9840.6,
       "unrealizedPnl": -99.39999999999964,
       "unrealizedPnlPct": -0.9999999999999963,
-      "lastAnalysisAt": "2026-08-21T05:55:06.926Z"
+      "lastAnalysisAt": "2026-08-21T07:03:40.610Z"
     },
     {
       "id": "position-1787282859322-163c683277d62",
@@ -85,7 +85,7 @@
       "lastValue": 9874.5,
       "unrealizedPnl": -43.5,
       "unrealizedPnlPct": -0.43859649122807015,
-      "lastAnalysisAt": "2026-08-21T05:55:07.228Z"
+      "lastAnalysisAt": "2026-08-21T07:03:41.061Z"
     }
   ],
   "trades": [
@@ -3481,6 +3481,63 @@
     }
   ],
   "decisions": [
+    {
+      "symbol": "CASH",
+      "name": "資金控管",
+      "decision": "暫停買入",
+      "reason": "已持有 4 檔，避免過度分散。",
+      "id": "decision-1787295821062-fc8e9d4d836b6",
+      "createdAt": "2026-08-21T07:03:41.062Z",
+      "tradingDate": "2026-08-21"
+    },
+    {
+      "symbol": "6919.TW",
+      "name": "康霈*",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "AI 顯示減碼訊號：第一目標 123.85 元 先賣 1/3 到 1/2，第二目標 132.47 元 再分批。",
+      "finalScore": 58,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1787295821062-9f28ad544231",
+      "createdAt": "2026-08-21T07:03:41.062Z",
+      "tradingDate": "2026-08-21"
+    },
+    {
+      "symbol": "2634.TW",
+      "name": "漢翔",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "AI 顯示減碼訊號：第一目標 76.87 元 先賣 1/3 到 1/2，第二目標 83.18 元 再分批。",
+      "finalScore": 62,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1787295820610-c567a8ab6a8e8",
+      "createdAt": "2026-08-21T07:03:40.610Z",
+      "tradingDate": "2026-08-21"
+    },
+    {
+      "symbol": "3042.TW",
+      "name": "晶技",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 62,
+      "tradeStyle": "短進短出",
+      "automationAction": "小量試單",
+      "id": "decision-1787295820293-f06e07cf49bd7",
+      "createdAt": "2026-08-21T07:03:40.293Z",
+      "tradingDate": "2026-08-21"
+    },
+    {
+      "symbol": "9914.TW",
+      "name": "美利達",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 60,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1787295819936-60bca0716a47a",
+      "createdAt": "2026-08-21T07:03:39.936Z",
+      "tradingDate": "2026-08-21"
+    },
     {
       "symbol": "CASH",
       "name": "資金控管",
@@ -9153,57 +9210,18 @@
       "id": "decision-1784869988024-98b3654735979",
       "createdAt": "2026-07-24T05:13:08.024Z",
       "tradingDate": "2026-07-24"
-    },
-    {
-      "symbol": "3017.TW",
-      "name": "奇鋐",
-      "decision": "買進",
-      "reason": "只適合小部位短打，買點要靠近支撐或突破當下，不適合追高長抱。",
-      "finalScore": 61,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1784869641307-3878c663e378c",
-      "createdAt": "2026-07-24T05:07:21.307Z",
-      "tradingDate": "2026-07-24"
-    },
-    {
-      "symbol": "3702.TW",
-      "name": "大聯大",
-      "decision": "買進",
-      "reason": "只適合小部位短打，買點要靠近支撐或突破當下，不適合追高長抱。",
-      "finalScore": 67,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1784869641307-431f5e6c7cd92",
-      "createdAt": "2026-07-24T05:07:21.307Z",
-      "tradingDate": "2026-07-24"
-    },
-    {
-      "symbol": "3665.TW",
-      "name": "貿聯-KY",
-      "decision": "買進",
-      "reason": "只適合小部位短打，買點要靠近支撐或突破當下，不適合追高長抱。",
-      "finalScore": 69,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1784869641307-7ebeaf51d4ab2",
-      "createdAt": "2026-07-24T05:07:21.307Z",
-      "tradingDate": "2026-07-24"
-    },
-    {
-      "symbol": "3081.TWO",
-      "name": "聯亞",
-      "decision": "買進",
-      "reason": "只適合小部位短打，買點要靠近支撐或突破當下，不適合追高長抱。",
-      "finalScore": 62,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1784869641307-fbbff06f691b",
-      "createdAt": "2026-07-24T05:07:21.307Z",
-      "tradingDate": "2026-07-24"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1787295821062-6a440213c407c",
+      "createdAt": "2026-08-21T07:03:41.062Z",
+      "tradingDate": "2026-08-21",
+      "cash": 59811.34999999992,
+      "positionValue": 37151.5,
+      "totalEquity": 96962.84999999992,
+      "realizedPnl": -3270.4500000000094
+    },
     {
       "id": "equity-1787291707228-57f94199c000b",
       "createdAt": "2026-08-21T05:55:07.228Z",
@@ -10078,6 +10096,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-08-21T05:54:50.331Z",
+  "lastRunAt": "2026-08-21T07:03:38.606Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
