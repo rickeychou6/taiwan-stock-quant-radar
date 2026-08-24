@@ -1,7 +1,7 @@
 {
   "initialCapital": 100000,
-  "cash": 77946.24999999993,
-  "realizedPnl": -3537.65000000001,
+  "cash": 70508.04999999993,
+  "realizedPnl": -3530.65000000001,
   "positions": [
     {
       "id": "position-1787195353692-792a5a9d48c45",
@@ -10,40 +10,19 @@
       "shares": 69,
       "entryPrice": 86.9,
       "entryAmount": 5996.1,
-      "stopLossPrice": 79.49,
+      "stopLossPrice": 79.46,
       "takeProfit1": 96.8,
-      "takeProfit2": 105.17,
+      "takeProfit2": 105.19,
       "openedAt": "2026-08-20T03:09:13.692Z",
       "openedTradingDate": "2026-08-20",
       "tradeStyle": "波段持有",
       "automationAction": "小量試單",
       "positionSizePct": 20,
-      "lastPrice": 85.2,
-      "lastValue": 5878.8,
-      "unrealizedPnl": -117.3000000000002,
-      "unrealizedPnlPct": -1.9562715765247443,
-      "lastAnalysisAt": "2026-08-24T02:17:36.698Z"
-    },
-    {
-      "id": "position-1787195353692-598923f80b497",
-      "symbol": "3042.TW",
-      "name": "晶技",
-      "shares": 14,
-      "entryPrice": 181,
-      "entryAmount": 2534,
-      "stopLossPrice": 164.08,
-      "takeProfit1": 206.36,
-      "takeProfit2": 226.67,
-      "openedAt": "2026-08-20T03:09:13.692Z",
-      "openedTradingDate": "2026-08-20",
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "positionSizePct": 12,
-      "lastPrice": 182,
-      "lastValue": 2548,
-      "unrealizedPnl": 14,
-      "unrealizedPnlPct": 0.5524861878453038,
-      "lastAnalysisAt": "2026-08-24T02:17:37.203Z"
+      "lastPrice": 84.9,
+      "lastValue": 5858.1,
+      "unrealizedPnl": -138,
+      "unrealizedPnlPct": -2.3014959723820483,
+      "lastAnalysisAt": "2026-08-24T03:28:49.404Z"
     },
     {
       "id": "position-1787278686253-2e8c99d050c44",
@@ -60,11 +39,11 @@
       "tradeStyle": "波段持有",
       "automationAction": "小量試單",
       "positionSizePct": 20,
-      "lastPrice": 68.6,
-      "lastValue": 4870.599999999999,
-      "unrealizedPnl": -99.4000000000004,
-      "unrealizedPnlPct": -2.000000000000008,
-      "lastAnalysisAt": "2026-08-24T02:17:37.677Z"
+      "lastPrice": 68.7,
+      "lastValue": 4877.7,
+      "unrealizedPnl": -92.30000000000018,
+      "unrealizedPnlPct": -1.8571428571428608,
+      "lastAnalysisAt": "2026-08-24T03:28:50.165Z"
     },
     {
       "id": "position-1787282859322-163c683277d62",
@@ -73,9 +52,9 @@
       "shares": 44,
       "entryPrice": 114,
       "entryAmount": 5016,
-      "stopLossPrice": 103.13,
-      "takeProfit1": 122.91,
-      "takeProfit2": 131.59,
+      "stopLossPrice": 103.09,
+      "takeProfit1": 123.04,
+      "takeProfit2": 131.83,
       "openedAt": "2026-08-21T03:27:39.322Z",
       "openedTradingDate": "2026-08-21",
       "tradeStyle": "波段持有",
@@ -85,10 +64,64 @@
       "lastValue": 4950,
       "unrealizedPnl": -66,
       "unrealizedPnlPct": -1.3157894736842104,
-      "lastAnalysisAt": "2026-08-24T02:17:38.076Z"
+      "lastAnalysisAt": "2026-08-24T03:28:50.515Z"
+    },
+    {
+      "id": "position-1787542136222-2a0fc9c464389",
+      "symbol": "2883.TW",
+      "name": "凱基金",
+      "shares": 324,
+      "entryPrice": 30.8,
+      "entryAmount": 9979.2,
+      "stopLossPrice": 30.23,
+      "takeProfit1": 32.28,
+      "takeProfit2": 33.51,
+      "openedAt": "2026-08-24T03:28:56.222Z",
+      "openedTradingDate": "2026-08-24",
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "positionSizePct": 20,
+      "lastPrice": 30.8,
+      "lastValue": 9979.2,
+      "unrealizedPnl": 0,
+      "unrealizedPnlPct": 0,
+      "lastAnalysisAt": "2026-08-24T03:28:56.222Z"
     }
   ],
   "trades": [
+    {
+      "side": "BUY",
+      "symbol": "2883.TW",
+      "name": "凱基金",
+      "price": 30.8,
+      "shares": 324,
+      "amount": 9979.2,
+      "cashAfter": 70508.04999999993,
+      "reason": "可小量試單，波段持有/支撐低接，AI 動作 小量試單，3-5 天上漲機率 58%，風控版 risk-guard-v2-2026-08-13。",
+      "source": "TWSE/TPEX 官方全市場日行情，先全市場初選，再完整分析前 48 檔",
+      "positionId": "position-1787542136222-2a0fc9c464389",
+      "id": "trade-1787542136222-b772dfda0a7df",
+      "createdAt": "2026-08-24T03:28:56.222Z",
+      "tradingDate": "2026-08-24"
+    },
+    {
+      "side": "SELL",
+      "symbol": "3042.TW",
+      "name": "晶技",
+      "price": 181.5,
+      "shares": 14,
+      "amount": 2541,
+      "costBasis": 2534,
+      "realizedPnl": 7,
+      "realizedPnlPct": 0.2762430939226519,
+      "cashAfter": 80487.24999999993,
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1787195353692-598923f80b497",
+      "id": "trade-1787542129748-3ed694f05c7f8",
+      "createdAt": "2026-08-24T03:28:49.748Z",
+      "tradingDate": "2026-08-24"
+    },
     {
       "side": "PARTIAL_SELL",
       "symbol": "6919.TW",
@@ -3553,6 +3586,75 @@
     }
   ],
   "decisions": [
+    {
+      "symbol": "2883.TW",
+      "name": "凱基金",
+      "decision": "買進",
+      "reason": "靠近支撐 30.72 元 可分批，不追高。",
+      "finalScore": 58,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1787542136222-dcd002835ab41",
+      "createdAt": "2026-08-24T03:28:56.222Z",
+      "tradingDate": "2026-08-24"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "2887.TW 台新新光金：AI 動作為 續抱 / 1301.TW 台塑：3-5 天上漲機率 53% 低於 56%；今日跌幅 -4.38% 偏弱，避免接刀 / 2451.TW 創見：推薦等級為 接近買點；AI 動作為 續抱；風險報酬比 1:0.62 低於 0.9 / 2618.TW 長榮航：3-5 天上漲機率 55% 低於 56% / 3229.TW 晟鈦：推薦等級為 等待回檔；AI 動作為 等待；風險報酬比 1:0.66 低於 0.9",
+      "id": "decision-1787542136222-707805d0c725f",
+      "createdAt": "2026-08-24T03:28:56.222Z",
+      "tradingDate": "2026-08-24"
+    },
+    {
+      "symbol": "6919.TW",
+      "name": "康霈*",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 65,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1787542130515-b845b45b25d89",
+      "createdAt": "2026-08-24T03:28:50.515Z",
+      "tradingDate": "2026-08-24"
+    },
+    {
+      "symbol": "2634.TW",
+      "name": "漢翔",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 58,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1787542130165-205e6f560387",
+      "createdAt": "2026-08-24T03:28:50.165Z",
+      "tradingDate": "2026-08-24"
+    },
+    {
+      "symbol": "3042.TW",
+      "name": "晶技",
+      "decision": "賣出",
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "finalScore": 59,
+      "tradeStyle": "短進短出",
+      "automationAction": "小量試單",
+      "id": "decision-1787542129748-b5897da242cfb",
+      "createdAt": "2026-08-24T03:28:49.748Z",
+      "tradingDate": "2026-08-24"
+    },
+    {
+      "symbol": "9914.TW",
+      "name": "美利達",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 56,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1787542129404-5a7ebcd7a62b2",
+      "createdAt": "2026-08-24T03:28:49.404Z",
+      "tradingDate": "2026-08-24"
+    },
     {
       "symbol": "CASH",
       "name": "資金控管",
@@ -9213,78 +9315,18 @@
       "id": "decision-1784873585739-f29b3fc2628cc",
       "createdAt": "2026-07-24T06:13:05.739Z",
       "tradingDate": "2026-07-24"
-    },
-    {
-      "symbol": "3081.TWO",
-      "name": "聯亞",
-      "decision": "部分賣出",
-      "reason": "AI 顯示減碼訊號：跌破 1651.67 元 代表判斷錯誤；若已持有，優先降低風險。",
-      "finalScore": 47,
-      "tradeStyle": "暫不交易",
-      "automationAction": "減碼",
-      "id": "decision-1784873584548-eeb5ed973c5d7",
-      "createdAt": "2026-07-24T06:13:04.548Z",
-      "tradingDate": "2026-07-24"
-    },
-    {
-      "symbol": "CASH",
-      "name": "資金控管",
-      "decision": "暫停買入",
-      "reason": "已持有 4 檔，避免過度分散。",
-      "id": "decision-1784871494225-ba88719aaec0f",
-      "createdAt": "2026-07-24T05:38:14.225Z",
-      "tradingDate": "2026-07-24"
-    },
-    {
-      "symbol": "3017.TW",
-      "name": "奇鋐",
-      "decision": "部分賣出",
-      "reason": "AI 顯示減碼訊號：短線目標先看 2790.00 元；若隔日開高無量，先減碼。",
-      "finalScore": 57,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1784871494225-451148b5f3056",
-      "createdAt": "2026-07-24T05:38:14.225Z",
-      "tradingDate": "2026-07-24"
-    },
-    {
-      "symbol": "3702.TW",
-      "name": "大聯大",
-      "decision": "部分賣出",
-      "reason": "AI 顯示減碼訊號：短線目標先看 127.14 元；若隔日開高無量，先減碼。",
-      "finalScore": 62,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1784871493915-2d26a751d47b6",
-      "createdAt": "2026-07-24T05:38:13.915Z",
-      "tradingDate": "2026-07-24"
-    },
-    {
-      "symbol": "3665.TW",
-      "name": "貿聯-KY",
-      "decision": "部分賣出",
-      "reason": "AI 顯示減碼訊號：短線目標先看 2469.86 元；若隔日開高無量，先減碼。",
-      "finalScore": 65,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1784871493621-cf731d9186c66",
-      "createdAt": "2026-07-24T05:38:13.621Z",
-      "tradingDate": "2026-07-24"
-    },
-    {
-      "symbol": "3081.TWO",
-      "name": "聯亞",
-      "decision": "部分賣出",
-      "reason": "AI 顯示減碼訊號：跌破 1651.67 元 代表判斷錯誤；若已持有，優先降低風險。",
-      "finalScore": 47,
-      "tradeStyle": "暫不交易",
-      "automationAction": "減碼",
-      "id": "decision-1784871493268-43e63f78d3283",
-      "createdAt": "2026-07-24T05:38:13.268Z",
-      "tradingDate": "2026-07-24"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1787542136222-86c2e3dac016c",
+      "createdAt": "2026-08-24T03:28:56.222Z",
+      "tradingDate": "2026-08-24",
+      "cash": 70508.04999999993,
+      "positionValue": 25665,
+      "totalEquity": 96173.04999999993,
+      "realizedPnl": -3530.65000000001
+    },
     {
       "id": "equity-1787537858077-cc09e4bbed77d",
       "createdAt": "2026-08-24T02:17:38.077Z",
@@ -10177,6 +10219,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-08-24T02:17:29.283Z",
+  "lastRunAt": "2026-08-24T03:28:44.781Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
