@@ -10,19 +10,19 @@
       "shares": 69,
       "entryPrice": 86.9,
       "entryAmount": 5996.1,
-      "stopLossPrice": 79.44,
+      "stopLossPrice": 79.43,
       "takeProfit1": 96.8,
-      "takeProfit2": 105.21,
+      "takeProfit2": 105.22,
       "openedAt": "2026-08-20T03:09:13.692Z",
       "openedTradingDate": "2026-08-20",
       "tradeStyle": "波段持有",
       "automationAction": "小量試單",
       "positionSizePct": 20,
-      "lastPrice": 84.6,
-      "lastValue": 5837.4,
-      "unrealizedPnl": -158.70000000000073,
-      "unrealizedPnlPct": -2.6467203682393676,
-      "lastAnalysisAt": "2026-08-24T05:08:44.287Z"
+      "lastPrice": 84.5,
+      "lastValue": 5830.5,
+      "unrealizedPnl": -165.60000000000036,
+      "unrealizedPnlPct": -2.7617951668584637,
+      "lastAnalysisAt": "2026-08-24T05:51:08.953Z"
     },
     {
       "id": "position-1787278686253-2e8c99d050c44",
@@ -31,7 +31,7 @@
       "shares": 71,
       "entryPrice": 70,
       "entryAmount": 4970,
-      "stopLossPrice": 62.2,
+      "stopLossPrice": 62.19,
       "takeProfit1": 76.5,
       "takeProfit2": 82.79,
       "openedAt": "2026-08-21T02:18:06.253Z",
@@ -39,11 +39,11 @@
       "tradeStyle": "波段持有",
       "automationAction": "小量試單",
       "positionSizePct": 20,
-      "lastPrice": 68.8,
-      "lastValue": 4884.8,
-      "unrealizedPnl": -85.19999999999982,
-      "unrealizedPnlPct": -1.7142857142857106,
-      "lastAnalysisAt": "2026-08-24T05:08:45.080Z"
+      "lastPrice": 68.6,
+      "lastValue": 4870.599999999999,
+      "unrealizedPnl": -99.40000000000055,
+      "unrealizedPnlPct": -2.000000000000011,
+      "lastAnalysisAt": "2026-08-24T05:51:11.101Z"
     },
     {
       "id": "position-1787282859322-163c683277d62",
@@ -52,19 +52,19 @@
       "shares": 44,
       "entryPrice": 114,
       "entryAmount": 5016,
-      "stopLossPrice": 103.06,
-      "takeProfit1": 122.54,
-      "takeProfit2": 131.33,
+      "stopLossPrice": 102.99,
+      "takeProfit1": 121.04,
+      "takeProfit2": 129.83,
       "openedAt": "2026-08-21T03:27:39.322Z",
       "openedTradingDate": "2026-08-21",
       "tradeStyle": "波段持有",
       "automationAction": "小量試單",
       "positionSizePct": 20,
-      "lastPrice": 112,
-      "lastValue": 4928,
-      "unrealizedPnl": -88,
-      "unrealizedPnlPct": -1.7543859649122806,
-      "lastAnalysisAt": "2026-08-24T05:08:45.390Z"
+      "lastPrice": 110.5,
+      "lastValue": 4862,
+      "unrealizedPnl": -154,
+      "unrealizedPnlPct": -3.070175438596491,
+      "lastAnalysisAt": "2026-08-24T05:51:12.041Z"
     },
     {
       "id": "position-1787542136222-2a0fc9c464389",
@@ -74,18 +74,18 @@
       "entryPrice": 30.8,
       "entryAmount": 9979.2,
       "stopLossPrice": 30.24,
-      "takeProfit1": 32.44,
-      "takeProfit2": 33.68,
+      "takeProfit1": 32.49,
+      "takeProfit2": 33.73,
       "openedAt": "2026-08-24T03:28:56.222Z",
       "openedTradingDate": "2026-08-24",
-      "tradeStyle": "中線常抱",
-      "automationAction": "續抱",
-      "positionSizePct": 40,
-      "lastPrice": 30.95,
-      "lastValue": 10027.8,
-      "unrealizedPnl": 48.599999999998545,
-      "unrealizedPnlPct": 0.4870129870129724,
-      "lastAnalysisAt": "2026-08-24T05:08:45.729Z"
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "positionSizePct": 20,
+      "lastPrice": 31,
+      "lastValue": 10044,
+      "unrealizedPnl": 64.79999999999927,
+      "unrealizedPnlPct": 0.649350649350642,
+      "lastAnalysisAt": "2026-08-24T05:51:12.671Z"
     }
   ],
   "trades": [
@@ -3616,6 +3616,63 @@
     }
   ],
   "decisions": [
+    {
+      "symbol": "CASH",
+      "name": "資金控管",
+      "decision": "暫停買入",
+      "reason": "已持有 4 檔，避免過度分散。",
+      "id": "decision-1787550672672-3011af35a1c46",
+      "createdAt": "2026-08-24T05:51:12.672Z",
+      "tradingDate": "2026-08-24"
+    },
+    {
+      "symbol": "2883.TW",
+      "name": "凱基金",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "AI 顯示減碼訊號：第一目標 32.49 元 先賣 1/3 到 1/2，第二目標 33.73 元 再分批。",
+      "finalScore": 58,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1787550672672-c5535fd1774b9",
+      "createdAt": "2026-08-24T05:51:12.672Z",
+      "tradingDate": "2026-08-24"
+    },
+    {
+      "symbol": "6919.TW",
+      "name": "康霈*",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 62,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1787550672041-6f924786c2db2",
+      "createdAt": "2026-08-24T05:51:12.041Z",
+      "tradingDate": "2026-08-24"
+    },
+    {
+      "symbol": "2634.TW",
+      "name": "漢翔",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 57,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1787550671101-427aab75268f6",
+      "createdAt": "2026-08-24T05:51:11.101Z",
+      "tradingDate": "2026-08-24"
+    },
+    {
+      "symbol": "9914.TW",
+      "name": "美利達",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 55,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1787550668953-ee89d70fdcf76",
+      "createdAt": "2026-08-24T05:51:08.953Z",
+      "tradingDate": "2026-08-24"
+    },
     {
       "symbol": "CASH",
       "name": "資金控管",
@@ -9282,69 +9339,18 @@
       "id": "decision-1785115307990-b91f6100fb75a",
       "createdAt": "2026-07-27T01:21:47.990Z",
       "tradingDate": "2026-07-27"
-    },
-    {
-      "symbol": "8271.TW",
-      "name": "宇瞻",
-      "decision": "部分賣出",
-      "reason": "AI 顯示減碼訊號：短線目標先看 233.14 元；若隔日開高無量，先減碼。",
-      "finalScore": 61,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1785115307990-124e02e1a0265",
-      "createdAt": "2026-07-27T01:21:47.990Z",
-      "tradingDate": "2026-07-27"
-    },
-    {
-      "symbol": "4541.TWO",
-      "name": "晟田",
-      "decision": "續抱",
-      "reason": "停損線 61.60 元 不可下修。",
-      "finalScore": 51,
-      "tradeStyle": "暫不交易",
-      "automationAction": "等待",
-      "id": "decision-1785115307664-49b2e50c68ca8",
-      "createdAt": "2026-07-27T01:21:47.664Z",
-      "tradingDate": "2026-07-27"
-    },
-    {
-      "symbol": "4127.TWO",
-      "name": "天良",
-      "decision": "部分賣出",
-      "reason": "AI 顯示減碼訊號：第一目標 91.38 元 先賣 1/3 到 1/2，第二目標 100.20 元 再分批。",
-      "finalScore": 55,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1785115307331-a21189be7072d",
-      "createdAt": "2026-07-27T01:21:47.331Z",
-      "tradingDate": "2026-07-27"
-    },
-    {
-      "symbol": "3702.TW",
-      "name": "大聯大",
-      "decision": "部分賣出",
-      "reason": "AI 顯示減碼訊號：第一目標 127.32 元 先檢查量價，第二目標 135.09 元 分批獲利。",
-      "finalScore": 63,
-      "tradeStyle": "中線常抱",
-      "automationAction": "續抱",
-      "id": "decision-1785115306970-10bee047553dc",
-      "createdAt": "2026-07-27T01:21:46.970Z",
-      "tradingDate": "2026-07-27"
-    },
-    {
-      "symbol": "8271.TW",
-      "name": "宇瞻",
-      "decision": "買進",
-      "reason": "只適合小部位短打，買點要靠近支撐或突破當下，不適合追高長抱。",
-      "finalScore": 58,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1784882384944-3c241d1692ef8",
-      "createdAt": "2026-07-24T08:39:44.944Z",
-      "tradingDate": "2026-07-24"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1787550672672-ef5d2a343f40f",
+      "createdAt": "2026-08-24T05:51:12.672Z",
+      "tradingDate": "2026-08-24",
+      "cash": 70508.04999999993,
+      "positionValue": 25607.1,
+      "totalEquity": 96115.14999999994,
+      "realizedPnl": -3530.65000000001
+    },
     {
       "id": "equity-1787548125729-e0cfc649045af",
       "createdAt": "2026-08-24T05:08:45.729Z",
@@ -10264,6 +10270,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-08-24T05:08:37.497Z",
+  "lastRunAt": "2026-08-24T05:51:02.248Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
