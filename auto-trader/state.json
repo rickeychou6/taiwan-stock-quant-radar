@@ -10,19 +10,19 @@
       "shares": 35,
       "entryPrice": 86.9,
       "entryAmount": 3041.5,
-      "stopLossPrice": 79.85,
-      "takeProfit1": 96.86,
-      "takeProfit2": 105.41,
+      "stopLossPrice": 79.83,
+      "takeProfit1": 96.8,
+      "takeProfit2": 105.35,
       "openedAt": "2026-08-20T03:09:13.692Z",
       "openedTradingDate": "2026-08-20",
       "tradeStyle": "波段持有",
       "automationAction": "小量試單",
       "positionSizePct": 20,
-      "lastPrice": 86.6,
-      "lastValue": 3031,
-      "unrealizedPnl": -10.5,
-      "unrealizedPnlPct": -0.34522439585730724,
-      "lastAnalysisAt": "2026-08-25T05:16:43.510Z"
+      "lastPrice": 86.2,
+      "lastValue": 3017,
+      "unrealizedPnl": -24.5,
+      "unrealizedPnlPct": -0.805523590333717,
+      "lastAnalysisAt": "2026-08-25T05:55:13.193Z"
     },
     {
       "id": "position-1787542136222-2a0fc9c464389",
@@ -32,18 +32,18 @@
       "entryPrice": 30.8,
       "entryAmount": 4989.6,
       "stopLossPrice": 30.36,
-      "takeProfit1": 33.09,
-      "takeProfit2": 34.29,
+      "takeProfit1": 33.14,
+      "takeProfit2": 34.34,
       "openedAt": "2026-08-24T03:28:56.222Z",
       "openedTradingDate": "2026-08-24",
       "tradeStyle": "波段持有",
       "automationAction": "小量試單",
       "positionSizePct": 20,
-      "lastPrice": 31.65,
-      "lastValue": 5127.3,
-      "unrealizedPnl": 137.69999999999982,
-      "unrealizedPnlPct": 2.759740259740256,
-      "lastAnalysisAt": "2026-08-25T05:16:44.443Z"
+      "lastPrice": 31.7,
+      "lastValue": 5135.4,
+      "unrealizedPnl": 145.79999999999927,
+      "unrealizedPnlPct": 2.9220779220779076,
+      "lastAnalysisAt": "2026-08-25T05:55:13.989Z"
     },
     {
       "id": "position-1787623984302-0a1659a2e2ce5",
@@ -52,7 +52,7 @@
       "shares": 179,
       "entryPrice": 55.8,
       "entryAmount": 9988.199999999999,
-      "stopLossPrice": 49.95,
+      "stopLossPrice": 49.94,
       "takeProfit1": 65.5,
       "takeProfit2": 71.99,
       "openedAt": "2026-08-25T02:13:04.302Z",
@@ -60,11 +60,11 @@
       "tradeStyle": "暫不交易",
       "automationAction": "等待",
       "positionSizePct": 0,
-      "lastPrice": 52.4,
-      "lastValue": 9379.6,
-      "unrealizedPnl": -608.5999999999985,
-      "unrealizedPnlPct": -6.093189964157692,
-      "lastAnalysisAt": "2026-08-25T05:16:44.887Z"
+      "lastPrice": 52.2,
+      "lastValue": 9343.800000000001,
+      "unrealizedPnl": -644.3999999999978,
+      "unrealizedPnlPct": -6.451612903225786,
+      "lastAnalysisAt": "2026-08-25T05:55:14.330Z"
     }
   ],
   "trades": [
@@ -3715,6 +3715,60 @@
     }
   ],
   "decisions": [
+    {
+      "symbol": "MARKET",
+      "name": "全市場",
+      "decision": "沒有買入",
+      "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
+      "id": "decision-1787637333408-ab20820e9573f",
+      "createdAt": "2026-08-25T05:55:33.408Z",
+      "tradingDate": "2026-08-25"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "6265.TWO 方土昶：今日跌幅 -4.5% 偏弱，避免接刀 / 2301.TW 光寶科：推薦等級為 等待回檔；AI 動作為 等待；交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.64 低於 0.9 / 3706.TW 神達：AI 分數 54 低於 58；3-5 天上漲機率 54% 低於 56% / 6770.TW 力積電：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；AI 分數 56 低於 58 / 2324.TW 仁寶：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；3-5 天上漲機率 50% 低於 56%",
+      "id": "decision-1787637333408-d5010f0fbdbf4",
+      "createdAt": "2026-08-25T05:55:33.408Z",
+      "tradingDate": "2026-08-25"
+    },
+    {
+      "symbol": "2434.TW",
+      "name": "統懋",
+      "decision": "續抱",
+      "reason": "停損線 49.94 元 不可下修。",
+      "finalScore": 46,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1787637314330-796b62fae4f5f",
+      "createdAt": "2026-08-25T05:55:14.330Z",
+      "tradingDate": "2026-08-25"
+    },
+    {
+      "symbol": "2883.TW",
+      "name": "凱基金",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 56,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1787637313989-2bb49b275244",
+      "createdAt": "2026-08-25T05:55:13.989Z",
+      "tradingDate": "2026-08-25"
+    },
+    {
+      "symbol": "9914.TW",
+      "name": "美利達",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 58,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1787637313193-2fad812334963",
+      "createdAt": "2026-08-25T05:55:13.193Z",
+      "tradingDate": "2026-08-25"
+    },
     {
       "symbol": "MARKET",
       "name": "全市場",
@@ -9366,66 +9420,18 @@
       "id": "decision-1785297526471-742a692829ece",
       "createdAt": "2026-07-29T03:58:46.471Z",
       "tradingDate": "2026-07-29"
-    },
-    {
-      "symbol": "4127.TWO",
-      "name": "天良",
-      "decision": "續抱",
-      "reason": "停損線 69.21 元 不可下修。",
-      "finalScore": 48,
-      "tradeStyle": "暫不交易",
-      "automationAction": "等待",
-      "id": "decision-1785297525716-8080b6aa59755",
-      "createdAt": "2026-07-29T03:58:45.716Z",
-      "tradingDate": "2026-07-29"
-    },
-    {
-      "symbol": "CASH",
-      "name": "資金控管",
-      "decision": "暫停買入",
-      "reason": "已持有 4 檔，避免過度分散。",
-      "id": "decision-1785228515076-fad6e8101c85a",
-      "createdAt": "2026-07-28T08:48:35.076Z",
-      "tradingDate": "2026-07-28"
-    },
-    {
-      "symbol": "3441.TWO",
-      "name": "聯一光電",
-      "decision": "禁止當沖，暫不賣",
-      "reason": "AI 顯示減碼訊號：第一目標 87.63 元 先賣 1/3 到 1/2，第二目標 96.32 元 再分批。",
-      "finalScore": 56,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1785228515076-f589c4c9488e5",
-      "createdAt": "2026-07-28T08:48:35.076Z",
-      "tradingDate": "2026-07-28"
-    },
-    {
-      "symbol": "6187.TWO",
-      "name": "6187.TWO",
-      "decision": "續抱",
-      "reason": "停損線 883.03 元 不下修，跌破代表交易假設失效。",
-      "finalScore": 44,
-      "tradeStyle": "暫不交易",
-      "automationAction": "等待",
-      "id": "decision-1785228514626-967cdc2bbea32",
-      "createdAt": "2026-07-28T08:48:34.626Z",
-      "tradingDate": "2026-07-28"
-    },
-    {
-      "symbol": "4541.TWO",
-      "name": "晟田",
-      "decision": "續抱",
-      "reason": "停損線 59.22 元 不可下修。",
-      "finalScore": 49,
-      "tradeStyle": "暫不交易",
-      "automationAction": "等待",
-      "id": "decision-1785228514192-3fab1380e9bed",
-      "createdAt": "2026-07-28T08:48:34.192Z",
-      "tradingDate": "2026-07-28"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1787637333408-087e0aecbf71a",
+      "createdAt": "2026-08-25T05:55:33.408Z",
+      "tradingDate": "2026-08-25",
+      "cash": 77907.34999999993,
+      "positionValue": 17496.2,
+      "totalEquity": 95403.54999999993,
+      "realizedPnl": -4073.3500000000113
+    },
     {
       "id": "equity-1787635018727-e7c2f35037196",
       "createdAt": "2026-08-25T05:16:58.727Z",
@@ -10408,6 +10414,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-08-25T05:16:34.159Z",
+  "lastRunAt": "2026-08-25T05:55:05.981Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
