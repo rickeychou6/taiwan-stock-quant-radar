@@ -1,6 +1,6 @@
 {
   "initialCapital": 100000,
-  "cash": 93379.24999999993,
+  "cash": 73540.44999999992,
   "realizedPnl": -3425.7500000000086,
   "positions": [
     {
@@ -10,22 +10,94 @@
       "shares": 3,
       "entryPrice": 1065,
       "entryAmount": 3195,
-      "stopLossPrice": 999.24,
-      "takeProfit1": 1353.24,
-      "takeProfit2": 1439.28,
+      "stopLossPrice": 1016.93,
+      "takeProfit1": 1489.81,
+      "takeProfit2": 1585.49,
       "openedAt": "2026-08-26T02:19:53.816Z",
       "openedTradingDate": "2026-08-26",
-      "tradeStyle": "短進短出",
+      "tradeStyle": "暫不交易",
       "automationAction": "等待",
       "positionSizePct": 0,
-      "lastPrice": 1250,
-      "lastValue": 3750,
-      "unrealizedPnl": 555,
-      "unrealizedPnlPct": 17.370892018779344,
-      "lastAnalysisAt": "2026-08-31T13:36:05.337Z"
+      "lastPrice": 1375,
+      "lastValue": 4125,
+      "unrealizedPnl": 930,
+      "unrealizedPnlPct": 29.107981220657276,
+      "lastAnalysisAt": "2026-09-01T05:53:00.293Z"
+    },
+    {
+      "id": "position-1788242012263-71f9c36096ff5",
+      "symbol": "6770.TW",
+      "name": "力積電",
+      "shares": 141,
+      "entryPrice": 70.8,
+      "entryAmount": 9982.8,
+      "stopLossPrice": 67.47,
+      "takeProfit1": 81.8,
+      "takeProfit2": 88.1,
+      "openedAt": "2026-09-01T05:53:32.263Z",
+      "openedTradingDate": "2026-09-01",
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "positionSizePct": 20,
+      "lastPrice": 70.8,
+      "lastValue": 9982.8,
+      "unrealizedPnl": 0,
+      "unrealizedPnlPct": 0,
+      "lastAnalysisAt": "2026-09-01T05:53:32.263Z"
+    },
+    {
+      "id": "position-1788242012263-7e1ac0268fe55",
+      "symbol": "2377.TW",
+      "name": "微星",
+      "shares": 64,
+      "entryPrice": 154,
+      "entryAmount": 9856,
+      "stopLossPrice": 147.5,
+      "takeProfit1": 173.5,
+      "takeProfit2": 182.45,
+      "openedAt": "2026-09-01T05:53:32.263Z",
+      "openedTradingDate": "2026-09-01",
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "positionSizePct": 20,
+      "lastPrice": 154,
+      "lastValue": 9856,
+      "unrealizedPnl": 0,
+      "unrealizedPnlPct": 0,
+      "lastAnalysisAt": "2026-09-01T05:53:32.263Z"
     }
   ],
   "trades": [
+    {
+      "side": "BUY",
+      "symbol": "2377.TW",
+      "name": "微星",
+      "price": 154,
+      "shares": 64,
+      "amount": 9856,
+      "cashAfter": 73540.44999999992,
+      "reason": "可小量試單，波段持有/支撐低接，AI 動作 小量試單，3-5 天上漲機率 56%，風控版 risk-guard-v2-2026-08-13。",
+      "source": "TWSE/TPEX 官方全市場日行情，先全市場初選，再完整分析前 48 檔",
+      "positionId": "position-1788242012263-7e1ac0268fe55",
+      "id": "trade-1788242012263-067ce5f8edc1f",
+      "createdAt": "2026-09-01T05:53:32.263Z",
+      "tradingDate": "2026-09-01"
+    },
+    {
+      "side": "BUY",
+      "symbol": "6770.TW",
+      "name": "力積電",
+      "price": 70.8,
+      "shares": 141,
+      "amount": 9982.8,
+      "cashAfter": 83396.44999999992,
+      "reason": "可小量試單，波段持有/支撐低接，AI 動作 小量試單，3-5 天上漲機率 63%，風控版 risk-guard-v2-2026-08-13。",
+      "source": "TWSE/TPEX 官方全市場日行情，先全市場初選，再完整分析前 48 檔",
+      "positionId": "position-1788242012263-71f9c36096ff5",
+      "id": "trade-1788242012263-e94dbc3ad69b5",
+      "createdAt": "2026-09-01T05:53:32.263Z",
+      "tradingDate": "2026-09-01"
+    },
     {
       "side": "SELL",
       "symbol": "2637.TW",
@@ -4195,6 +4267,60 @@
     }
   ],
   "decisions": [
+    {
+      "symbol": "RISK-GATE",
+      "name": "每日買進上限",
+      "decision": "暫停買入",
+      "reason": "今日已買進 2 檔，避免同一天行情誤判時一起套住。",
+      "id": "decision-1788242012264-68f25e1565cdd",
+      "createdAt": "2026-09-01T05:53:32.264Z",
+      "tradingDate": "2026-09-01"
+    },
+    {
+      "symbol": "2377.TW",
+      "name": "微星",
+      "decision": "買進",
+      "reason": "靠近支撐 151.07 元 可分批，不追高。",
+      "finalScore": 58,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1788242012264-643c6c38b4eba",
+      "createdAt": "2026-09-01T05:53:32.264Z",
+      "tradingDate": "2026-09-01"
+    },
+    {
+      "symbol": "6770.TW",
+      "name": "力積電",
+      "decision": "買進",
+      "reason": "靠近支撐 69.99 元 可分批，不追高。",
+      "finalScore": 59,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1788242012263-8410b8394916",
+      "createdAt": "2026-09-01T05:53:32.263Z",
+      "tradingDate": "2026-09-01"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "2885.TW 元大金：AI 動作為 續抱 / 3576.TW 聯合再生：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確 / 2356.TW 英業達：AI 分數 55 低於 58；3-5 天上漲機率 53% 低於 56% / 4938.TW 和碩：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；3-5 天上漲機率 52% 低於 56% / 2880.TW 華南金：3-5 天上漲機率 55% 低於 56%",
+      "id": "decision-1788242012263-85df48fb185e9",
+      "createdAt": "2026-09-01T05:53:32.263Z",
+      "tradingDate": "2026-09-01"
+    },
+    {
+      "symbol": "3324.TWO",
+      "name": "雙鴻",
+      "decision": "續抱",
+      "reason": "停損線 1016.93 元 不下修，跌破代表交易假設失效。",
+      "finalScore": 49,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1788241980293-446d94cb4517c",
+      "createdAt": "2026-09-01T05:53:00.293Z",
+      "tradingDate": "2026-09-01"
+    },
     {
       "symbol": "MARKET",
       "name": "全市場",
@@ -9810,69 +9936,18 @@
       "id": "decision-1785833486009-daf7ea0a5fe67",
       "createdAt": "2026-08-04T08:51:26.009Z",
       "tradingDate": "2026-08-04"
-    },
-    {
-      "symbol": "2344.TW",
-      "name": "華邦電",
-      "decision": "買進",
-      "reason": "只適合小部位短打，買點要靠近支撐或突破當下，不適合追高長抱。",
-      "finalScore": 52,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1785824837537-5587ea18f84dd",
-      "createdAt": "2026-08-04T06:27:17.537Z",
-      "tradingDate": "2026-08-04"
-    },
-    {
-      "symbol": "2887.TW",
-      "name": "台新新光金",
-      "decision": "部分賣出",
-      "reason": "AI 顯示減碼訊號：第一目標 37.84 元 先賣 1/3 到 1/2，第二目標 39.75 元 再分批。",
-      "finalScore": 56,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1785824827040-544ebc857cfd4",
-      "createdAt": "2026-08-04T06:27:07.040Z",
-      "tradingDate": "2026-08-04"
-    },
-    {
-      "symbol": "2451.TW",
-      "name": "創見",
-      "decision": "部分賣出",
-      "reason": "AI 顯示減碼訊號：短線目標先看 316.58 元；若隔日開高無量，先減碼。",
-      "finalScore": 60,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1785824826595-918f496a445ce",
-      "createdAt": "2026-08-04T06:27:06.595Z",
-      "tradingDate": "2026-08-04"
-    },
-    {
-      "symbol": "4541.TWO",
-      "name": "晟田",
-      "decision": "續抱",
-      "reason": "停損線 52.64 元 不可下修。",
-      "finalScore": 45,
-      "tradeStyle": "暫不交易",
-      "automationAction": "等待",
-      "id": "decision-1785824826145-3bb0d38081011",
-      "createdAt": "2026-08-04T06:27:06.145Z",
-      "tradingDate": "2026-08-04"
-    },
-    {
-      "symbol": "4127.TWO",
-      "name": "天良",
-      "decision": "續抱",
-      "reason": "收盤跌破 72.93 元 或跌破 MA20 後無法收回，應降低部位。",
-      "finalScore": 54,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1785824825606-40c89496df5f6",
-      "createdAt": "2026-08-04T06:27:05.606Z",
-      "tradingDate": "2026-08-04"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1788242012264-4705f89797998",
+      "createdAt": "2026-09-01T05:53:32.264Z",
+      "tradingDate": "2026-09-01",
+      "cash": 73540.44999999992,
+      "positionValue": 23963.8,
+      "totalEquity": 97504.24999999993,
+      "realizedPnl": -3425.7500000000086
+    },
     {
       "id": "equity-1788183380684-f5788268a58d",
       "createdAt": "2026-08-31T13:36:20.684Z",
@@ -10981,6 +11056,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-08-31T13:35:58.072Z",
+  "lastRunAt": "2026-09-01T05:52:34.310Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
