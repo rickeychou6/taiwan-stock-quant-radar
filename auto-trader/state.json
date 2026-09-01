@@ -22,7 +22,7 @@
       "lastValue": 4125,
       "unrealizedPnl": 930,
       "unrealizedPnlPct": 29.107981220657276,
-      "lastAnalysisAt": "2026-09-01T05:53:00.293Z"
+      "lastAnalysisAt": "2026-09-01T11:33:52.775Z"
     },
     {
       "id": "position-1788242012263-71f9c36096ff5",
@@ -43,7 +43,7 @@
       "lastValue": 9982.8,
       "unrealizedPnl": 0,
       "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-09-01T05:53:32.263Z"
+      "lastAnalysisAt": "2026-09-01T11:33:53.217Z"
     },
     {
       "id": "position-1788242012263-7e1ac0268fe55",
@@ -64,10 +64,40 @@
       "lastValue": 9856,
       "unrealizedPnl": 0,
       "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-09-01T05:53:32.263Z"
+      "lastAnalysisAt": "2026-09-01T11:33:53.708Z"
     }
   ],
   "trades": [
+    {
+      "side": "BLOCKED_SELL",
+      "symbol": "2377.TW",
+      "name": "微星",
+      "price": 154,
+      "shares": 0,
+      "amount": 0,
+      "cashAfter": 73540.44999999992,
+      "reason": "禁止當沖：AI 顯示減碼訊號：第一目標 173.50 元 先賣 1/3 到 1/2，第二目標 182.45 元 再分批。。今天買進的股票不可今天賣出，延到下一個交易日再檢查。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1788242012263-7e1ac0268fe55",
+      "id": "trade-1788262433708-b5a73430a90d9",
+      "createdAt": "2026-09-01T11:33:53.708Z",
+      "tradingDate": "2026-09-01"
+    },
+    {
+      "side": "BLOCKED_SELL",
+      "symbol": "6770.TW",
+      "name": "力積電",
+      "price": 70.8,
+      "shares": 0,
+      "amount": 0,
+      "cashAfter": 73540.44999999992,
+      "reason": "禁止當沖：AI 顯示減碼訊號：第一目標 81.80 元 先賣 1/3 到 1/2，第二目標 88.10 元 再分批。。今天買進的股票不可今天賣出，延到下一個交易日再檢查。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1788242012263-71f9c36096ff5",
+      "id": "trade-1788262433217-2f7e6c43335bd",
+      "createdAt": "2026-09-01T11:33:53.217Z",
+      "tradingDate": "2026-09-01"
+    },
     {
       "side": "BUY",
       "symbol": "2377.TW",
@@ -4267,6 +4297,60 @@
     }
   ],
   "decisions": [
+    {
+      "symbol": "RISK-GATE",
+      "name": "每日買進上限",
+      "decision": "暫停買入",
+      "reason": "今日已買進 2 檔，避免同一天行情誤判時一起套住。",
+      "id": "decision-1788262445862-127e4e8d31b47",
+      "createdAt": "2026-09-01T11:34:05.862Z",
+      "tradingDate": "2026-09-01"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "2885.TW 元大金：AI 動作為 續抱 / 3576.TW 聯合再生：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確 / 2356.TW 英業達：AI 分數 55 低於 58；3-5 天上漲機率 53% 低於 56% / 4938.TW 和碩：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；3-5 天上漲機率 52% 低於 56% / 2880.TW 華南金：3-5 天上漲機率 55% 低於 56%",
+      "id": "decision-1788262445862-fc3067c28308b",
+      "createdAt": "2026-09-01T11:34:05.862Z",
+      "tradingDate": "2026-09-01"
+    },
+    {
+      "symbol": "2377.TW",
+      "name": "微星",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "AI 顯示減碼訊號：第一目標 173.50 元 先賣 1/3 到 1/2，第二目標 182.45 元 再分批。",
+      "finalScore": 57,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1788262433708-a8d6d93ff8fda",
+      "createdAt": "2026-09-01T11:33:53.708Z",
+      "tradingDate": "2026-09-01"
+    },
+    {
+      "symbol": "6770.TW",
+      "name": "力積電",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "AI 顯示減碼訊號：第一目標 81.80 元 先賣 1/3 到 1/2，第二目標 88.10 元 再分批。",
+      "finalScore": 59,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1788262433218-828d88634c48d",
+      "createdAt": "2026-09-01T11:33:53.218Z",
+      "tradingDate": "2026-09-01"
+    },
+    {
+      "symbol": "3324.TWO",
+      "name": "雙鴻",
+      "decision": "續抱",
+      "reason": "停損線 1016.93 元 不下修，跌破代表交易假設失效。",
+      "finalScore": 49,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1788262432775-9c5599d2370f9",
+      "createdAt": "2026-09-01T11:33:52.775Z",
+      "tradingDate": "2026-09-01"
+    },
     {
       "symbol": "RISK-GATE",
       "name": "每日買進上限",
@@ -9879,66 +9963,18 @@
       "id": "decision-1785902015997-8ea5260dfda8",
       "createdAt": "2026-08-05T03:53:35.997Z",
       "tradingDate": "2026-08-05"
-    },
-    {
-      "symbol": "CASH",
-      "name": "資金控管",
-      "decision": "暫停買入",
-      "reason": "已持有 4 檔，避免過度分散。",
-      "id": "decision-1785833486983-6b0f805e1ebbe",
-      "createdAt": "2026-08-04T08:51:26.983Z",
-      "tradingDate": "2026-08-04"
-    },
-    {
-      "symbol": "2344.TW",
-      "name": "華邦電",
-      "decision": "續抱",
-      "reason": "短線停損要更緊，收盤或盤中跌破 149.04 元 就不戀戰。",
-      "finalScore": 52,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1785833486983-247d4e69377ee",
-      "createdAt": "2026-08-04T08:51:26.983Z",
-      "tradingDate": "2026-08-04"
-    },
-    {
-      "symbol": "2887.TW",
-      "name": "台新新光金",
-      "decision": "部分賣出",
-      "reason": "AI 顯示減碼訊號：第一目標 37.84 元 先賣 1/3 到 1/2，第二目標 39.75 元 再分批。",
-      "finalScore": 56,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1785833486671-607db1cf80417",
-      "createdAt": "2026-08-04T08:51:26.671Z",
-      "tradingDate": "2026-08-04"
-    },
-    {
-      "symbol": "4541.TWO",
-      "name": "晟田",
-      "decision": "續抱",
-      "reason": "停損線 52.64 元 不可下修。",
-      "finalScore": 45,
-      "tradeStyle": "暫不交易",
-      "automationAction": "等待",
-      "id": "decision-1785833486359-f7269a0deef54",
-      "createdAt": "2026-08-04T08:51:26.359Z",
-      "tradingDate": "2026-08-04"
-    },
-    {
-      "symbol": "4127.TWO",
-      "name": "天良",
-      "decision": "續抱",
-      "reason": "收盤跌破 72.93 元 或跌破 MA20 後無法收回，應降低部位。",
-      "finalScore": 54,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1785833486009-daf7ea0a5fe67",
-      "createdAt": "2026-08-04T08:51:26.009Z",
-      "tradingDate": "2026-08-04"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1788262445863-815212de38996",
+      "createdAt": "2026-09-01T11:34:05.863Z",
+      "tradingDate": "2026-09-01",
+      "cash": 73540.44999999992,
+      "positionValue": 23963.8,
+      "totalEquity": 97504.24999999993,
+      "realizedPnl": -3425.7500000000086
+    },
     {
       "id": "equity-1788242012264-4705f89797998",
       "createdAt": "2026-09-01T05:53:32.264Z",
@@ -11056,6 +11092,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-09-01T05:52:34.310Z",
+  "lastRunAt": "2026-09-01T11:33:45.662Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
