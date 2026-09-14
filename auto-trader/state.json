@@ -22,7 +22,7 @@
       "lastValue": 4845,
       "unrealizedPnl": -114,
       "unrealizedPnlPct": -2.2988505747126435,
-      "lastAnalysisAt": "2026-09-14T05:34:52.186Z"
+      "lastAnalysisAt": "2026-09-14T10:57:58.333Z"
     },
     {
       "id": "position-1789104386991-381b1c9744d34",
@@ -43,7 +43,7 @@
       "lastValue": 4914,
       "unrealizedPnl": -21,
       "unrealizedPnlPct": -0.425531914893617,
-      "lastAnalysisAt": "2026-09-14T05:34:52.541Z"
+      "lastAnalysisAt": "2026-09-14T10:57:58.683Z"
     },
     {
       "id": "position-1789364098360-be86481d1a132",
@@ -64,10 +64,25 @@
       "lastValue": 9984,
       "unrealizedPnl": 0,
       "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-09-14T05:34:58.360Z"
+      "lastAnalysisAt": "2026-09-14T10:57:59.023Z"
     }
   ],
   "trades": [
+    {
+      "side": "BLOCKED_SELL",
+      "symbol": "3532.TW",
+      "name": "台勝科",
+      "price": 416,
+      "shares": 0,
+      "amount": 0,
+      "cashAfter": 75844.34999999992,
+      "reason": "禁止當沖：AI 顯示減碼訊號：第一目標 461.39 元 先賣 1/3 到 1/2，第二目標 499.21 元 再分批。。今天買進的股票不可今天賣出，延到下一個交易日再檢查。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1789364098360-be86481d1a132",
+      "id": "trade-1789383479023-63cd0ffc10cf6",
+      "createdAt": "2026-09-14T10:57:59.023Z",
+      "tradingDate": "2026-09-14"
+    },
     {
       "side": "BUY",
       "symbol": "3532.TW",
@@ -5236,6 +5251,60 @@
     }
   ],
   "decisions": [
+    {
+      "symbol": "MARKET",
+      "name": "全市場",
+      "decision": "沒有買入",
+      "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
+      "id": "decision-1789383484643-125b74b5c32cc",
+      "createdAt": "2026-09-14T10:58:04.643Z",
+      "tradingDate": "2026-09-14"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "1560.TW 中砂：推薦等級為 接近買點；AI 動作為 續抱；今日跌幅 -4.68% 偏弱，避免接刀 / 2881.TW 富邦金：推薦等級為 等待回檔；AI 動作為 等待；交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.56 低於 0.9 / 2444.TW 兆勁：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；3-5 天上漲機率 54% 低於 56%；今日跌幅 -4.1% 偏弱，避免接刀 / 2354.TW 鴻準：AI 分數 56 低於 58；3-5 天上漲機率 53% 低於 56% / 2851.TW 中再保：風險報酬比 1:0.89 低於 0.9",
+      "id": "decision-1789383484643-6ff4ba56efd64",
+      "createdAt": "2026-09-14T10:58:04.643Z",
+      "tradingDate": "2026-09-14"
+    },
+    {
+      "symbol": "3532.TW",
+      "name": "台勝科",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "AI 顯示減碼訊號：第一目標 461.39 元 先賣 1/3 到 1/2，第二目標 499.21 元 再分批。",
+      "finalScore": 62,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1789383479023-274e7cc737bfb",
+      "createdAt": "2026-09-14T10:57:59.023Z",
+      "tradingDate": "2026-09-14"
+    },
+    {
+      "symbol": "1303.TW",
+      "name": "南亞",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 60,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1789383478683-27188e91f7bcc",
+      "createdAt": "2026-09-14T10:57:58.683Z",
+      "tradingDate": "2026-09-14"
+    },
+    {
+      "symbol": "6224.TW",
+      "name": "聚鼎",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 59,
+      "tradeStyle": "波段持有",
+      "automationAction": "等待",
+      "id": "decision-1789383478333-badda83427f75",
+      "createdAt": "2026-09-14T10:57:58.333Z",
+      "tradingDate": "2026-09-14"
+    },
     {
       "symbol": "3532.TW",
       "name": "台勝科",
@@ -10818,69 +10887,18 @@
       "id": "decision-1786615886298-e3a92d36675aa",
       "createdAt": "2026-08-13T10:11:26.298Z",
       "tradingDate": "2026-08-13"
-    },
-    {
-      "symbol": "3026.TW",
-      "name": "禾伸堂",
-      "decision": "禁止當沖，暫不賣",
-      "reason": "AI 顯示減碼訊號：短線目標先看 854.00 元；若隔日開高無量，先減碼。",
-      "finalScore": 60,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1786615884236-f5011fc996c7f",
-      "createdAt": "2026-08-13T10:11:24.236Z",
-      "tradingDate": "2026-08-13"
-    },
-    {
-      "symbol": "2327.TW",
-      "name": "國巨*",
-      "decision": "續抱",
-      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
-      "finalScore": 58,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1786615883157-8a4e5d3659a9",
-      "createdAt": "2026-08-13T10:11:23.157Z",
-      "tradingDate": "2026-08-13"
-    },
-    {
-      "symbol": "8050.TWO",
-      "name": "廣積",
-      "decision": "賣出",
-      "reason": "現價跌破停損線 63.95 元",
-      "finalScore": 50,
-      "tradeStyle": "暫不交易",
-      "automationAction": "等待",
-      "id": "decision-1786615881073-f1c7763603b32",
-      "createdAt": "2026-08-13T10:11:21.073Z",
-      "tradingDate": "2026-08-13"
-    },
-    {
-      "symbol": "1563.TW",
-      "name": "巧新",
-      "decision": "買進",
-      "reason": "只適合小部位短打，買點要靠近支撐或突破當下，不適合追高長抱。",
-      "finalScore": 61,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1786607321089-d45d1e1bc3d59",
-      "createdAt": "2026-08-13T07:48:41.089Z",
-      "tradingDate": "2026-08-13"
-    },
-    {
-      "symbol": "3026.TW",
-      "name": "禾伸堂",
-      "decision": "買進",
-      "reason": "只適合小部位短打，買點要靠近支撐或突破當下，不適合追高長抱。",
-      "finalScore": 53,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1786607321089-c5729ab33949b",
-      "createdAt": "2026-08-13T07:48:41.089Z",
-      "tradingDate": "2026-08-13"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1789383484643-85076ff1513f8",
+      "createdAt": "2026-09-14T10:58:04.643Z",
+      "tradingDate": "2026-09-14",
+      "cash": 75844.34999999992,
+      "positionValue": 19743,
+      "totalEquity": 95587.34999999992,
+      "realizedPnl": -4277.650000000009
+    },
     {
       "id": "equity-1789364098360-8132ee609fe26",
       "createdAt": "2026-09-14T05:34:58.360Z",
@@ -12232,6 +12250,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-09-14T05:34:29.815Z",
+  "lastRunAt": "2026-09-14T10:57:54.085Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
