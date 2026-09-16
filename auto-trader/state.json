@@ -1,29 +1,8 @@
 {
   "initialCapital": 100000,
-  "cash": 68230.14999999992,
-  "realizedPnl": -4369.650000000009,
+  "cash": 70870.14999999992,
+  "realizedPnl": -4225.650000000009,
   "positions": [
-    {
-      "id": "position-1789364098360-be86481d1a132",
-      "symbol": "3532.TW",
-      "name": "台勝科",
-      "shares": 6,
-      "entryPrice": 416,
-      "entryAmount": 2496,
-      "stopLossPrice": 377.11,
-      "takeProfit1": 490.66,
-      "takeProfit2": 532.87,
-      "openedAt": "2026-09-14T05:34:58.360Z",
-      "openedTradingDate": "2026-09-14",
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "positionSizePct": 20,
-      "lastPrice": 440,
-      "lastValue": 2640,
-      "unrealizedPnl": 144,
-      "unrealizedPnlPct": 5.769230769230769,
-      "lastAnalysisAt": "2026-09-16T05:29:18.682Z"
-    },
     {
       "id": "position-1789450562186-bd99d38f4e75f",
       "symbol": "2885.TW",
@@ -31,19 +10,19 @@
       "shares": 146,
       "entryPrice": 68.3,
       "entryAmount": 9971.8,
-      "stopLossPrice": 65.79,
-      "takeProfit1": 73.07,
-      "takeProfit2": 75.64,
+      "stopLossPrice": 65.81,
+      "takeProfit1": 73.12,
+      "takeProfit2": 75.69,
       "openedAt": "2026-09-15T05:36:02.186Z",
       "openedTradingDate": "2026-09-15",
       "tradeStyle": "波段持有",
       "automationAction": "小量試單",
       "positionSizePct": 20,
-      "lastPrice": 69,
-      "lastValue": 10074,
-      "unrealizedPnl": 102.20000000000073,
-      "unrealizedPnlPct": 1.0248901903367569,
-      "lastAnalysisAt": "2026-09-16T05:29:19.505Z"
+      "lastPrice": 69.4,
+      "lastValue": 10132.400000000001,
+      "unrealizedPnl": 160.60000000000218,
+      "unrealizedPnlPct": 1.610541727672057,
+      "lastAnalysisAt": "2026-09-16T10:12:33.381Z"
     },
     {
       "id": "position-1789468124346-b2ecc3c20a62b",
@@ -53,18 +32,18 @@
       "entryPrice": 200,
       "entryAmount": 5000,
       "stopLossPrice": 173.56,
-      "takeProfit1": 236.66,
-      "takeProfit2": 260.12,
+      "takeProfit1": 235.53,
+      "takeProfit2": 258.89,
       "openedAt": "2026-09-15T10:28:44.346Z",
       "openedTradingDate": "2026-09-15",
       "tradeStyle": "波段持有",
       "automationAction": "小量試單",
       "positionSizePct": 20,
-      "lastPrice": 208.5,
-      "lastValue": 5212.5,
-      "unrealizedPnl": 212.5,
-      "unrealizedPnlPct": 4.25,
-      "lastAnalysisAt": "2026-09-16T05:29:19.893Z"
+      "lastPrice": 207.5,
+      "lastValue": 5187.5,
+      "unrealizedPnl": 187.5,
+      "unrealizedPnlPct": 3.75,
+      "lastAnalysisAt": "2026-09-16T10:12:33.878Z"
     },
     {
       "id": "position-1789536579808-4d7081c462704",
@@ -73,22 +52,55 @@
       "shares": 124,
       "entryPrice": 80.1,
       "entryAmount": 9932.4,
-      "stopLossPrice": 74.96,
+      "stopLossPrice": 74.98,
       "takeProfit1": 90.6,
-      "takeProfit2": 96.97,
+      "takeProfit2": 96.96,
       "openedAt": "2026-09-16T05:29:39.808Z",
       "openedTradingDate": "2026-09-16",
       "tradeStyle": "波段持有",
       "automationAction": "小量試單",
       "positionSizePct": 20,
-      "lastPrice": 80.1,
-      "lastValue": 9932.4,
-      "unrealizedPnl": 0,
-      "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-09-16T05:29:39.808Z"
+      "lastPrice": 80.5,
+      "lastValue": 9982,
+      "unrealizedPnl": 49.600000000000364,
+      "unrealizedPnlPct": 0.49937578027466034,
+      "lastAnalysisAt": "2026-09-16T10:12:34.277Z"
     }
   ],
   "trades": [
+    {
+      "side": "BLOCKED_SELL",
+      "symbol": "6505.TW",
+      "name": "台塑化",
+      "price": 80.5,
+      "shares": 0,
+      "amount": 0,
+      "cashAfter": 70870.14999999992,
+      "reason": "禁止當沖：AI 顯示減碼訊號：第一目標 90.60 元 先賣 1/3 到 1/2，第二目標 96.96 元 再分批。。今天買進的股票不可今天賣出，延到下一個交易日再檢查。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1789536579808-4d7081c462704",
+      "id": "trade-1789553554277-09ed255603784",
+      "createdAt": "2026-09-16T10:12:34.277Z",
+      "tradingDate": "2026-09-16"
+    },
+    {
+      "side": "SELL",
+      "symbol": "3532.TW",
+      "name": "台勝科",
+      "price": 440,
+      "shares": 6,
+      "amount": 2640,
+      "costBasis": 2496,
+      "realizedPnl": 144,
+      "realizedPnlPct": 5.769230769230769,
+      "cashAfter": 70870.14999999992,
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1789364098360-be86481d1a132",
+      "id": "trade-1789553552774-20f8b224a9df3",
+      "createdAt": "2026-09-16T10:12:32.774Z",
+      "tradingDate": "2026-09-16"
+    },
     {
       "side": "BUY",
       "symbol": "6505.TW",
@@ -5473,6 +5485,72 @@
     }
   ],
   "decisions": [
+    {
+      "symbol": "MARKET",
+      "name": "全市場",
+      "decision": "沒有買入",
+      "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
+      "id": "decision-1789553566037-6337b4f965342",
+      "createdAt": "2026-09-16T10:12:46.037Z",
+      "tradingDate": "2026-09-16"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "2891.TW 中信金：推薦等級為 等待回檔；AI 動作為 等待；交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.52 低於 0.9 / 3491.TWO 昇達科：AI 分數 53 低於 58 / 4939.TWO 亞電：AI 分數 53 低於 58；3-5 天上漲機率 52% 低於 56% / 6226.TW 光鼎：推薦等級為 等待回檔；AI 動作為 等待；交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.5 低於 0.9；今日漲幅 9.92% 過熱，避免追高 / 3066.TWO 李洲：AI 分數 57 低於 58；3-5 天上漲機率 51% 低於 56%",
+      "id": "decision-1789553566037-a507942cd0bb9",
+      "createdAt": "2026-09-16T10:12:46.037Z",
+      "tradingDate": "2026-09-16"
+    },
+    {
+      "symbol": "6505.TW",
+      "name": "台塑化",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "AI 顯示減碼訊號：第一目標 90.60 元 先賣 1/3 到 1/2，第二目標 96.96 元 再分批。",
+      "finalScore": 62,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1789553554278-ba82b52f979ef",
+      "createdAt": "2026-09-16T10:12:34.278Z",
+      "tradingDate": "2026-09-16"
+    },
+    {
+      "symbol": "6147.TWO",
+      "name": "頎邦",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 61,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1789553553878-24a449a351062",
+      "createdAt": "2026-09-16T10:12:33.878Z",
+      "tradingDate": "2026-09-16"
+    },
+    {
+      "symbol": "2885.TW",
+      "name": "元大金",
+      "decision": "續抱",
+      "reason": "收盤跌破 65.81 元 或跌破 MA20 後無法收回，應降低部位。",
+      "finalScore": 54,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1789553553381-864881abe857e",
+      "createdAt": "2026-09-16T10:12:33.381Z",
+      "tradingDate": "2026-09-16"
+    },
+    {
+      "symbol": "3532.TW",
+      "name": "台勝科",
+      "decision": "賣出",
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "finalScore": 60,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1789553552774-734431bd55a9",
+      "createdAt": "2026-09-16T10:12:32.774Z",
+      "tradingDate": "2026-09-16"
+    },
     {
       "symbol": "6505.TW",
       "name": "台塑化",
@@ -11049,75 +11127,18 @@
       "id": "decision-1786932859992-5067fe2c85c33",
       "createdAt": "2026-08-17T02:14:19.992Z",
       "tradingDate": "2026-08-17"
-    },
-    {
-      "symbol": "2884.TW",
-      "name": "玉山金",
-      "decision": "續抱",
-      "reason": "停損線 35.81 元 不可下修。",
-      "finalScore": 53,
-      "tradeStyle": "暫不交易",
-      "automationAction": "等待",
-      "id": "decision-1786932859618-5e138f57217c8",
-      "createdAt": "2026-08-17T02:14:19.618Z",
-      "tradingDate": "2026-08-17"
-    },
-    {
-      "symbol": "1563.TW",
-      "name": "巧新",
-      "decision": "部分賣出",
-      "reason": "AI 顯示減碼訊號：短線目標先看 69.49 元；若隔日開高無量，先減碼。",
-      "finalScore": 62,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1786932859323-bf7d69e40cdd6",
-      "createdAt": "2026-08-17T02:14:19.323Z",
-      "tradingDate": "2026-08-17"
-    },
-    {
-      "symbol": "RISK-GATE",
-      "name": "每日買進上限",
-      "decision": "暫停買入",
-      "reason": "今日已買進 2 檔，避免同一天行情誤判時一起套住。",
-      "id": "decision-1786693589732-bdbc4fc7726c7",
-      "createdAt": "2026-08-14T07:46:29.732Z",
-      "tradingDate": "2026-08-14"
-    },
-    {
-      "symbol": "RISK-GATE",
-      "name": "自動交易風控",
-      "decision": "過濾候選",
-      "reason": "6206.TW 飛捷：今日跌幅 -8.63% 偏弱，避免接刀 / 6277.TW 宏正：推薦等級為 等待回檔；AI 動作為 續抱；風險報酬比 1:0.84 低於 0.9 / 2887.TW 台新新光金：推薦等級為 等待回檔；AI 動作為 續抱；風險報酬比 1:0.67 低於 0.9 / 2376.TW 技嘉：推薦等級為 接近買點；AI 動作為 續抱；風險報酬比 1:0.49 低於 0.9 / 8033.TW 雷虎：今日漲幅 9.81% 過熱，避免追高",
-      "id": "decision-1786693589732-4141a16f02d79",
-      "createdAt": "2026-08-14T07:46:29.732Z",
-      "tradingDate": "2026-08-14"
-    },
-    {
-      "symbol": "2883.TW",
-      "name": "凱基金",
-      "decision": "禁止當沖，暫不賣",
-      "reason": "AI 顯示減碼訊號：第一目標 33.46 元 先檢查量價，第二目標 34.96 元 分批獲利。",
-      "finalScore": 64,
-      "tradeStyle": "中線常抱",
-      "automationAction": "續抱",
-      "id": "decision-1786693577740-1f44f7812badd",
-      "createdAt": "2026-08-14T07:46:17.740Z",
-      "tradingDate": "2026-08-14"
-    },
-    {
-      "symbol": "2884.TW",
-      "name": "玉山金",
-      "decision": "禁止當沖，暫不賣",
-      "reason": "AI 顯示減碼訊號：第一目標 39.35 元 先賣 1/3 到 1/2，第二目標 40.77 元 再分批。",
-      "finalScore": 58,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1786693577376-e98446414b144",
-      "createdAt": "2026-08-14T07:46:17.376Z",
-      "tradingDate": "2026-08-14"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1789553566037-26c187c1e3882",
+      "createdAt": "2026-09-16T10:12:46.037Z",
+      "tradingDate": "2026-09-16",
+      "cash": 70870.14999999992,
+      "positionValue": 25301.9,
+      "totalEquity": 96172.04999999993,
+      "realizedPnl": -4225.650000000009
+    },
     {
       "id": "equity-1789536579808-e1719950dc43d",
       "createdAt": "2026-09-16T05:29:39.808Z",
@@ -12523,6 +12544,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-09-16T05:29:08.516Z",
+  "lastRunAt": "2026-09-16T10:12:22.836Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
