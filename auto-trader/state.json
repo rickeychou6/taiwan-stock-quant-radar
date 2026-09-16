@@ -22,7 +22,7 @@
       "lastValue": 10132.400000000001,
       "unrealizedPnl": 160.60000000000218,
       "unrealizedPnlPct": 1.610541727672057,
-      "lastAnalysisAt": "2026-09-16T10:12:33.381Z"
+      "lastAnalysisAt": "2026-09-16T11:24:50.135Z"
     },
     {
       "id": "position-1789468124346-b2ecc3c20a62b",
@@ -43,7 +43,7 @@
       "lastValue": 5187.5,
       "unrealizedPnl": 187.5,
       "unrealizedPnlPct": 3.75,
-      "lastAnalysisAt": "2026-09-16T10:12:33.878Z"
+      "lastAnalysisAt": "2026-09-16T11:24:51.225Z"
     },
     {
       "id": "position-1789536579808-4d7081c462704",
@@ -64,7 +64,7 @@
       "lastValue": 9982,
       "unrealizedPnl": 49.600000000000364,
       "unrealizedPnlPct": 0.49937578027466034,
-      "lastAnalysisAt": "2026-09-16T10:12:34.277Z"
+      "lastAnalysisAt": "2026-09-16T11:24:51.671Z"
     }
   ],
   "trades": [
@@ -5485,6 +5485,60 @@
     }
   ],
   "decisions": [
+    {
+      "symbol": "MARKET",
+      "name": "全市場",
+      "decision": "沒有買入",
+      "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
+      "id": "decision-1789557906366-65dc093c672da",
+      "createdAt": "2026-09-16T11:25:06.366Z",
+      "tradingDate": "2026-09-16"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "2891.TW 中信金：推薦等級為 等待回檔；AI 動作為 等待；交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.52 低於 0.9 / 3491.TWO 昇達科：AI 分數 53 低於 58 / 4939.TWO 亞電：AI 分數 53 低於 58；3-5 天上漲機率 52% 低於 56% / 6226.TW 光鼎：推薦等級為 等待回檔；AI 動作為 等待；交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.5 低於 0.9；今日漲幅 9.92% 過熱，避免追高 / 3066.TWO 李洲：AI 分數 57 低於 58；3-5 天上漲機率 51% 低於 56%",
+      "id": "decision-1789557906366-21453c61ac3be",
+      "createdAt": "2026-09-16T11:25:06.366Z",
+      "tradingDate": "2026-09-16"
+    },
+    {
+      "symbol": "6505.TW",
+      "name": "台塑化",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "AI 顯示減碼訊號：第一目標 90.60 元 先賣 1/3 到 1/2，第二目標 96.96 元 再分批。",
+      "finalScore": 62,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1789557891671-daaade72ff2f3",
+      "createdAt": "2026-09-16T11:24:51.671Z",
+      "tradingDate": "2026-09-16"
+    },
+    {
+      "symbol": "6147.TWO",
+      "name": "頎邦",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 61,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1789557891225-cb39f71f12ea2",
+      "createdAt": "2026-09-16T11:24:51.225Z",
+      "tradingDate": "2026-09-16"
+    },
+    {
+      "symbol": "2885.TW",
+      "name": "元大金",
+      "decision": "續抱",
+      "reason": "收盤跌破 65.81 元 或跌破 MA20 後無法收回，應降低部位。",
+      "finalScore": 54,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1789557890135-28eccf2908cfe",
+      "createdAt": "2026-09-16T11:24:50.135Z",
+      "tradingDate": "2026-09-16"
+    },
     {
       "symbol": "MARKET",
       "name": "全市場",
@@ -11070,66 +11124,18 @@
       "id": "decision-1786936396514-47e6af38d167f",
       "createdAt": "2026-08-17T03:13:16.514Z",
       "tradingDate": "2026-08-17"
-    },
-    {
-      "symbol": "2884.TW",
-      "name": "玉山金",
-      "decision": "續抱",
-      "reason": "停損線 35.81 元 不可下修。",
-      "finalScore": 55,
-      "tradeStyle": "暫不交易",
-      "automationAction": "等待",
-      "id": "decision-1786936394713-8548ee20d9e03",
-      "createdAt": "2026-08-17T03:13:14.713Z",
-      "tradingDate": "2026-08-17"
-    },
-    {
-      "symbol": "1563.TW",
-      "name": "巧新",
-      "decision": "續抱",
-      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
-      "finalScore": 62,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1786936393957-5ec69f02c95e6",
-      "createdAt": "2026-08-17T03:13:13.957Z",
-      "tradingDate": "2026-08-17"
-    },
-    {
-      "symbol": "2362.TW",
-      "name": "藍天",
-      "decision": "買進",
-      "reason": "靠近支撐 47.98 元 可分批，不追高。",
-      "finalScore": 61,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1786932873319-e12b4b15c7c26",
-      "createdAt": "2026-08-17T02:14:33.319Z",
-      "tradingDate": "2026-08-17"
-    },
-    {
-      "symbol": "RISK-GATE",
-      "name": "自動交易風控",
-      "decision": "過濾候選",
-      "reason": "6477.TW 安集：3-5 天上漲機率 55% 低於 56% / 8033.TW 雷虎：今日跌幅 -4.22% 偏弱，避免接刀 / 2887.TW 台新新光金：AI 動作為 續抱；風險報酬比 1:0.79 低於 0.9 / 1301.TW 台塑：推薦等級為 接近買點；AI 動作為 續抱 / 2208.TW 台船：3-5 天上漲機率 51% 低於 56%",
-      "id": "decision-1786932873319-36a7eafded063",
-      "createdAt": "2026-08-17T02:14:33.319Z",
-      "tradingDate": "2026-08-17"
-    },
-    {
-      "symbol": "2883.TW",
-      "name": "凱基金",
-      "decision": "部分賣出",
-      "reason": "AI 顯示減碼訊號：第一目標 32.71 元 先賣 1/3 到 1/2，第二目標 34.14 元 再分批。",
-      "finalScore": 59,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1786932859992-5067fe2c85c33",
-      "createdAt": "2026-08-17T02:14:19.992Z",
-      "tradingDate": "2026-08-17"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1789557906366-c45e1f018e101",
+      "createdAt": "2026-09-16T11:25:06.366Z",
+      "tradingDate": "2026-09-16",
+      "cash": 70870.14999999992,
+      "positionValue": 25301.9,
+      "totalEquity": 96172.04999999993,
+      "realizedPnl": -4225.650000000009
+    },
     {
       "id": "equity-1789553566037-26c187c1e3882",
       "createdAt": "2026-09-16T10:12:46.037Z",
@@ -12544,6 +12550,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-09-16T10:12:22.836Z",
+  "lastRunAt": "2026-09-16T11:24:42.724Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
