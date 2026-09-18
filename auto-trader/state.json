@@ -22,7 +22,7 @@
       "lastValue": 5068.45,
       "unrealizedPnl": 58.44999999999982,
       "unrealizedPnlPct": 1.166666666666663,
-      "lastAnalysisAt": "2026-09-18T09:56:20.954Z"
+      "lastAnalysisAt": "2026-09-18T11:06:35.544Z"
     },
     {
       "id": "position-1789709092207-7cdd8b5c66124",
@@ -43,7 +43,7 @@
       "lastValue": 10022.05,
       "unrealizedPnl": 45.39999999999782,
       "unrealizedPnlPct": 0.4550625711035048,
-      "lastAnalysisAt": "2026-09-18T09:56:21.309Z"
+      "lastAnalysisAt": "2026-09-18T11:06:35.914Z"
     }
   ],
   "trades": [
@@ -5691,6 +5691,48 @@
       "name": "全市場",
       "decision": "沒有買入",
       "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
+      "id": "decision-1789729608267-5a0ea46527bc",
+      "createdAt": "2026-09-18T11:06:48.267Z",
+      "tradingDate": "2026-09-18"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "1326.TW 台化：AI 分數 56 低於 58 / 2609.TW 陽明：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；3-5 天上漲機率 49% 低於 56% / 1301.TW 台塑：3-5 天上漲機率 54% 低於 56% / 2615.TW 萬海：AI 分數 57 低於 58 / 1709.TW 和益：今日跌幅 -8.73% 偏弱，避免接刀",
+      "id": "decision-1789729608267-01ba69a0d6814",
+      "createdAt": "2026-09-18T11:06:48.267Z",
+      "tradingDate": "2026-09-18"
+    },
+    {
+      "symbol": "2489.TW",
+      "name": "瑞軒",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "AI 顯示減碼訊號：第一目標 48.67 元 先賣 1/3 到 1/2，第二目標 52.44 元 再分批。",
+      "finalScore": 57,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1789729595915-6927278f7e179",
+      "createdAt": "2026-09-18T11:06:35.915Z",
+      "tradingDate": "2026-09-18"
+    },
+    {
+      "symbol": "2409.TW",
+      "name": "友達",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 61,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1789729595544-b8f6667b7a5c5",
+      "createdAt": "2026-09-18T11:06:35.544Z",
+      "tradingDate": "2026-09-18"
+    },
+    {
+      "symbol": "MARKET",
+      "name": "全市場",
+      "decision": "沒有買入",
+      "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
       "id": "decision-1789725388403-9a925dd822ff4",
       "createdAt": "2026-09-18T09:56:28.403Z",
       "tradingDate": "2026-09-18"
@@ -11271,54 +11313,18 @@
       "id": "decision-1787019007009-93a62b0a8497a",
       "createdAt": "2026-08-18T02:10:07.009Z",
       "tradingDate": "2026-08-18"
-    },
-    {
-      "symbol": "2883.TW",
-      "name": "凱基金",
-      "decision": "部分賣出",
-      "reason": "AI 顯示減碼訊號：第一目標 32.46 元 先賣 1/3 到 1/2，第二目標 33.80 元 再分批。",
-      "finalScore": 55,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787018999170-a875b83bc1682",
-      "createdAt": "2026-08-18T02:09:59.170Z",
-      "tradingDate": "2026-08-18"
-    },
-    {
-      "symbol": "2884.TW",
-      "name": "玉山金",
-      "decision": "部分賣出",
-      "reason": "AI 顯示減碼訊號：第一目標 39.49 元 先檢查量價，第二目標 40.94 元 分批獲利。",
-      "finalScore": 61,
-      "tradeStyle": "中線常抱",
-      "automationAction": "續抱",
-      "id": "decision-1787018998063-7db27e1446289",
-      "createdAt": "2026-08-18T02:09:58.063Z",
-      "tradingDate": "2026-08-18"
-    },
-    {
-      "symbol": "CASH",
-      "name": "資金控管",
-      "decision": "暫停買入",
-      "reason": "已持有 4 檔，避免過度分散。",
-      "id": "decision-1786950772435-48b14106f6a0b",
-      "createdAt": "2026-08-17T07:12:52.435Z",
-      "tradingDate": "2026-08-17"
-    },
-    {
-      "symbol": "1301.TW",
-      "name": "台塑",
-      "decision": "禁止當沖，暫不賣",
-      "reason": "AI 顯示減碼訊號：第一目標 69.80 元 先賣 1/3 到 1/2，第二目標 73.40 元 再分批。",
-      "finalScore": 61,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1786950772435-311be0a975c72",
-      "createdAt": "2026-08-17T07:12:52.435Z",
-      "tradingDate": "2026-08-17"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1789729608267-681c68675110d",
+      "createdAt": "2026-09-18T11:06:48.267Z",
+      "tradingDate": "2026-09-18",
+      "cash": 81947.09999999992,
+      "positionValue": 15090.5,
+      "totalEquity": 97037.59999999992,
+      "realizedPnl": -3066.250000000007
+    },
     {
       "id": "equity-1789725388403-cd66e590ec006",
       "createdAt": "2026-09-18T09:56:28.403Z",
@@ -12787,6 +12793,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-09-18T09:56:12.743Z",
+  "lastRunAt": "2026-09-18T11:06:30.636Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
