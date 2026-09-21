@@ -1,29 +1,8 @@
 {
   "initialCapital": 100000,
-  "cash": 72822.14999999992,
-  "realizedPnl": -2895.550000000007,
+  "cash": 75623.54999999992,
+  "realizedPnl": -2614.150000000007,
   "positions": [
-    {
-      "id": "position-1789623432716-5f2f5e5892506",
-      "symbol": "2409.TW",
-      "name": "友達",
-      "shares": 84,
-      "entryPrice": 30,
-      "entryAmount": 2520,
-      "stopLossPrice": 27.07,
-      "takeProfit1": 36.87,
-      "takeProfit2": 39.81,
-      "openedAt": "2026-09-17T05:37:12.716Z",
-      "openedTradingDate": "2026-09-17",
-      "tradeStyle": "短進短出",
-      "automationAction": "等待",
-      "positionSizePct": 0,
-      "lastPrice": 33.35,
-      "lastValue": 2801.4,
-      "unrealizedPnl": 281.4000000000001,
-      "unrealizedPnlPct": 11.166666666666671,
-      "lastAnalysisAt": "2026-09-21T05:40:44.833Z"
-    },
     {
       "id": "position-1789709092207-7cdd8b5c66124",
       "symbol": "2489.TW",
@@ -41,9 +20,9 @@
       "positionSizePct": 20,
       "lastPrice": 43,
       "lastValue": 4902,
-      "unrealizedPnl": -108.30000000000032,
-      "unrealizedPnlPct": -2.1615472127417585,
-      "lastAnalysisAt": "2026-09-21T05:40:45.180Z"
+      "unrealizedPnl": -108.30000000000018,
+      "unrealizedPnlPct": -2.1615472127417554,
+      "lastAnalysisAt": "2026-09-21T11:05:28.346Z"
     },
     {
       "id": "position-1789969257379-b4c217ee2c899",
@@ -64,7 +43,7 @@
       "lastValue": 6830,
       "unrealizedPnl": 0,
       "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-09-21T05:40:57.379Z"
+      "lastAnalysisAt": "2026-09-21T11:05:28.733Z"
     },
     {
       "id": "position-1789969257379-5bed555d4b2b3",
@@ -85,10 +64,58 @@
       "lastValue": 9922,
       "unrealizedPnl": 0,
       "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-09-21T05:40:57.379Z"
+      "lastAnalysisAt": "2026-09-21T11:05:29.187Z"
     }
   ],
   "trades": [
+    {
+      "side": "BLOCKED_SELL",
+      "symbol": "3029.TW",
+      "name": "零壹",
+      "price": 121,
+      "shares": 0,
+      "amount": 0,
+      "cashAfter": 75623.54999999992,
+      "reason": "禁止當沖：AI 顯示減碼訊號：第一目標 130.06 元 先賣 1/3 到 1/2，第二目標 137.62 元 再分批。。今天買進的股票不可今天賣出，延到下一個交易日再檢查。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1789969257379-5bed555d4b2b3",
+      "id": "trade-1789988729187-5f6ef55e23e69",
+      "createdAt": "2026-09-21T11:05:29.187Z",
+      "tradingDate": "2026-09-21"
+    },
+    {
+      "side": "BLOCKED_SELL",
+      "symbol": "3017.TW",
+      "name": "奇鋐",
+      "price": 3415,
+      "shares": 0,
+      "amount": 0,
+      "cashAfter": 75623.54999999992,
+      "reason": "禁止當沖：剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。。今天買進的股票不可今天賣出，延到下一個交易日再檢查。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1789969257379-b4c217ee2c899",
+      "id": "trade-1789988728733-87f5426532cf6",
+      "createdAt": "2026-09-21T11:05:28.733Z",
+      "tradingDate": "2026-09-21"
+    },
+    {
+      "side": "SELL",
+      "symbol": "2409.TW",
+      "name": "友達",
+      "price": 33.35,
+      "shares": 84,
+      "amount": 2801.4,
+      "costBasis": 2520,
+      "realizedPnl": 281.4000000000001,
+      "realizedPnlPct": 11.166666666666671,
+      "cashAfter": 75623.54999999992,
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1789623432716-5f2f5e5892506",
+      "id": "trade-1789988725240-0d8bc62523c9a",
+      "createdAt": "2026-09-21T11:05:25.240Z",
+      "tradingDate": "2026-09-21"
+    },
     {
       "side": "BUY",
       "symbol": "3029.TW",
@@ -5795,6 +5822,72 @@
   ],
   "decisions": [
     {
+      "symbol": "MARKET",
+      "name": "全市場",
+      "decision": "沒有買入",
+      "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
+      "id": "decision-1789988739818-e0ff9658626be",
+      "createdAt": "2026-09-21T11:05:39.818Z",
+      "tradingDate": "2026-09-21"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "2885.TW 元大金：AI 動作為 續抱；風險報酬比 1:0.86 低於 0.9；近 3 天已賣出或禁止賣出過，先冷卻 / 2408.TW 南亞科：AI 分數 57 低於 58 / 6770.TW 力積電：推薦等級為 接近買點；AI 動作為 續抱 / 6112.TW 邁達特：3-5 天上漲機率 55% 低於 56%；今日跌幅 -5.95% 偏弱，避免接刀 / 2887.TW 台新新光金：風險報酬比 1:0.76 低於 0.9",
+      "id": "decision-1789988739818-810a39274073e",
+      "createdAt": "2026-09-21T11:05:39.818Z",
+      "tradingDate": "2026-09-21"
+    },
+    {
+      "symbol": "3029.TW",
+      "name": "零壹",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "AI 顯示減碼訊號：第一目標 130.06 元 先賣 1/3 到 1/2，第二目標 137.62 元 再分批。",
+      "finalScore": 64,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1789988729187-4dc4fcca40434",
+      "createdAt": "2026-09-21T11:05:29.187Z",
+      "tradingDate": "2026-09-21"
+    },
+    {
+      "symbol": "3017.TW",
+      "name": "奇鋐",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "finalScore": 59,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1789988728733-778a3c56c7ae2",
+      "createdAt": "2026-09-21T11:05:28.733Z",
+      "tradingDate": "2026-09-21"
+    },
+    {
+      "symbol": "2489.TW",
+      "name": "瑞軒",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 55,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1789988728346-db1c8771cf112",
+      "createdAt": "2026-09-21T11:05:28.346Z",
+      "tradingDate": "2026-09-21"
+    },
+    {
+      "symbol": "2409.TW",
+      "name": "友達",
+      "decision": "賣出",
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "finalScore": 60,
+      "tradeStyle": "短進短出",
+      "automationAction": "等待",
+      "id": "decision-1789988725240-6e70f8234c96b",
+      "createdAt": "2026-09-21T11:05:25.240Z",
+      "tradingDate": "2026-09-21"
+    },
+    {
       "symbol": "3029.TW",
       "name": "零壹",
       "decision": "買進",
@@ -11352,78 +11445,18 @@
       "id": "decision-1787025308792-9fcfca94a198a",
       "createdAt": "2026-08-18T03:55:08.792Z",
       "tradingDate": "2026-08-18"
-    },
-    {
-      "symbol": "2362.TW",
-      "name": "藍天",
-      "decision": "續抱",
-      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
-      "finalScore": 60,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787025308312-bd3bd2e70d6fd",
-      "createdAt": "2026-08-18T03:55:08.312Z",
-      "tradingDate": "2026-08-18"
-    },
-    {
-      "symbol": "3441.TWO",
-      "name": "聯一光電",
-      "decision": "買進",
-      "reason": "靠近支撐 83.82 元 可分批，不追高。",
-      "finalScore": 60,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787022428019-d283de69afa7",
-      "createdAt": "2026-08-18T03:07:08.019Z",
-      "tradingDate": "2026-08-18"
-    },
-    {
-      "symbol": "2481.TW",
-      "name": "強茂",
-      "decision": "買進",
-      "reason": "只適合小部位短打，買點要靠近支撐或突破當下，不適合追高長抱。",
-      "finalScore": 64,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1787022428019-efac083981831",
-      "createdAt": "2026-08-18T03:07:08.019Z",
-      "tradingDate": "2026-08-18"
-    },
-    {
-      "symbol": "RISK-GATE",
-      "name": "自動交易風控",
-      "decision": "過濾候選",
-      "reason": "2027.TW 大成鋼：推薦等級為 接近買點；AI 動作為 續抱；風險報酬比 1:0.74 低於 0.9 / 6147.TWO 頎邦：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確 / 3504.TW 揚明光：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；3-5 天上漲機率 55% 低於 56%；風險報酬比 1:0.89 低於 0.9 / 3037.TW 欣興：推薦等級為 等待回檔；AI 動作為 等待；風險報酬比 1:0.44 低於 0.9 / 6187.TWO 萬潤：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.71 低於 0.9；今日跌幅 -7.22% 偏弱，避免接刀",
-      "id": "decision-1787022428019-30771a4fb0e6b",
-      "createdAt": "2026-08-18T03:07:08.019Z",
-      "tradingDate": "2026-08-18"
-    },
-    {
-      "symbol": "1301.TW",
-      "name": "台塑",
-      "decision": "續抱",
-      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
-      "finalScore": 60,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787022413066-4fef34dfa4c1a",
-      "createdAt": "2026-08-18T03:06:53.066Z",
-      "tradingDate": "2026-08-18"
-    },
-    {
-      "symbol": "2362.TW",
-      "name": "藍天",
-      "decision": "續抱",
-      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
-      "finalScore": 60,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787022412709-5840560979e36",
-      "createdAt": "2026-08-18T03:06:52.709Z",
-      "tradingDate": "2026-08-18"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1789988739818-634f0e0575237",
+      "createdAt": "2026-09-21T11:05:39.818Z",
+      "tradingDate": "2026-09-21",
+      "cash": 75623.54999999992,
+      "positionValue": 21654,
+      "totalEquity": 97277.54999999992,
+      "realizedPnl": -2614.150000000007
+    },
     {
       "id": "equity-1789969257380-966836945cc02",
       "createdAt": "2026-09-21T05:40:57.380Z",
@@ -12910,6 +12943,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-09-21T05:40:30.161Z",
+  "lastRunAt": "2026-09-21T11:05:13.911Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
