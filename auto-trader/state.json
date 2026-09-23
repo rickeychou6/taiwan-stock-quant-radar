@@ -1,29 +1,8 @@
 {
   "initialCapital": 100000,
-  "cash": 74424.94999999991,
-  "realizedPnl": -3050.450000000007,
+  "cash": 76913.44999999991,
+  "realizedPnl": -3102.950000000007,
   "positions": [
-    {
-      "id": "position-1789969257379-5bed555d4b2b3",
-      "symbol": "3029.TW",
-      "name": "零壹",
-      "shares": 21,
-      "entryPrice": 121,
-      "entryAmount": 2541,
-      "stopLossPrice": 111.91,
-      "takeProfit1": 127.69,
-      "takeProfit2": 135.35,
-      "openedAt": "2026-09-21T05:40:57.379Z",
-      "openedTradingDate": "2026-09-21",
-      "tradeStyle": "中線常抱",
-      "automationAction": "續抱",
-      "positionSizePct": 40,
-      "lastPrice": 118.5,
-      "lastValue": 2488.5,
-      "unrealizedPnl": -52.5,
-      "unrealizedPnlPct": -2.066115702479339,
-      "lastAnalysisAt": "2026-09-23T05:23:15.679Z"
-    },
     {
       "id": "position-1790141003179-7a6123952b932",
       "symbol": "2610.TW",
@@ -33,17 +12,17 @@
       "entryAmount": 9996,
       "stopLossPrice": 20.17,
       "takeProfit1": 21,
-      "takeProfit2": 21.45,
+      "takeProfit2": 21.46,
       "openedAt": "2026-09-23T05:23:23.179Z",
       "openedTradingDate": "2026-09-23",
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "positionSizePct": 12,
-      "lastPrice": 20.4,
-      "lastValue": 9996,
-      "unrealizedPnl": 0,
-      "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-09-23T05:23:23.179Z"
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "positionSizePct": 0,
+      "lastPrice": 20.45,
+      "lastValue": 10020.5,
+      "unrealizedPnl": 24.5,
+      "unrealizedPnlPct": 0.24509803921568626,
+      "lastAnalysisAt": "2026-09-23T10:10:45.865Z"
     },
     {
       "id": "position-1790141003179-df5cee29eb964",
@@ -52,22 +31,55 @@
       "shares": 406,
       "entryPrice": 24.6,
       "entryAmount": 9987.6,
-      "stopLossPrice": 21.92,
-      "takeProfit1": 27.18,
-      "takeProfit2": 29.33,
+      "stopLossPrice": 21.93,
+      "takeProfit1": 27.48,
+      "takeProfit2": 29.63,
       "openedAt": "2026-09-23T05:23:23.179Z",
       "openedTradingDate": "2026-09-23",
       "tradeStyle": "波段持有",
       "automationAction": "小量試單",
       "positionSizePct": 20,
-      "lastPrice": 24.6,
-      "lastValue": 9987.6,
-      "unrealizedPnl": 0,
-      "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-09-23T05:23:23.179Z"
+      "lastPrice": 24.9,
+      "lastValue": 10109.4,
+      "unrealizedPnl": 121.79999999999927,
+      "unrealizedPnlPct": 1.2195121951219439,
+      "lastAnalysisAt": "2026-09-23T10:10:46.179Z"
     }
   ],
   "trades": [
+    {
+      "side": "BLOCKED_SELL",
+      "symbol": "2069.TW",
+      "name": "運錩",
+      "price": 24.9,
+      "shares": 0,
+      "amount": 0,
+      "cashAfter": 76913.44999999991,
+      "reason": "禁止當沖：AI 顯示減碼訊號：第一目標 27.48 元 先賣 1/3 到 1/2，第二目標 29.63 元 再分批。。今天買進的股票不可今天賣出，延到下一個交易日再檢查。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1790141003179-df5cee29eb964",
+      "id": "trade-1790158246179-82d713032a516",
+      "createdAt": "2026-09-23T10:10:46.179Z",
+      "tradingDate": "2026-09-23"
+    },
+    {
+      "side": "SELL",
+      "symbol": "3029.TW",
+      "name": "零壹",
+      "price": 118.5,
+      "shares": 21,
+      "amount": 2488.5,
+      "costBasis": 2541,
+      "realizedPnl": -52.5,
+      "realizedPnlPct": -2.066115702479339,
+      "cashAfter": 76913.44999999991,
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1789969257379-5bed555d4b2b3",
+      "id": "trade-1790158243146-fd946dc104d71",
+      "createdAt": "2026-09-23T10:10:43.146Z",
+      "tradingDate": "2026-09-23"
+    },
     {
       "side": "BUY",
       "symbol": "2069.TW",
@@ -5924,6 +5936,60 @@
   ],
   "decisions": [
     {
+      "symbol": "MARKET",
+      "name": "全市場",
+      "decision": "沒有買入",
+      "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
+      "id": "decision-1790158262774-4f61a3d16ec26",
+      "createdAt": "2026-09-23T10:11:02.774Z",
+      "tradingDate": "2026-09-23"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "6116.TW 彩晶：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確 / 8046.TW 南電：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確 / 5425.TWO 台半：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確 / 3491.TWO 昇達科：AI 分數 55 低於 58 / 3189.TW 景碩：AI 分數 57 低於 58；風險報酬比 1:0.82 低於 0.9",
+      "id": "decision-1790158262774-6ecbda4a034f8",
+      "createdAt": "2026-09-23T10:11:02.774Z",
+      "tradingDate": "2026-09-23"
+    },
+    {
+      "symbol": "2069.TW",
+      "name": "運錩",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "AI 顯示減碼訊號：第一目標 27.48 元 先賣 1/3 到 1/2，第二目標 29.63 元 再分批。",
+      "finalScore": 60,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1790158246179-c91d4b580a0a1",
+      "createdAt": "2026-09-23T10:10:46.179Z",
+      "tradingDate": "2026-09-23"
+    },
+    {
+      "symbol": "2610.TW",
+      "name": "華航",
+      "decision": "續抱",
+      "reason": "停損線 20.17 元 不下修，跌破代表交易假設失效。",
+      "finalScore": 53,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1790158245865-e7cf6ffdacb6b",
+      "createdAt": "2026-09-23T10:10:45.865Z",
+      "tradingDate": "2026-09-23"
+    },
+    {
+      "symbol": "3029.TW",
+      "name": "零壹",
+      "decision": "賣出",
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "finalScore": 61,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1790158243146-e48d55d75ee52",
+      "createdAt": "2026-09-23T10:10:43.146Z",
+      "tradingDate": "2026-09-23"
+    },
+    {
       "symbol": "RISK-GATE",
       "name": "每日買進上限",
       "decision": "暫停買入",
@@ -11475,66 +11541,18 @@
       "id": "decision-1787105546215-51f17e4733846",
       "createdAt": "2026-08-19T02:12:26.215Z",
       "tradingDate": "2026-08-19"
-    },
-    {
-      "symbol": "CASH",
-      "name": "資金控管",
-      "decision": "暫停買入",
-      "reason": "已持有 4 檔，避免過度分散。",
-      "id": "decision-1787036409640-62a38a2301ad",
-      "createdAt": "2026-08-18T07:00:09.640Z",
-      "tradingDate": "2026-08-18"
-    },
-    {
-      "symbol": "3441.TWO",
-      "name": "聯一光電",
-      "decision": "禁止當沖，暫不賣",
-      "reason": "AI 顯示減碼訊號：第一目標 100.64 元 先賣 1/3 到 1/2，第二目標 112.67 元 再分批。",
-      "finalScore": 59,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787036409640-43daee25dadf3",
-      "createdAt": "2026-08-18T07:00:09.640Z",
-      "tradingDate": "2026-08-18"
-    },
-    {
-      "symbol": "2481.TW",
-      "name": "強茂",
-      "decision": "續抱",
-      "reason": "短線停損要更緊，收盤或盤中跌破 127.98 元 就不戀戰。",
-      "finalScore": 53,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1787036409335-30f98b06ca189",
-      "createdAt": "2026-08-18T07:00:09.335Z",
-      "tradingDate": "2026-08-18"
-    },
-    {
-      "symbol": "1301.TW",
-      "name": "台塑",
-      "decision": "續抱",
-      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
-      "finalScore": 59,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787036408980-61ce222ddc7b1",
-      "createdAt": "2026-08-18T07:00:08.980Z",
-      "tradingDate": "2026-08-18"
-    },
-    {
-      "symbol": "2362.TW",
-      "name": "藍天",
-      "decision": "續抱",
-      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
-      "finalScore": 59,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787036408600-d252fcb3edcf",
-      "createdAt": "2026-08-18T07:00:08.600Z",
-      "tradingDate": "2026-08-18"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1790158262774-78a20cb210cbd",
+      "createdAt": "2026-09-23T10:11:02.774Z",
+      "tradingDate": "2026-09-23",
+      "cash": 76913.44999999991,
+      "positionValue": 20129.9,
+      "totalEquity": 97043.34999999992,
+      "realizedPnl": -3102.950000000007
+    },
     {
       "id": "equity-1790141003179-cce4e32fdfdab",
       "createdAt": "2026-09-23T05:23:23.179Z",
@@ -13075,6 +13093,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-09-23T05:23:06.308Z",
+  "lastRunAt": "2026-09-23T10:10:09.888Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
