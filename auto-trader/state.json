@@ -1,7 +1,7 @@
 {
   "initialCapital": 100000,
-  "cash": 75096.24999999991,
-  "realizedPnl": -2768.5500000000084,
+  "cash": 67781.6499999999,
+  "realizedPnl": -2656.3500000000085,
   "positions": [
     {
       "id": "position-1790141003179-7a6123952b932",
@@ -22,28 +22,7 @@
       "lastValue": 9947,
       "unrealizedPnl": -49,
       "unrealizedPnlPct": -0.49019607843137253,
-      "lastAnalysisAt": "2026-09-25T05:37:08.935Z"
-    },
-    {
-      "id": "position-1790141003179-df5cee29eb964",
-      "symbol": "2069.TW",
-      "name": "運錩",
-      "shares": 102,
-      "entryPrice": 24.6,
-      "entryAmount": 2509.2000000000003,
-      "stopLossPrice": 22.08,
-      "takeProfit1": 28.42,
-      "takeProfit2": 30.69,
-      "openedAt": "2026-09-23T05:23:23.179Z",
-      "openedTradingDate": "2026-09-23",
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "positionSizePct": 20,
-      "lastPrice": 25.7,
-      "lastValue": 2621.4,
-      "unrealizedPnl": 112.19999999999979,
-      "unrealizedPnlPct": 4.471544715447146,
-      "lastAnalysisAt": "2026-09-25T05:37:09.261Z"
+      "lastAnalysisAt": "2026-09-25T10:32:56.131Z"
     },
     {
       "id": "position-1790228475561-8f6f9145a6831",
@@ -64,7 +43,7 @@
       "lastValue": 4665,
       "unrealizedPnl": 0,
       "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-09-25T05:37:09.633Z"
+      "lastAnalysisAt": "2026-09-25T10:32:57.111Z"
     },
     {
       "id": "position-1790228475561-12d2ede18e652",
@@ -85,10 +64,64 @@
       "lastValue": 4965,
       "unrealizedPnl": 0,
       "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-09-25T05:37:09.941Z"
+      "lastAnalysisAt": "2026-09-25T10:32:57.540Z"
+    },
+    {
+      "id": "position-1790332394585-109a0a4d59bcd",
+      "symbol": "6770.TW",
+      "name": "力積電",
+      "shares": 138,
+      "entryPrice": 72,
+      "entryAmount": 9936,
+      "stopLossPrice": 69.4,
+      "takeProfit1": 77.52,
+      "takeProfit2": 82.11,
+      "openedAt": "2026-09-25T10:33:14.585Z",
+      "openedTradingDate": "2026-09-25",
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "positionSizePct": 20,
+      "lastPrice": 72,
+      "lastValue": 9936,
+      "unrealizedPnl": 0,
+      "unrealizedPnlPct": 0,
+      "lastAnalysisAt": "2026-09-25T10:33:14.585Z"
     }
   ],
   "trades": [
+    {
+      "side": "BUY",
+      "symbol": "6770.TW",
+      "name": "力積電",
+      "price": 72,
+      "shares": 138,
+      "amount": 9936,
+      "cashAfter": 67781.6499999999,
+      "reason": "可小量試單，波段持有/支撐低接，AI 動作 小量試單，3-5 天上漲機率 63%，風控版 risk-guard-v2-2026-08-13。",
+      "source": "TWSE/TPEX 官方全市場日行情，先全市場初選，再完整分析前 48 檔",
+      "positionId": "position-1790332394585-109a0a4d59bcd",
+      "id": "trade-1790332394585-a48215ba85caa",
+      "createdAt": "2026-09-25T10:33:14.585Z",
+      "tradingDate": "2026-09-25"
+    },
+    {
+      "side": "SELL",
+      "symbol": "2069.TW",
+      "name": "運錩",
+      "price": 25.7,
+      "shares": 102,
+      "amount": 2621.4,
+      "costBasis": 2509.2000000000003,
+      "realizedPnl": 112.19999999999982,
+      "realizedPnlPct": 4.471544715447147,
+      "cashAfter": 77717.6499999999,
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1790141003179-df5cee29eb964",
+      "id": "trade-1790332376671-3813249309762",
+      "createdAt": "2026-09-25T10:32:56.671Z",
+      "tradingDate": "2026-09-25"
+    },
     {
       "side": "PARTIAL_SELL",
       "symbol": "6531.TW",
@@ -6110,6 +6143,75 @@
   ],
   "decisions": [
     {
+      "symbol": "6770.TW",
+      "name": "力積電",
+      "decision": "買進",
+      "reason": "靠近支撐 71.42 元 可分批，不追高。",
+      "finalScore": 59,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1790332394585-c03548e85a1a7",
+      "createdAt": "2026-09-25T10:33:14.585Z",
+      "tradingDate": "2026-09-25"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "1303.TW 南亞：AI 分數 57 低於 58 / 3026.TW 禾伸堂：AI 分數 57 低於 58 / 6213.TW 聯茂：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.74 低於 0.9；今日漲幅 9.98% 過熱，避免追高 / 6933.TW AMAX-KY：推薦等級為 等待回檔；AI 動作為 等待；交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.59 低於 0.9；今日漲幅 10% 過熱，避免追高 / 6218.TWO 豪勉：推薦等級為 等待回檔；AI 動作為 等待；交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.47 低於 0.9",
+      "id": "decision-1790332394585-695ac6466d035",
+      "createdAt": "2026-09-25T10:33:14.585Z",
+      "tradingDate": "2026-09-25"
+    },
+    {
+      "symbol": "6531.TW",
+      "name": "愛普*",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 57,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1790332377540-5f6c0965b59f6",
+      "createdAt": "2026-09-25T10:32:57.540Z",
+      "tradingDate": "2026-09-25"
+    },
+    {
+      "symbol": "3491.TWO",
+      "name": "昇達科",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 59,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1790332377111-15006bab4be9e",
+      "createdAt": "2026-09-25T10:32:57.111Z",
+      "tradingDate": "2026-09-25"
+    },
+    {
+      "symbol": "2069.TW",
+      "name": "運錩",
+      "decision": "賣出",
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "finalScore": 63,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1790332376672-f8b6dba7c9853",
+      "createdAt": "2026-09-25T10:32:56.672Z",
+      "tradingDate": "2026-09-25"
+    },
+    {
+      "symbol": "2610.TW",
+      "name": "華航",
+      "decision": "續抱",
+      "reason": "停損線 19.81 元 不下修，跌破代表交易假設失效。",
+      "finalScore": 46,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1790332376132-1341280a9ba57",
+      "createdAt": "2026-09-25T10:32:56.132Z",
+      "tradingDate": "2026-09-25"
+    },
+    {
       "symbol": "CASH",
       "name": "資金控管",
       "decision": "暫停買入",
@@ -11640,78 +11742,18 @@
       "id": "decision-1787118265001-6ddaf1f4fa79a",
       "createdAt": "2026-08-19T05:44:25.001Z",
       "tradingDate": "2026-08-19"
-    },
-    {
-      "symbol": "6226.TW",
-      "name": "光鼎",
-      "decision": "續抱",
-      "reason": "收盤跌破 19.47 元 或跌破 MA20 後無法收回，應降低部位。",
-      "finalScore": 53,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787118264530-3eb96ed461cad",
-      "createdAt": "2026-08-19T05:44:24.530Z",
-      "tradingDate": "2026-08-19"
-    },
-    {
-      "symbol": "3441.TWO",
-      "name": "聯一光電",
-      "decision": "續抱",
-      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
-      "finalScore": 59,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787118264047-916f9d93add9a",
-      "createdAt": "2026-08-19T05:44:24.047Z",
-      "tradingDate": "2026-08-19"
-    },
-    {
-      "symbol": "1301.TW",
-      "name": "台塑",
-      "decision": "續抱",
-      "reason": "停損線 53.88 元 不可下修。",
-      "finalScore": 50,
-      "tradeStyle": "暫不交易",
-      "automationAction": "等待",
-      "id": "decision-1787118263109-c5e63c48f4a9f",
-      "createdAt": "2026-08-19T05:44:23.109Z",
-      "tradingDate": "2026-08-19"
-    },
-    {
-      "symbol": "2302.TW",
-      "name": "麗正",
-      "decision": "買進",
-      "reason": "只適合小部位短打，買點要靠近支撐或突破當下，不適合追高長抱。",
-      "finalScore": 68,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1787116024345-169d2147f6bc9",
-      "createdAt": "2026-08-19T05:07:04.345Z",
-      "tradingDate": "2026-08-19"
-    },
-    {
-      "symbol": "RISK-GATE",
-      "name": "自動交易風控",
-      "decision": "過濾候選",
-      "reason": "5904.TWO 寶雅*：AI 動作為 續抱 / 5434.TW 崇越：推薦等級為 接近買點；AI 動作為 續抱 / 6409.TW 旭隼：今日跌幅 -4.69% 偏弱，避免接刀 / 4938.TW 和碩：AI 動作為 續抱 / 2884.TW 玉山金：AI 動作為 續抱；近 3 天已賣出或禁止賣出過，先冷卻",
-      "id": "decision-1787116024345-323bba91fe7cf",
-      "createdAt": "2026-08-19T05:07:04.345Z",
-      "tradingDate": "2026-08-19"
-    },
-    {
-      "symbol": "6226.TW",
-      "name": "光鼎",
-      "decision": "禁止當沖，暫不賣",
-      "reason": "AI 顯示減碼訊號：第一目標 24.84 元 先賣 1/3 到 1/2，第二目標 27.41 元 再分批。",
-      "finalScore": 61,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787116005817-eb924ef6eb99f",
-      "createdAt": "2026-08-19T05:06:45.817Z",
-      "tradingDate": "2026-08-19"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1790332394586-6d966012421e5",
+      "createdAt": "2026-09-25T10:33:14.586Z",
+      "tradingDate": "2026-09-25",
+      "cash": 67781.6499999999,
+      "positionValue": 29513,
+      "totalEquity": 97294.6499999999,
+      "realizedPnl": -2656.3500000000085
+    },
     {
       "id": "equity-1790314629942-09c196e200593",
       "createdAt": "2026-09-25T05:37:09.942Z",
@@ -13306,6 +13348,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-09-25T05:36:59.667Z",
+  "lastRunAt": "2026-09-25T10:32:45.429Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
