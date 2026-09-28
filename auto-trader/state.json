@@ -1,6 +1,6 @@
 {
   "initialCapital": 100000,
-  "cash": 76290.6499999999,
+  "cash": 72389.6499999999,
   "realizedPnl": -2656.3500000000085,
   "positions": [
     {
@@ -22,49 +22,7 @@
       "lastValue": 9947,
       "unrealizedPnl": -49,
       "unrealizedPnlPct": -0.49019607843137253,
-      "lastAnalysisAt": "2026-09-28T06:07:01.128Z"
-    },
-    {
-      "id": "position-1790228475561-8f6f9145a6831",
-      "symbol": "3491.TWO",
-      "name": "昇達科",
-      "shares": 2,
-      "entryPrice": 1555,
-      "entryAmount": 3110,
-      "stopLossPrice": 1412.32,
-      "takeProfit1": 1713.79,
-      "takeProfit2": 1846.11,
-      "openedAt": "2026-09-24T05:41:15.561Z",
-      "openedTradingDate": "2026-09-24",
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "positionSizePct": 20,
-      "lastPrice": 1555,
-      "lastValue": 3110,
-      "unrealizedPnl": 0,
-      "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-09-28T06:07:01.460Z"
-    },
-    {
-      "id": "position-1790228475561-12d2ede18e652",
-      "symbol": "6531.TW",
-      "name": "愛普*",
-      "shares": 3,
-      "entryPrice": 993,
-      "entryAmount": 2979,
-      "stopLossPrice": 915.98,
-      "takeProfit1": 1097.91,
-      "takeProfit2": 1185.34,
-      "openedAt": "2026-09-24T05:41:15.561Z",
-      "openedTradingDate": "2026-09-24",
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "positionSizePct": 20,
-      "lastPrice": 993,
-      "lastValue": 2979,
-      "unrealizedPnl": 0,
-      "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-09-28T06:07:01.761Z"
+      "lastAnalysisAt": "2026-09-28T13:45:26.766Z"
     },
     {
       "id": "position-1790332394585-109a0a4d59bcd",
@@ -85,10 +43,82 @@
       "lastValue": 4968,
       "unrealizedPnl": 0,
       "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-09-28T06:07:02.057Z"
+      "lastAnalysisAt": "2026-09-28T13:45:28.347Z"
+    },
+    {
+      "id": "position-1790603141746-09d502764c207",
+      "symbol": "3354.TWO",
+      "name": "3354.TWO",
+      "shares": 333,
+      "entryPrice": 30,
+      "entryAmount": 9990,
+      "stopLossPrice": 26.31,
+      "takeProfit1": 33.97,
+      "takeProfit2": 37.28,
+      "openedAt": "2026-09-28T13:45:41.746Z",
+      "openedTradingDate": "2026-09-28",
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "positionSizePct": 20,
+      "lastPrice": 30,
+      "lastValue": 9990,
+      "unrealizedPnl": 0,
+      "unrealizedPnlPct": 0,
+      "lastAnalysisAt": "2026-09-28T13:45:41.746Z"
     }
   ],
   "trades": [
+    {
+      "side": "BUY",
+      "symbol": "3354.TWO",
+      "name": "3354.TWO",
+      "price": 30,
+      "shares": 333,
+      "amount": 9990,
+      "cashAfter": 72389.6499999999,
+      "reason": "可小量試單，波段持有/趨勢續抱，AI 動作 小量試單，3-5 天上漲機率 59%，風控版 risk-guard-v2-2026-08-13。",
+      "source": "TWSE/TPEX 官方全市場日行情，先全市場初選，再完整分析前 48 檔",
+      "positionId": "position-1790603141746-09d502764c207",
+      "id": "trade-1790603141746-605d28d4f95dd",
+      "createdAt": "2026-09-28T13:45:41.746Z",
+      "tradingDate": "2026-09-28"
+    },
+    {
+      "side": "SELL",
+      "symbol": "6531.TW",
+      "name": "愛普*",
+      "price": 993,
+      "shares": 3,
+      "amount": 2979,
+      "costBasis": 2979,
+      "realizedPnl": 0,
+      "realizedPnlPct": 0,
+      "cashAfter": 82379.6499999999,
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1790228475561-12d2ede18e652",
+      "id": "trade-1790603128018-99c2064756739",
+      "createdAt": "2026-09-28T13:45:28.018Z",
+      "tradingDate": "2026-09-28"
+    },
+    {
+      "side": "SELL",
+      "symbol": "3491.TWO",
+      "name": "昇達科",
+      "price": 1555,
+      "shares": 2,
+      "amount": 3110,
+      "costBasis": 3110,
+      "realizedPnl": 0,
+      "realizedPnlPct": 0,
+      "cashAfter": 79400.6499999999,
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1790228475561-8f6f9145a6831",
+      "id": "trade-1790603127647-0dee25c6b0a88",
+      "createdAt": "2026-09-28T13:45:27.647Z",
+      "tradingDate": "2026-09-28"
+    },
     {
       "side": "PARTIAL_SELL",
       "symbol": "6770.TW",
@@ -6212,6 +6242,75 @@
   ],
   "decisions": [
     {
+      "symbol": "3354.TWO",
+      "name": "3354.TWO",
+      "decision": "買進",
+      "reason": "突破量能需維持 1.2 倍以上；若無量，等回測 28.30 元。",
+      "finalScore": 58,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1790603141746-67a61a1c5c08c",
+      "createdAt": "2026-09-28T13:45:41.746Z",
+      "tradingDate": "2026-09-28"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "1303.TW 南亞：AI 分數 56 低於 58 / 3026.TW 禾伸堂：AI 分數 57 低於 58 / 6213.TW 聯茂：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.74 低於 0.9；今日漲幅 9.98% 過熱，避免追高 / 6933.TW AMAX-KY：推薦等級為 等待回檔；AI 動作為 等待；交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.59 低於 0.9；今日漲幅 10% 過熱，避免追高 / 6218.TWO 6218.TWO：推薦等級為 等待回檔；AI 動作為 等待；交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.47 低於 0.9",
+      "id": "decision-1790603141746-03f481587aa37",
+      "createdAt": "2026-09-28T13:45:41.746Z",
+      "tradingDate": "2026-09-28"
+    },
+    {
+      "symbol": "6770.TW",
+      "name": "力積電",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 59,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1790603128347-31078a6c1705d",
+      "createdAt": "2026-09-28T13:45:28.347Z",
+      "tradingDate": "2026-09-28"
+    },
+    {
+      "symbol": "6531.TW",
+      "name": "愛普*",
+      "decision": "賣出",
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "finalScore": 57,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1790603128018-9ece0d6116b6e",
+      "createdAt": "2026-09-28T13:45:28.018Z",
+      "tradingDate": "2026-09-28"
+    },
+    {
+      "symbol": "3491.TWO",
+      "name": "昇達科",
+      "decision": "賣出",
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "finalScore": 59,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1790603127647-b787475323ccb",
+      "createdAt": "2026-09-28T13:45:27.647Z",
+      "tradingDate": "2026-09-28"
+    },
+    {
+      "symbol": "2610.TW",
+      "name": "華航",
+      "decision": "續抱",
+      "reason": "停損線 19.81 元 不下修，跌破代表交易假設失效。",
+      "finalScore": 46,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1790603126766-13f88bc4dce86",
+      "createdAt": "2026-09-28T13:45:26.766Z",
+      "tradingDate": "2026-09-28"
+    },
+    {
       "symbol": "CASH",
       "name": "資金控管",
       "decision": "暫停買入",
@@ -11742,78 +11841,18 @@
       "id": "decision-1787191879581-ca81771c6364e",
       "createdAt": "2026-08-20T02:11:19.581Z",
       "tradingDate": "2026-08-20"
-    },
-    {
-      "symbol": "2302.TW",
-      "name": "麗正",
-      "decision": "部分賣出",
-      "reason": "AI 顯示減碼訊號：短線目標先看 48.96 元；若隔日開高無量，先減碼。",
-      "finalScore": 57,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1787191879581-d23e7c06afe49",
-      "createdAt": "2026-08-20T02:11:19.581Z",
-      "tradingDate": "2026-08-20"
-    },
-    {
-      "symbol": "6226.TW",
-      "name": "光鼎",
-      "decision": "部分賣出",
-      "reason": "AI 顯示減碼訊號：第一目標 24.89 元 先賣 1/3 到 1/2，第二目標 27.30 元 再分批。",
-      "finalScore": 62,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787191879020-47e77ddabc4de",
-      "createdAt": "2026-08-20T02:11:19.020Z",
-      "tradingDate": "2026-08-20"
-    },
-    {
-      "symbol": "3441.TWO",
-      "name": "聯一光電",
-      "decision": "部分賣出",
-      "reason": "AI 顯示減碼訊號：第一目標 111.12 元 先賣 1/3 到 1/2，第二目標 122.64 元 再分批。",
-      "finalScore": 58,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787191878627-f94376c507cdd",
-      "createdAt": "2026-08-20T02:11:18.627Z",
-      "tradingDate": "2026-08-20"
-    },
-    {
-      "symbol": "1301.TW",
-      "name": "台塑",
-      "decision": "部分賣出",
-      "reason": "AI 顯示減碼訊號：第一目標 69.80 元 先賣 1/3 到 1/2，第二目標 72.91 元 再分批。",
-      "finalScore": 58,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787191877685-6076560b535cd",
-      "createdAt": "2026-08-20T02:11:17.685Z",
-      "tradingDate": "2026-08-20"
-    },
-    {
-      "symbol": "CASH",
-      "name": "資金控管",
-      "decision": "暫停買入",
-      "reason": "已持有 4 檔，避免過度分散。",
-      "id": "decision-1787122891558-551c53621bfe1",
-      "createdAt": "2026-08-19T07:01:31.558Z",
-      "tradingDate": "2026-08-19"
-    },
-    {
-      "symbol": "2302.TW",
-      "name": "麗正",
-      "decision": "禁止當沖，暫不賣",
-      "reason": "AI 顯示減碼訊號：短線目標先看 49.96 元；若隔日開高無量，先減碼。",
-      "finalScore": 60,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1787122891558-021323602499f",
-      "createdAt": "2026-08-19T07:01:31.558Z",
-      "tradingDate": "2026-08-19"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1790603141746-ef9813d0c645f",
+      "createdAt": "2026-09-28T13:45:41.746Z",
+      "tradingDate": "2026-09-28",
+      "cash": 72389.6499999999,
+      "positionValue": 24905,
+      "totalEquity": 97294.6499999999,
+      "realizedPnl": -2656.3500000000085
+    },
     {
       "id": "equity-1790575622058-4e1427ea129df",
       "createdAt": "2026-09-28T06:07:02.058Z",
@@ -13435,6 +13474,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-09-28T06:06:45.560Z",
+  "lastRunAt": "2026-09-28T13:45:04.634Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
