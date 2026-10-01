@@ -1,7 +1,7 @@
 {
   "initialCapital": 100000,
-  "cash": 90297.3999999999,
-  "realizedPnl": -2234.600000000009,
+  "cash": 92837.3999999999,
+  "realizedPnl": -2164.600000000009,
   "positions": [
     {
       "id": "position-1790141003179-7a6123952b932",
@@ -22,31 +22,28 @@
       "lastValue": 4973.5,
       "unrealizedPnl": -24.5,
       "unrealizedPnlPct": -0.49019607843137253,
-      "lastAnalysisAt": "2026-10-01T06:42:39.085Z"
-    },
-    {
-      "id": "position-1790663208427-e070c9ffec413",
-      "symbol": "1303.TW",
-      "name": "南亞",
-      "shares": 10,
-      "entryPrice": 247,
-      "entryAmount": 2470,
-      "stopLossPrice": 227.36,
-      "takeProfit1": 278.56,
-      "takeProfit2": 299.02,
-      "openedAt": "2026-09-29T06:26:48.427Z",
-      "openedTradingDate": "2026-09-29",
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "positionSizePct": 20,
-      "lastPrice": 254,
-      "lastValue": 2540,
-      "unrealizedPnl": 70,
-      "unrealizedPnlPct": 2.834008097165992,
-      "lastAnalysisAt": "2026-10-01T06:42:40.193Z"
+      "lastAnalysisAt": "2026-10-01T13:03:57.467Z"
     }
   ],
   "trades": [
+    {
+      "side": "SELL",
+      "symbol": "1303.TW",
+      "name": "南亞",
+      "price": 254,
+      "shares": 10,
+      "amount": 2540,
+      "costBasis": 2470,
+      "realizedPnl": 70,
+      "realizedPnlPct": 2.834008097165992,
+      "cashAfter": 92837.3999999999,
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1790663208427-e070c9ffec413",
+      "id": "trade-1790859837989-0692d15cb5a67",
+      "createdAt": "2026-10-01T13:03:57.989Z",
+      "tradingDate": "2026-10-01"
+    },
     {
       "side": "PARTIAL_SELL",
       "symbol": "1303.TW",
@@ -6399,6 +6396,48 @@
       "name": "全市場",
       "decision": "沒有買入",
       "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
+      "id": "decision-1790859844295-f170e1384fd2b",
+      "createdAt": "2026-10-01T13:04:04.295Z",
+      "tradingDate": "2026-10-01"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "6116.TW 彩晶：風險報酬比 1:0.87 低於 0.9；今日跌幅 -4.28% 偏弱，避免接刀 / 6505.TW 台塑化：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.7 低於 0.9 / 3576.TW 聯合再生：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.83 低於 0.9；今日跌幅 -6.09% 偏弱，避免接刀 / 1301.TW 台塑：推薦等級為 接近買點；AI 動作為 續抱 / 6770.TW 力積電：近 3 天已賣出或禁止賣出過，先冷卻",
+      "id": "decision-1790859844295-2f5fe6d78b9b8",
+      "createdAt": "2026-10-01T13:04:04.295Z",
+      "tradingDate": "2026-10-01"
+    },
+    {
+      "symbol": "1303.TW",
+      "name": "南亞",
+      "decision": "賣出",
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "finalScore": 63,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1790859837989-4208d817fc809",
+      "createdAt": "2026-10-01T13:03:57.989Z",
+      "tradingDate": "2026-10-01"
+    },
+    {
+      "symbol": "2610.TW",
+      "name": "華航",
+      "decision": "續抱",
+      "reason": "停損線 19.79 元 不下修，跌破代表交易假設失效。",
+      "finalScore": 48,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1790859837468-4f646dfb5a3c3",
+      "createdAt": "2026-10-01T13:03:57.468Z",
+      "tradingDate": "2026-10-01"
+    },
+    {
+      "symbol": "MARKET",
+      "name": "全市場",
+      "decision": "沒有買入",
+      "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
       "id": "decision-1790836982218-8e39acde5cf7d",
       "createdAt": "2026-10-01T06:43:02.218Z",
       "tradingDate": "2026-10-01"
@@ -11937,54 +11976,18 @@
       "id": "decision-1787209337379-756f03d7d4436",
       "createdAt": "2026-08-20T07:02:17.379Z",
       "tradingDate": "2026-08-20"
-    },
-    {
-      "symbol": "6226.TW",
-      "name": "光鼎",
-      "decision": "續抱",
-      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
-      "finalScore": 60,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787209336929-67f463fa5efa3",
-      "createdAt": "2026-08-20T07:02:16.929Z",
-      "tradingDate": "2026-08-20"
-    },
-    {
-      "symbol": "CASH",
-      "name": "資金控管",
-      "decision": "暫停買入",
-      "reason": "已持有 4 檔，避免過度分散。",
-      "id": "decision-1787204785856-5e5115516ea3e",
-      "createdAt": "2026-08-20T05:46:25.856Z",
-      "tradingDate": "2026-08-20"
-    },
-    {
-      "symbol": "3042.TW",
-      "name": "晶技",
-      "decision": "禁止當沖，暫不賣",
-      "reason": "AI 顯示減碼訊號：短線目標先看 213.96 元；若隔日開高無量，先減碼。",
-      "finalScore": 58,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1787204785855-1ccb2fe753885",
-      "createdAt": "2026-08-20T05:46:25.855Z",
-      "tradingDate": "2026-08-20"
-    },
-    {
-      "symbol": "9914.TW",
-      "name": "美利達",
-      "decision": "禁止當沖，暫不賣",
-      "reason": "AI 顯示減碼訊號：第一目標 97.55 元 先賣 1/3 到 1/2，第二目標 105.67 元 再分批。",
-      "finalScore": 59,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787204785540-054f8c77ea1bb",
-      "createdAt": "2026-08-20T05:46:25.540Z",
-      "tradingDate": "2026-08-20"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1790859844295-66a0e1711f136",
+      "createdAt": "2026-10-01T13:04:04.295Z",
+      "tradingDate": "2026-10-01",
+      "cash": 92837.3999999999,
+      "positionValue": 4973.5,
+      "totalEquity": 97810.8999999999,
+      "realizedPnl": -2164.600000000009
+    },
     {
       "id": "equity-1790836982218-5533baec18ec6",
       "createdAt": "2026-10-01T06:43:02.218Z",
@@ -13660,6 +13663,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-10-01T06:41:36.128Z",
+  "lastRunAt": "2026-10-01T13:03:51.768Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
