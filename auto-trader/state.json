@@ -1,31 +1,27 @@
 {
   "initialCapital": 100000,
-  "cash": 95320.0999999999,
-  "realizedPnl": -2170.7000000000085,
-  "positions": [
+  "cash": 97823.1499999999,
+  "realizedPnl": -2176.850000000008,
+  "positions": [],
+  "trades": [
     {
-      "id": "position-1790141003179-7a6123952b932",
+      "side": "SELL",
       "symbol": "2610.TW",
       "name": "華航",
+      "price": 20.35,
       "shares": 123,
-      "entryPrice": 20.4,
-      "entryAmount": 2509.2,
-      "stopLossPrice": 20.13,
-      "takeProfit1": 20.91,
-      "takeProfit2": 21.38,
-      "openedAt": "2026-09-23T05:23:23.179Z",
-      "openedTradingDate": "2026-09-23",
-      "tradeStyle": "暫不交易",
-      "automationAction": "等待",
-      "positionSizePct": 0,
-      "lastPrice": 20.35,
-      "lastValue": 2503.05,
-      "unrealizedPnl": -6.14999999999965,
-      "unrealizedPnlPct": -0.24509803921567236,
-      "lastAnalysisAt": "2026-10-02T06:28:19.218Z"
-    }
-  ],
-  "trades": [
+      "amount": 2503.05,
+      "costBasis": 2509.2,
+      "realizedPnl": -6.149999999999636,
+      "realizedPnlPct": -0.24509803921567178,
+      "cashAfter": 97823.1499999999,
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1790141003179-7a6123952b932",
+      "id": "trade-1790943859334-c98b3efdd8a67",
+      "createdAt": "2026-10-02T12:24:19.334Z",
+      "tradingDate": "2026-10-02"
+    },
     {
       "side": "PARTIAL_SELL",
       "symbol": "2610.TW",
@@ -6414,6 +6410,36 @@
       "name": "全市場",
       "decision": "沒有買入",
       "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
+      "id": "decision-1790943865055-ba3cfbfae05c9",
+      "createdAt": "2026-10-02T12:24:25.055Z",
+      "tradingDate": "2026-10-02"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "3231.TW 緯創：AI 分數 55 低於 58；3-5 天上漲機率 52% 低於 56% / 2302.TW 麗正：推薦等級為 等待回檔；AI 動作為 續抱 / 6770.TW 力積電：推薦等級為 等待回檔；AI 動作為 續抱；風險報酬比 1:0.82 低於 0.9；近 3 天已賣出或禁止賣出過，先冷卻 / 2481.TW 強茂：3-5 天上漲機率 55% 低於 56% / 2303.TW 聯電：推薦等級為 等待回檔；AI 動作為 等待；交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.67 低於 0.9",
+      "id": "decision-1790943865055-9375bb1d8f8c4",
+      "createdAt": "2026-10-02T12:24:25.055Z",
+      "tradingDate": "2026-10-02"
+    },
+    {
+      "symbol": "2610.TW",
+      "name": "華航",
+      "decision": "賣出",
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "finalScore": 55,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1790943859334-d4394d2995654",
+      "createdAt": "2026-10-02T12:24:19.334Z",
+      "tradingDate": "2026-10-02"
+    },
+    {
+      "symbol": "MARKET",
+      "name": "全市場",
+      "decision": "沒有買入",
+      "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
       "id": "decision-1790922516593-b8633ea51e12a",
       "createdAt": "2026-10-02T06:28:36.593Z",
       "tradingDate": "2026-10-02"
@@ -11955,42 +11981,18 @@
       "id": "decision-1787278670278-506d7cac47c66",
       "createdAt": "2026-08-21T02:17:50.278Z",
       "tradingDate": "2026-08-21"
-    },
-    {
-      "symbol": "2302.TW",
-      "name": "麗正",
-      "decision": "賣出",
-      "reason": "現價跌破停損線 42.45 元",
-      "finalScore": 55,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1787278669883-87a0289f986f3",
-      "createdAt": "2026-08-21T02:17:49.883Z",
-      "tradingDate": "2026-08-21"
-    },
-    {
-      "symbol": "6226.TW",
-      "name": "光鼎",
-      "decision": "部分賣出",
-      "reason": "AI 顯示減碼訊號：第一目標 24.50 元 先賣 1/3 到 1/2，第二目標 26.72 元 再分批。",
-      "finalScore": 61,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787278669380-cc03437ec6861",
-      "createdAt": "2026-08-21T02:17:49.380Z",
-      "tradingDate": "2026-08-21"
-    },
-    {
-      "symbol": "CASH",
-      "name": "資金控管",
-      "decision": "暫停買入",
-      "reason": "已持有 4 檔，避免過度分散。",
-      "id": "decision-1787209338267-d632755814a15",
-      "createdAt": "2026-08-20T07:02:18.267Z",
-      "tradingDate": "2026-08-20"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1790943865055-3dc6f8291f588",
+      "createdAt": "2026-10-02T12:24:25.055Z",
+      "tradingDate": "2026-10-02",
+      "cash": 97823.1499999999,
+      "positionValue": 0,
+      "totalEquity": 97823.1499999999,
+      "realizedPnl": -2176.850000000008
+    },
     {
       "id": "equity-1790922516593-cb95b5ca5a81a",
       "createdAt": "2026-10-02T06:28:36.593Z",
@@ -13684,6 +13686,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-10-02T06:27:46.916Z",
+  "lastRunAt": "2026-10-02T12:24:11.058Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
