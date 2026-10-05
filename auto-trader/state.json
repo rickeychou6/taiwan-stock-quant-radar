@@ -6410,6 +6410,24 @@
       "name": "全市場",
       "decision": "沒有買入",
       "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
+      "id": "decision-1791181572989-e35320be0974a",
+      "createdAt": "2026-10-05T06:26:12.989Z",
+      "tradingDate": "2026-10-05"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "3576.TW 聯合再生：風險報酬比 1:0.85 低於 0.9 / 1326.TW 台化：推薦等級為 接近買點；AI 動作為 續抱 / 6770.TW 力積電：推薦等級為 等待回檔；AI 動作為 續抱 / 5351.TWO 鈺創：AI 分數 56 低於 58 / 6531.TW 愛普*：風險報酬比 1:0.82 低於 0.9",
+      "id": "decision-1791181572989-70161e0635ca6",
+      "createdAt": "2026-10-05T06:26:12.989Z",
+      "tradingDate": "2026-10-05"
+    },
+    {
+      "symbol": "MARKET",
+      "name": "全市場",
+      "decision": "沒有買入",
+      "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
       "id": "decision-1790943865055-ba3cfbfae05c9",
       "createdAt": "2026-10-02T12:24:25.055Z",
       "tradingDate": "2026-10-02"
@@ -11957,33 +11975,18 @@
       "id": "decision-1787278686253-012cbe931054f",
       "createdAt": "2026-08-21T02:18:06.253Z",
       "tradingDate": "2026-08-21"
-    },
-    {
-      "symbol": "3042.TW",
-      "name": "晶技",
-      "decision": "部分賣出",
-      "reason": "AI 顯示減碼訊號：短線目標先看 222.70 元；若隔日開高無量，先減碼。",
-      "finalScore": 69,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1787278670738-c788263193474",
-      "createdAt": "2026-08-21T02:17:50.738Z",
-      "tradingDate": "2026-08-21"
-    },
-    {
-      "symbol": "9914.TW",
-      "name": "美利達",
-      "decision": "部分賣出",
-      "reason": "AI 顯示減碼訊號：第一目標 96.80 元 先賣 1/3 到 1/2，第二目標 105.01 元 再分批。",
-      "finalScore": 60,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787278670278-506d7cac47c66",
-      "createdAt": "2026-08-21T02:17:50.278Z",
-      "tradingDate": "2026-08-21"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1791181572989-f1a444c5c267c",
+      "createdAt": "2026-10-05T06:26:12.989Z",
+      "tradingDate": "2026-10-05",
+      "cash": 97823.1499999999,
+      "positionValue": 0,
+      "totalEquity": 97823.1499999999,
+      "realizedPnl": -2176.850000000008
+    },
     {
       "id": "equity-1790943865055-3dc6f8291f588",
       "createdAt": "2026-10-02T12:24:25.055Z",
@@ -13686,6 +13689,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-10-02T12:24:11.058Z",
+  "lastRunAt": "2026-10-05T06:25:17.468Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
