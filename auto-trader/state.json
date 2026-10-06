@@ -6408,6 +6408,15 @@
     {
       "symbol": "MARKET",
       "name": "全市場",
+      "decision": "推薦雷達失敗",
+      "reason": "This operation was aborted",
+      "id": "decision-1791270241186-c7c99e3e4eec1",
+      "createdAt": "2026-10-06T07:04:01.186Z",
+      "tradingDate": "2026-10-06"
+    },
+    {
+      "symbol": "MARKET",
+      "name": "全市場",
       "decision": "沒有買入",
       "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
       "id": "decision-1791210444397-de014f7348dc",
@@ -11960,21 +11969,18 @@
       "id": "decision-1787282844748-78c50c9f58379",
       "createdAt": "2026-08-21T03:27:24.748Z",
       "tradingDate": "2026-08-21"
-    },
-    {
-      "symbol": "6226.TW",
-      "name": "光鼎",
-      "decision": "賣出",
-      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
-      "finalScore": 61,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787282844385-fa0c534e8008",
-      "createdAt": "2026-08-21T03:27:24.385Z",
-      "tradingDate": "2026-08-21"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1791270241186-4a6471fcdac47",
+      "createdAt": "2026-10-06T07:04:01.186Z",
+      "tradingDate": "2026-10-06",
+      "cash": 97823.1499999999,
+      "positionValue": 0,
+      "totalEquity": 97823.1499999999,
+      "realizedPnl": -2176.850000000008
+    },
     {
       "id": "equity-1791210444397-d6bf1cc316877",
       "createdAt": "2026-10-05T14:27:24.397Z",
@@ -13695,6 +13701,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-10-05T14:27:00.209Z",
+  "lastRunAt": "2026-10-06T07:01:01.184Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
