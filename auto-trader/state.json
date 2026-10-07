@@ -1,31 +1,85 @@
 {
   "initialCapital": 100000,
-  "cash": 88423.1499999999,
-  "realizedPnl": -2176.850000000008,
+  "cash": 86133.1499999999,
+  "realizedPnl": -2076.850000000008,
   "positions": [
     {
       "id": "position-1791292497035-a81f512d6fe4c",
       "symbol": "2360.TW",
       "name": "致茂",
-      "shares": 4,
+      "shares": 2,
       "entryPrice": 2350,
-      "entryAmount": 9400,
-      "stopLossPrice": 2145.68,
-      "takeProfit1": 2596.21,
-      "takeProfit2": 2801.39,
+      "entryAmount": 4700,
+      "stopLossPrice": 2148.61,
+      "takeProfit1": 2662.93,
+      "takeProfit2": 2882.04,
       "openedAt": "2026-10-06T13:14:57.035Z",
       "openedTradingDate": "2026-10-06",
       "tradeStyle": "波段持有",
       "automationAction": "小量試單",
       "positionSizePct": 20,
-      "lastPrice": 2350,
-      "lastValue": 9400,
+      "lastPrice": 2400,
+      "lastValue": 4800,
+      "unrealizedPnl": 100,
+      "unrealizedPnlPct": 2.127659574468085,
+      "lastAnalysisAt": "2026-10-07T06:42:31.278Z"
+    },
+    {
+      "id": "position-1791355369552-5f3f645310636",
+      "symbol": "3017.TW",
+      "name": "奇鋐",
+      "shares": 2,
+      "entryPrice": 3545,
+      "entryAmount": 7090,
+      "stopLossPrice": 3293.64,
+      "takeProfit1": 3885.07,
+      "takeProfit2": 4168.46,
+      "openedAt": "2026-10-07T06:42:49.552Z",
+      "openedTradingDate": "2026-10-07",
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "positionSizePct": 20,
+      "lastPrice": 3545,
+      "lastValue": 7090,
       "unrealizedPnl": 0,
       "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-10-06T13:14:57.035Z"
+      "lastAnalysisAt": "2026-10-07T06:42:49.552Z"
     }
   ],
   "trades": [
+    {
+      "side": "BUY",
+      "symbol": "3017.TW",
+      "name": "奇鋐",
+      "price": 3545,
+      "shares": 2,
+      "amount": 7090,
+      "cashAfter": 86133.1499999999,
+      "reason": "可小量試單，波段持有/趨勢續抱，AI 動作 小量試單，3-5 天上漲機率 65%，風控版 risk-guard-v2-2026-08-13。",
+      "source": "TWSE/TPEX 官方全市場日行情，先全市場初選，再完整分析前 48 檔",
+      "positionId": "position-1791355369552-5f3f645310636",
+      "id": "trade-1791355369552-3b0565b0a79c5",
+      "createdAt": "2026-10-07T06:42:49.552Z",
+      "tradingDate": "2026-10-07"
+    },
+    {
+      "side": "PARTIAL_SELL",
+      "symbol": "2360.TW",
+      "name": "致茂",
+      "price": 2400,
+      "shares": 2,
+      "amount": 4800,
+      "costBasis": 4700,
+      "realizedPnl": 100,
+      "realizedPnlPct": 2.127659574468085,
+      "cashAfter": 93223.1499999999,
+      "reason": "AI 顯示減碼訊號：第一目標 2662.93 元 先賣 1/3 到 1/2，第二目標 2882.04 元 再分批。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1791292497035-a81f512d6fe4c",
+      "id": "trade-1791355351278-4cb758621a8ab",
+      "createdAt": "2026-10-07T06:42:31.278Z",
+      "tradingDate": "2026-10-07"
+    },
     {
       "side": "BUY",
       "symbol": "2360.TW",
@@ -6443,6 +6497,39 @@
   ],
   "decisions": [
     {
+      "symbol": "3017.TW",
+      "name": "奇鋐",
+      "decision": "買進",
+      "reason": "突破量能需維持 1.2 倍以上；若無量，等回測 3407.00 元。",
+      "finalScore": 62,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1791355369553-053f5cc20ade6",
+      "createdAt": "2026-10-07T06:42:49.553Z",
+      "tradingDate": "2026-10-07"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "7788.TW 松川精密：今日跌幅 -9.99% 偏弱，避免接刀 / 2605.TW 新興：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確 / 6239.TW 力成：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.73 低於 0.9 / 1718.TW 中纖：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.85 低於 0.9 / 2254.TW 巨鎧精密-創：今日跌幅 -9.95% 偏弱，避免接刀",
+      "id": "decision-1791355369552-bc69be7400ebe",
+      "createdAt": "2026-10-07T06:42:49.552Z",
+      "tradingDate": "2026-10-07"
+    },
+    {
+      "symbol": "2360.TW",
+      "name": "致茂",
+      "decision": "部分賣出",
+      "reason": "AI 顯示減碼訊號：第一目標 2662.93 元 先賣 1/3 到 1/2，第二目標 2882.04 元 再分批。",
+      "finalScore": 60,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1791355351278-caded0e72b94d",
+      "createdAt": "2026-10-07T06:42:31.278Z",
+      "tradingDate": "2026-10-07"
+    },
+    {
       "symbol": "2360.TW",
       "name": "致茂",
       "decision": "買進",
@@ -11970,42 +12057,18 @@
       "id": "decision-1787285322052-ff2f6525acecf",
       "createdAt": "2026-08-21T04:08:42.053Z",
       "tradingDate": "2026-08-21"
-    },
-    {
-      "symbol": "6919.TW",
-      "name": "康霈*",
-      "decision": "買進",
-      "reason": "突破量能需維持 1.2 倍以上；若無量，等回測 106.52 元。",
-      "finalScore": 67,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787282859322-68b7aa521d972",
-      "createdAt": "2026-08-21T03:27:39.322Z",
-      "tradingDate": "2026-08-21"
-    },
-    {
-      "symbol": "RISK-GATE",
-      "name": "自動交易風控",
-      "decision": "過濾候選",
-      "reason": "3229.TW 晟鈦：風險報酬比 1:0.81 低於 0.9 / 2408.TW 南亞科：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.72 低於 0.9 / 6108.TW 競國：推薦等級為 等待回檔；AI 動作為 等待；風險報酬比 1:0.36 低於 0.9 / 2344.TW 華邦電：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確 / 8112.TW 至上：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確",
-      "id": "decision-1787282859321-ddc8d1a09e9",
-      "createdAt": "2026-08-21T03:27:39.322Z",
-      "tradingDate": "2026-08-21"
-    },
-    {
-      "symbol": "2634.TW",
-      "name": "漢翔",
-      "decision": "禁止當沖，暫不賣",
-      "reason": "AI 顯示減碼訊號：第一目標 77.67 元 先賣 1/3 到 1/2，第二目標 83.89 元 再分批。",
-      "finalScore": 64,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787282845471-d2cf553410e25",
-      "createdAt": "2026-08-21T03:27:25.471Z",
-      "tradingDate": "2026-08-21"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1791355369553-97f2775390a27",
+      "createdAt": "2026-10-07T06:42:49.553Z",
+      "tradingDate": "2026-10-07",
+      "cash": 86133.1499999999,
+      "positionValue": 11890,
+      "totalEquity": 98023.1499999999,
+      "realizedPnl": -2076.850000000008
+    },
     {
       "id": "equity-1791292497036-bbc82ea2c9f42",
       "createdAt": "2026-10-06T13:14:57.036Z",
@@ -13744,6 +13807,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-10-06T13:13:45.075Z",
+  "lastRunAt": "2026-10-07T06:41:55.811Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
