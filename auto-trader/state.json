@@ -1,31 +1,100 @@
 {
   "initialCapital": 100000,
-  "cash": 90933.1499999999,
-  "realizedPnl": -1976.850000000008,
+  "cash": 77877.3499999999,
+  "realizedPnl": -2186.850000000008,
   "positions": [
     {
-      "id": "position-1791355369552-5f3f645310636",
-      "symbol": "3017.TW",
-      "name": "奇鋐",
-      "shares": 2,
-      "entryPrice": 3545,
-      "entryAmount": 7090,
-      "stopLossPrice": 3293.64,
-      "takeProfit1": 3885.07,
-      "takeProfit2": 4168.46,
-      "openedAt": "2026-10-07T06:42:49.552Z",
-      "openedTradingDate": "2026-10-07",
+      "id": "position-1791442297434-9575a4b357d87",
+      "symbol": "2409.TW",
+      "name": "友達",
+      "shares": 273,
+      "entryPrice": 36.6,
+      "entryAmount": 9991.800000000001,
+      "stopLossPrice": 32.55,
+      "takeProfit1": 43.55,
+      "takeProfit2": 47.24,
+      "openedAt": "2026-10-08T06:51:37.434Z",
+      "openedTradingDate": "2026-10-08",
       "tradeStyle": "波段持有",
       "automationAction": "小量試單",
       "positionSizePct": 20,
-      "lastPrice": 3545,
-      "lastValue": 7090,
+      "lastPrice": 36.6,
+      "lastValue": 9991.800000000001,
       "unrealizedPnl": 0,
       "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-10-07T13:13:51.202Z"
+      "lastAnalysisAt": "2026-10-08T06:51:37.434Z"
+    },
+    {
+      "id": "position-1791442297435-99e129b5b81de",
+      "symbol": "6147.TWO",
+      "name": "頎邦",
+      "shares": 44,
+      "entryPrice": 226,
+      "entryAmount": 9944,
+      "stopLossPrice": 204.31,
+      "takeProfit1": 247.86,
+      "takeProfit2": 266.07,
+      "openedAt": "2026-10-08T06:51:37.435Z",
+      "openedTradingDate": "2026-10-08",
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "positionSizePct": 20,
+      "lastPrice": 226,
+      "lastValue": 9944,
+      "unrealizedPnl": 0,
+      "unrealizedPnlPct": 0,
+      "lastAnalysisAt": "2026-10-08T06:51:37.435Z"
     }
   ],
   "trades": [
+    {
+      "side": "BUY",
+      "symbol": "6147.TWO",
+      "name": "頎邦",
+      "price": 226,
+      "shares": 44,
+      "amount": 9944,
+      "cashAfter": 77877.3499999999,
+      "reason": "可小量試單，波段持有/趨勢續抱，AI 動作 小量試單，3-5 天上漲機率 71%，風控版 risk-guard-v2-2026-08-13。",
+      "source": "TWSE/TPEX 官方全市場日行情，先全市場初選，再完整分析前 48 檔",
+      "positionId": "position-1791442297435-99e129b5b81de",
+      "id": "trade-1791442297435-033b36c742056",
+      "createdAt": "2026-10-08T06:51:37.435Z",
+      "tradingDate": "2026-10-08"
+    },
+    {
+      "side": "BUY",
+      "symbol": "2409.TW",
+      "name": "友達",
+      "price": 36.6,
+      "shares": 273,
+      "amount": 9991.800000000001,
+      "cashAfter": 87821.3499999999,
+      "reason": "可小量試單，波段持有/趨勢續抱，AI 動作 小量試單，3-5 天上漲機率 62%，風控版 risk-guard-v2-2026-08-13。",
+      "source": "TWSE/TPEX 官方全市場日行情，先全市場初選，再完整分析前 48 檔",
+      "positionId": "position-1791442297434-9575a4b357d87",
+      "id": "trade-1791442297434-ba462b4ccb1d",
+      "createdAt": "2026-10-08T06:51:37.434Z",
+      "tradingDate": "2026-10-08"
+    },
+    {
+      "side": "SELL",
+      "symbol": "3017.TW",
+      "name": "奇鋐",
+      "price": 3440,
+      "shares": 2,
+      "amount": 6880,
+      "costBasis": 7090,
+      "realizedPnl": -210,
+      "realizedPnlPct": -2.9619181946403383,
+      "cashAfter": 97813.1499999999,
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1791355369552-5f3f645310636",
+      "id": "trade-1791442264930-69c29da51698f",
+      "createdAt": "2026-10-08T06:51:04.930Z",
+      "tradingDate": "2026-10-08"
+    },
     {
       "side": "BLOCKED_SELL",
       "symbol": "3017.TW",
@@ -6509,6 +6578,60 @@
   ],
   "decisions": [
     {
+      "symbol": "RISK-GATE",
+      "name": "每日買進上限",
+      "decision": "暫停買入",
+      "reason": "今日已買進 2 檔，避免同一天行情誤判時一起套住。",
+      "id": "decision-1791442297435-854fb179f8c85",
+      "createdAt": "2026-10-08T06:51:37.435Z",
+      "tradingDate": "2026-10-08"
+    },
+    {
+      "symbol": "6147.TWO",
+      "name": "頎邦",
+      "decision": "買進",
+      "reason": "突破量能需維持 1.2 倍以上；若無量，等回測 211.99 元。",
+      "finalScore": 60,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1791442297435-3a88ff40a55ab",
+      "createdAt": "2026-10-08T06:51:37.435Z",
+      "tradingDate": "2026-10-08"
+    },
+    {
+      "symbol": "2409.TW",
+      "name": "友達",
+      "decision": "買進",
+      "reason": "突破量能需維持 1.2 倍以上；若無量，等回測 34.89 元。",
+      "finalScore": 58,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1791442297435-f97b2dac916bc",
+      "createdAt": "2026-10-08T06:51:37.435Z",
+      "tradingDate": "2026-10-08"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "1802.TW 台玻：風險報酬比 1:0.76 低於 0.9 / 3481.TW 群創：AI 分數 54 低於 58 / 3081.TWO 聯亞：今日跌幅 -5.73% 偏弱，避免接刀 / 5475.TWO 德宏：推薦等級為 等待回檔；AI 動作為 等待；交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.63 低於 0.9 / 1326.TW 台化：推薦等級為 等待回檔；AI 動作為 等待；交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.56 低於 0.9",
+      "id": "decision-1791442297434-89560f4a394aa",
+      "createdAt": "2026-10-08T06:51:37.434Z",
+      "tradingDate": "2026-10-08"
+    },
+    {
+      "symbol": "3017.TW",
+      "name": "奇鋐",
+      "decision": "賣出",
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "finalScore": 56,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1791442264930-45882188a6d6f",
+      "createdAt": "2026-10-08T06:51:04.930Z",
+      "tradingDate": "2026-10-08"
+    },
+    {
       "symbol": "MARKET",
       "name": "全市場",
       "decision": "沒有買入",
@@ -12006,66 +12129,18 @@
       "id": "decision-1787287916681-31bc3394e7208",
       "createdAt": "2026-08-21T04:51:56.681Z",
       "tradingDate": "2026-08-21"
-    },
-    {
-      "symbol": "6919.TW",
-      "name": "康霈*",
-      "decision": "禁止當沖，暫不賣",
-      "reason": "AI 顯示減碼訊號：第一目標 124.35 元 先賣 1/3 到 1/2，第二目標 132.97 元 再分批。",
-      "finalScore": 68,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787287916681-41b17ff6db7e5",
-      "createdAt": "2026-08-21T04:51:56.681Z",
-      "tradingDate": "2026-08-21"
-    },
-    {
-      "symbol": "2634.TW",
-      "name": "漢翔",
-      "decision": "禁止當沖，暫不賣",
-      "reason": "AI 顯示減碼訊號：第一目標 76.87 元 先賣 1/3 到 1/2，第二目標 83.18 元 再分批。",
-      "finalScore": 64,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787287916347-00a23c483c53d",
-      "createdAt": "2026-08-21T04:51:56.347Z",
-      "tradingDate": "2026-08-21"
-    },
-    {
-      "symbol": "3042.TW",
-      "name": "晶技",
-      "decision": "續抱",
-      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
-      "finalScore": 68,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1787287916009-77cc078138d24",
-      "createdAt": "2026-08-21T04:51:56.009Z",
-      "tradingDate": "2026-08-21"
-    },
-    {
-      "symbol": "9914.TW",
-      "name": "美利達",
-      "decision": "續抱",
-      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
-      "finalScore": 61,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787287915621-10ca9c733a35f",
-      "createdAt": "2026-08-21T04:51:55.621Z",
-      "tradingDate": "2026-08-21"
-    },
-    {
-      "symbol": "CASH",
-      "name": "資金控管",
-      "decision": "暫停買入",
-      "reason": "已持有 4 檔，避免過度分散。",
-      "id": "decision-1787285323967-0574a856d718a",
-      "createdAt": "2026-08-21T04:08:43.967Z",
-      "tradingDate": "2026-08-21"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1791442297435-9e3c5043f6837",
+      "createdAt": "2026-10-08T06:51:37.435Z",
+      "tradingDate": "2026-10-08",
+      "cash": 77877.3499999999,
+      "positionValue": 19935.800000000003,
+      "totalEquity": 97813.1499999999,
+      "realizedPnl": -2186.850000000008
+    },
     {
       "id": "equity-1791378842992-c81ca0e005c58",
       "createdAt": "2026-10-07T13:14:02.992Z",
@@ -13822,6 +13897,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-10-07T13:13:02.918Z",
+  "lastRunAt": "2026-10-08T06:50:21.147Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
