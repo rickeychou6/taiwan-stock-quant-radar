@@ -1,50 +1,8 @@
 {
   "initialCapital": 100000,
-  "cash": 73293.3499999999,
-  "realizedPnl": -2225.2500000000086,
+  "cash": 78265.2999999999,
+  "realizedPnl": -2264.700000000009,
   "positions": [
-    {
-      "id": "position-1791442297434-9575a4b357d87",
-      "symbol": "2409.TW",
-      "name": "友達",
-      "shares": 69,
-      "entryPrice": 36.6,
-      "entryAmount": 2525.4,
-      "stopLossPrice": 32.78,
-      "takeProfit1": 43.55,
-      "takeProfit2": 47.29,
-      "openedAt": "2026-10-08T06:51:37.434Z",
-      "openedTradingDate": "2026-10-08",
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "positionSizePct": 20,
-      "lastPrice": 35.55,
-      "lastValue": 2452.95,
-      "unrealizedPnl": -72.4500000000003,
-      "unrealizedPnlPct": -2.868852459016405,
-      "lastAnalysisAt": "2026-10-12T06:47:27.302Z"
-    },
-    {
-      "id": "position-1791442297435-99e129b5b81de",
-      "symbol": "6147.TWO",
-      "name": "頎邦",
-      "shares": 11,
-      "entryPrice": 226,
-      "entryAmount": 2486,
-      "stopLossPrice": 205.78,
-      "takeProfit1": 251.11,
-      "takeProfit2": 269.54,
-      "openedAt": "2026-10-08T06:51:37.435Z",
-      "openedTradingDate": "2026-10-08",
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "positionSizePct": 20,
-      "lastPrice": 229,
-      "lastValue": 2519,
-      "unrealizedPnl": 33,
-      "unrealizedPnlPct": 1.3274336283185841,
-      "lastAnalysisAt": "2026-10-12T06:47:28.231Z"
-    },
     {
       "id": "position-1791529178923-4cbf1d6a2606",
       "symbol": "3354.TWO",
@@ -57,14 +15,14 @@
       "takeProfit2": 39.46,
       "openedAt": "2026-10-09T06:59:38.923Z",
       "openedTradingDate": "2026-10-09",
-      "tradeStyle": "波段持有",
+      "tradeStyle": "短進短出",
       "automationAction": "小量試單",
-      "positionSizePct": 20,
+      "positionSizePct": 12,
       "lastPrice": 31.35,
       "lastValue": 9781.2,
       "unrealizedPnl": -202.79999999999927,
       "unrealizedPnlPct": -2.031249999999993,
-      "lastAnalysisAt": "2026-10-12T06:47:28.777Z"
+      "lastAnalysisAt": "2026-10-12T15:13:17.326Z"
     },
     {
       "id": "position-1791787677250-45d77019fd905",
@@ -85,10 +43,61 @@
       "lastValue": 9486,
       "unrealizedPnl": 0,
       "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-10-12T06:47:57.250Z"
+      "lastAnalysisAt": "2026-10-12T15:13:17.777Z"
     }
   ],
   "trades": [
+    {
+      "side": "BLOCKED_SELL",
+      "symbol": "2408.TW",
+      "name": "南亞科",
+      "price": 527,
+      "shares": 0,
+      "amount": 0,
+      "cashAfter": 78265.2999999999,
+      "reason": "禁止當沖：AI 顯示減碼訊號：第一目標 563.51 元 先賣 1/3 到 1/2，第二目標 593.94 元 再分批。。今天買進的股票不可今天賣出，延到下一個交易日再檢查。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1791787677250-45d77019fd905",
+      "id": "trade-1791817997777-35e3a2afd287",
+      "createdAt": "2026-10-12T15:13:17.777Z",
+      "tradingDate": "2026-10-12"
+    },
+    {
+      "side": "SELL",
+      "symbol": "6147.TWO",
+      "name": "頎邦",
+      "price": 229,
+      "shares": 11,
+      "amount": 2519,
+      "costBasis": 2486,
+      "realizedPnl": 33,
+      "realizedPnlPct": 1.3274336283185841,
+      "cashAfter": 78265.2999999999,
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1791442297435-99e129b5b81de",
+      "id": "trade-1791817996433-2a460205a994c",
+      "createdAt": "2026-10-12T15:13:16.433Z",
+      "tradingDate": "2026-10-12"
+    },
+    {
+      "side": "SELL",
+      "symbol": "2409.TW",
+      "name": "友達",
+      "price": 35.55,
+      "shares": 69,
+      "amount": 2452.95,
+      "costBasis": 2525.4,
+      "realizedPnl": -72.45000000000027,
+      "realizedPnlPct": -2.8688524590164044,
+      "cashAfter": 75746.2999999999,
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1791442297434-9575a4b357d87",
+      "id": "trade-1791817996008-7dc3a19b955b6",
+      "createdAt": "2026-10-12T15:13:16.008Z",
+      "tradingDate": "2026-10-12"
+    },
     {
       "side": "BUY",
       "symbol": "2408.TW",
@@ -6767,6 +6776,72 @@
   ],
   "decisions": [
     {
+      "symbol": "MARKET",
+      "name": "全市場",
+      "decision": "沒有買入",
+      "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
+      "id": "decision-1791818017820-d0bc26b678f76",
+      "createdAt": "2026-10-12T15:13:37.820Z",
+      "tradingDate": "2026-10-12"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "3264.TWO 欣銓：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.74 低於 0.9 / 4178.TW 永笙-KY：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.72 低於 0.9；今日跌幅 -5.1% 偏弱，避免接刀 / 2302.TW 麗正：風險報酬比 1:0.79 低於 0.9 / 3026.TW 禾伸堂：今日跌幅 -4.22% 偏弱，避免接刀 / 4934.TW 太極：推薦等級為 等待回檔；AI 動作為 等待；交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.46 低於 0.9",
+      "id": "decision-1791818017820-2dd92b7cc7e72",
+      "createdAt": "2026-10-12T15:13:37.820Z",
+      "tradingDate": "2026-10-12"
+    },
+    {
+      "symbol": "2408.TW",
+      "name": "南亞科",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "AI 顯示減碼訊號：第一目標 563.51 元 先賣 1/3 到 1/2，第二目標 593.94 元 再分批。",
+      "finalScore": 61,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1791817997777-a65933b0f1d92",
+      "createdAt": "2026-10-12T15:13:17.777Z",
+      "tradingDate": "2026-10-12"
+    },
+    {
+      "symbol": "3354.TWO",
+      "name": "律勝",
+      "decision": "續抱",
+      "reason": "短線停損要更緊，收盤或盤中跌破 28.59 元 就不戀戰。",
+      "finalScore": 50,
+      "tradeStyle": "短進短出",
+      "automationAction": "小量試單",
+      "id": "decision-1791817997326-4bc2429099a7e",
+      "createdAt": "2026-10-12T15:13:17.326Z",
+      "tradingDate": "2026-10-12"
+    },
+    {
+      "symbol": "6147.TWO",
+      "name": "頎邦",
+      "decision": "賣出",
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "finalScore": 58,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1791817996433-29c892adbfa51",
+      "createdAt": "2026-10-12T15:13:16.433Z",
+      "tradingDate": "2026-10-12"
+    },
+    {
+      "symbol": "2409.TW",
+      "name": "友達",
+      "decision": "賣出",
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "finalScore": 56,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1791817996009-55517da274a22",
+      "createdAt": "2026-10-12T15:13:16.009Z",
+      "tradingDate": "2026-10-12"
+    },
+    {
       "symbol": "2408.TW",
       "name": "南亞科",
       "decision": "買進",
@@ -12243,78 +12318,18 @@
       "id": "decision-1787542130515-b845b45b25d89",
       "createdAt": "2026-08-24T03:28:50.515Z",
       "tradingDate": "2026-08-24"
-    },
-    {
-      "symbol": "2634.TW",
-      "name": "漢翔",
-      "decision": "續抱",
-      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
-      "finalScore": 58,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787542130165-205e6f560387",
-      "createdAt": "2026-08-24T03:28:50.165Z",
-      "tradingDate": "2026-08-24"
-    },
-    {
-      "symbol": "3042.TW",
-      "name": "晶技",
-      "decision": "賣出",
-      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
-      "finalScore": 59,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1787542129748-b5897da242cfb",
-      "createdAt": "2026-08-24T03:28:49.748Z",
-      "tradingDate": "2026-08-24"
-    },
-    {
-      "symbol": "9914.TW",
-      "name": "美利達",
-      "decision": "續抱",
-      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
-      "finalScore": 56,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787542129404-5a7ebcd7a62b2",
-      "createdAt": "2026-08-24T03:28:49.404Z",
-      "tradingDate": "2026-08-24"
-    },
-    {
-      "symbol": "CASH",
-      "name": "資金控管",
-      "decision": "暫停買入",
-      "reason": "已持有 4 檔，避免過度分散。",
-      "id": "decision-1787537858076-5f7e1da3179ca",
-      "createdAt": "2026-08-24T02:17:38.076Z",
-      "tradingDate": "2026-08-24"
-    },
-    {
-      "symbol": "6919.TW",
-      "name": "康霈*",
-      "decision": "部分賣出",
-      "reason": "AI 顯示減碼訊號：第一目標 122.91 元 先賣 1/3 到 1/2，第二目標 131.59 元 再分批。",
-      "finalScore": 64,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787537858076-ce810a1969c51",
-      "createdAt": "2026-08-24T02:17:38.076Z",
-      "tradingDate": "2026-08-24"
-    },
-    {
-      "symbol": "2634.TW",
-      "name": "漢翔",
-      "decision": "部分賣出",
-      "reason": "AI 顯示減碼訊號：第一目標 76.50 元 先賣 1/3 到 1/2，第二目標 82.79 元 再分批。",
-      "finalScore": 57,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787537857677-8241173eab4bb",
-      "createdAt": "2026-08-24T02:17:37.677Z",
-      "tradingDate": "2026-08-24"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1791818017820-a625acb681bff",
+      "createdAt": "2026-10-12T15:13:37.820Z",
+      "tradingDate": "2026-10-12",
+      "cash": 78265.2999999999,
+      "positionValue": 19267.2,
+      "totalEquity": 97532.4999999999,
+      "realizedPnl": -2264.700000000009
+    },
     {
       "id": "equity-1791787677250-f781adb0353a",
       "createdAt": "2026-10-12T06:47:57.250Z",
@@ -14116,6 +14131,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-10-12T06:46:59.989Z",
+  "lastRunAt": "2026-10-12T15:13:07.053Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
