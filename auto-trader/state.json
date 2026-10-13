@@ -15,14 +15,14 @@
       "takeProfit2": 39.1,
       "openedAt": "2026-10-09T06:59:38.923Z",
       "openedTradingDate": "2026-10-09",
-      "tradeStyle": "短進短出",
+      "tradeStyle": "波段持有",
       "automationAction": "小量試單",
-      "positionSizePct": 12,
+      "positionSizePct": 20,
       "lastPrice": 31.45,
       "lastValue": 9812.4,
       "unrealizedPnl": -171.60000000000036,
       "unrealizedPnlPct": -1.7187500000000036,
-      "lastAnalysisAt": "2026-10-13T07:14:02.256Z"
+      "lastAnalysisAt": "2026-10-13T14:04:43.334Z"
     }
   ],
   "trades": [
@@ -6777,6 +6777,36 @@
       "name": "全市場",
       "decision": "沒有買入",
       "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
+      "id": "decision-1791900299795-0297e761ef276",
+      "createdAt": "2026-10-13T14:04:59.795Z",
+      "tradingDate": "2026-10-13"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "2887.TW 台新新光金：AI 分數 56 低於 58 / 2883.TW 凱基金：AI 分數 57 低於 58 / 6141.TW 柏承：AI 分數 57 低於 58 / 1101.TW 台泥：推薦等級為 等待回檔；AI 動作為 續抱；風險報酬比 1:0.73 低於 0.9 / 1605.TW 華新：推薦等級為 接近買點；AI 動作為 續抱",
+      "id": "decision-1791900299795-47e09513e8e23",
+      "createdAt": "2026-10-13T14:04:59.795Z",
+      "tradingDate": "2026-10-13"
+    },
+    {
+      "symbol": "3354.TWO",
+      "name": "律勝",
+      "decision": "續抱",
+      "reason": "收盤跌破 28.67 元 或跌破 MA20 後無法收回，應降低部位。",
+      "finalScore": 54,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1791900283334-f580b8e332889",
+      "createdAt": "2026-10-13T14:04:43.334Z",
+      "tradingDate": "2026-10-13"
+    },
+    {
+      "symbol": "MARKET",
+      "name": "全市場",
+      "decision": "沒有買入",
+      "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
       "id": "decision-1791875679183-788792cea6611",
       "createdAt": "2026-10-13T07:14:39.183Z",
       "tradingDate": "2026-10-13"
@@ -12276,45 +12306,18 @@
       "id": "decision-1787545272948-06b1a1929b6b9",
       "createdAt": "2026-08-24T04:21:12.948Z",
       "tradingDate": "2026-08-24"
-    },
-    {
-      "symbol": "2883.TW",
-      "name": "凱基金",
-      "decision": "禁止當沖，暫不賣",
-      "reason": "AI 顯示減碼訊號：第一目標 32.49 元 先賣 1/3 到 1/2，第二目標 33.73 元 再分批。",
-      "finalScore": 58,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787545272948-bede1c57f8b02",
-      "createdAt": "2026-08-24T04:21:12.948Z",
-      "tradingDate": "2026-08-24"
-    },
-    {
-      "symbol": "6919.TW",
-      "name": "康霈*",
-      "decision": "續抱",
-      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
-      "finalScore": 65,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787545272621-e400611687f9a",
-      "createdAt": "2026-08-24T04:21:12.621Z",
-      "tradingDate": "2026-08-24"
-    },
-    {
-      "symbol": "2634.TW",
-      "name": "漢翔",
-      "decision": "續抱",
-      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
-      "finalScore": 58,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787545272261-7a0339a380d78",
-      "createdAt": "2026-08-24T04:21:12.261Z",
-      "tradingDate": "2026-08-24"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1791900299795-22ee3ccf32d8",
+      "createdAt": "2026-10-13T14:04:59.795Z",
+      "tradingDate": "2026-10-13",
+      "cash": 87049.2999999999,
+      "positionValue": 9812.4,
+      "totalEquity": 96861.6999999999,
+      "realizedPnl": -2966.700000000009
+    },
     {
       "id": "equity-1791875679183-bd93c87751189",
       "createdAt": "2026-10-13T07:14:39.183Z",
@@ -14134,6 +14137,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-10-13T07:13:24.192Z",
+  "lastRunAt": "2026-10-13T14:04:23.374Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
