@@ -20,9 +20,9 @@
       "positionSizePct": 20,
       "lastPrice": 34.55,
       "lastValue": 5389.799999999999,
-      "unrealizedPnl": 397.79999999999956,
-      "unrealizedPnlPct": 7.968749999999991,
-      "lastAnalysisAt": "2026-10-14T05:38:08.085Z"
+      "unrealizedPnl": 397.7999999999993,
+      "unrealizedPnlPct": 7.968749999999986,
+      "lastAnalysisAt": "2026-10-14T10:36:42.419Z"
     }
   ],
   "trades": [
@@ -6795,6 +6795,36 @@
       "name": "全市場",
       "decision": "沒有買入",
       "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
+      "id": "decision-1791974289613-f8d613b895af5",
+      "createdAt": "2026-10-14T10:38:09.613Z",
+      "tradingDate": "2026-10-14"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "2603.TW 長榮：推薦等級為 接近買點；AI 動作為 續抱；風險報酬比 1:0.5 低於 0.9 / 2880.TW 華南金：AI 動作為 續抱；風險報酬比 1:0.75 低於 0.9 / 3406.TW 玉晶光：今日跌幅 -9.36% 偏弱，避免接刀 / 6147.TWO 頎邦：近 3 天已賣出或禁止賣出過，先冷卻 / 3081.TWO 聯亞：AI 分數 53 低於 58",
+      "id": "decision-1791974289613-711dbac039519",
+      "createdAt": "2026-10-14T10:38:09.613Z",
+      "tradingDate": "2026-10-14"
+    },
+    {
+      "symbol": "3354.TWO",
+      "name": "律勝",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 61,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1791974202419-55816c86f91a",
+      "createdAt": "2026-10-14T10:36:42.419Z",
+      "tradingDate": "2026-10-14"
+    },
+    {
+      "symbol": "MARKET",
+      "name": "全市場",
+      "decision": "沒有買入",
+      "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
       "id": "decision-1791956305917-d687f6fa9afdb",
       "createdAt": "2026-10-14T05:38:25.917Z",
       "tradingDate": "2026-10-14"
@@ -12288,42 +12318,18 @@
       "id": "decision-1787550668953-ee89d70fdcf76",
       "createdAt": "2026-08-24T05:51:08.953Z",
       "tradingDate": "2026-08-24"
-    },
-    {
-      "symbol": "CASH",
-      "name": "資金控管",
-      "decision": "暫停買入",
-      "reason": "已持有 4 檔，避免過度分散。",
-      "id": "decision-1787548125729-5a983ff7e8bde",
-      "createdAt": "2026-08-24T05:08:45.729Z",
-      "tradingDate": "2026-08-24"
-    },
-    {
-      "symbol": "2883.TW",
-      "name": "凱基金",
-      "decision": "禁止當沖，暫不賣",
-      "reason": "AI 顯示減碼訊號：第一目標 32.44 元 先檢查量價，第二目標 33.68 元 分批獲利。",
-      "finalScore": 60,
-      "tradeStyle": "中線常抱",
-      "automationAction": "續抱",
-      "id": "decision-1787548125729-9ed5b6f1b673e",
-      "createdAt": "2026-08-24T05:08:45.729Z",
-      "tradingDate": "2026-08-24"
-    },
-    {
-      "symbol": "6919.TW",
-      "name": "康霈*",
-      "decision": "續抱",
-      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
-      "finalScore": 65,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787548125390-d9b77b6c6633f",
-      "createdAt": "2026-08-24T05:08:45.390Z",
-      "tradingDate": "2026-08-24"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1791974289613-bf77b86d78ab9",
+      "createdAt": "2026-10-14T10:38:09.613Z",
+      "tradingDate": "2026-10-14",
+      "cash": 92439.0999999999,
+      "positionValue": 5389.799999999999,
+      "totalEquity": 97828.8999999999,
+      "realizedPnl": -2568.9000000000096
+    },
     {
       "id": "equity-1791956305917-9ca1c1bb87d4",
       "createdAt": "2026-10-14T05:38:25.917Z",
@@ -14161,6 +14167,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-10-14T05:37:44.503Z",
+  "lastRunAt": "2026-10-14T10:35:27.376Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
