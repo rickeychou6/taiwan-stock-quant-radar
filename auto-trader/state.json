@@ -10,19 +10,19 @@
       "shares": 4,
       "entryPrice": 1210,
       "entryAmount": 4840,
-      "stopLossPrice": 1093.06,
-      "takeProfit1": 1402.86,
-      "takeProfit2": 1526.07,
+      "stopLossPrice": 1092.56,
+      "takeProfit1": 1392.86,
+      "takeProfit2": 1516.07,
       "openedAt": "2026-10-15T05:25:20.111Z",
       "openedTradingDate": "2026-10-15",
       "tradeStyle": "波段持有",
       "automationAction": "小量試單",
       "positionSizePct": 20,
-      "lastPrice": 1255,
-      "lastValue": 5020,
-      "unrealizedPnl": 180,
-      "unrealizedPnlPct": 3.71900826446281,
-      "lastAnalysisAt": "2026-10-16T05:18:02.959Z"
+      "lastPrice": 1245,
+      "lastValue": 4980,
+      "unrealizedPnl": 140,
+      "unrealizedPnlPct": 2.8925619834710745,
+      "lastAnalysisAt": "2026-10-16T10:00:04.580Z"
     },
     {
       "id": "position-1792041920111-b5fb7ac3058cc",
@@ -43,7 +43,7 @@
       "lastValue": 5441.8,
       "unrealizedPnl": 455,
       "unrealizedPnlPct": 9.124087591240876,
-      "lastAnalysisAt": "2026-10-16T05:18:04.118Z"
+      "lastAnalysisAt": "2026-10-16T10:00:06.102Z"
     },
     {
       "id": "position-1792127900932-1ea9292e4d6ec",
@@ -52,19 +52,19 @@
       "shares": 105,
       "entryPrice": 94.9,
       "entryAmount": 9964.5,
-      "stopLossPrice": 86.81,
+      "stopLossPrice": 86.78,
       "takeProfit1": 106,
-      "takeProfit2": 112.31,
+      "takeProfit2": 112.32,
       "openedAt": "2026-10-16T05:18:20.932Z",
       "openedTradingDate": "2026-10-16",
       "tradeStyle": "波段持有",
       "automationAction": "小量試單",
       "positionSizePct": 20,
-      "lastPrice": 94.9,
-      "lastValue": 9964.5,
-      "unrealizedPnl": 0,
-      "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-10-16T05:18:20.932Z"
+      "lastPrice": 94.4,
+      "lastValue": 9912,
+      "unrealizedPnl": -52.5,
+      "unrealizedPnlPct": -0.5268703898840885,
+      "lastAnalysisAt": "2026-10-16T10:00:06.509Z"
     },
     {
       "id": "position-1792127900932-f27fc6e3f41c7",
@@ -73,22 +73,52 @@
       "shares": 9,
       "entryPrice": 1105,
       "entryAmount": 9945,
-      "stopLossPrice": 951.46,
-      "takeProfit1": 1262.76,
-      "takeProfit2": 1394.22,
+      "stopLossPrice": 950.46,
+      "takeProfit1": 1242.76,
+      "takeProfit2": 1374.22,
       "openedAt": "2026-10-16T05:18:20.932Z",
       "openedTradingDate": "2026-10-16",
       "tradeStyle": "波段持有",
       "automationAction": "小量試單",
       "positionSizePct": 20,
-      "lastPrice": 1105,
-      "lastValue": 9945,
-      "unrealizedPnl": 0,
-      "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-10-16T05:18:20.932Z"
+      "lastPrice": 1085,
+      "lastValue": 9765,
+      "unrealizedPnl": -180,
+      "unrealizedPnlPct": -1.809954751131222,
+      "lastAnalysisAt": "2026-10-16T10:00:06.873Z"
     }
   ],
   "trades": [
+    {
+      "side": "BLOCKED_SELL",
+      "symbol": "3406.TW",
+      "name": "玉晶光",
+      "price": 1085,
+      "shares": 0,
+      "amount": 0,
+      "cashAfter": 69265.7999999999,
+      "reason": "禁止當沖：AI 顯示減碼訊號：第一目標 1242.76 元 先賣 1/3 到 1/2，第二目標 1374.22 元 再分批。。今天買進的股票不可今天賣出，延到下一個交易日再檢查。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1792127900932-f27fc6e3f41c7",
+      "id": "trade-1792144806873-8ee2314847d4f",
+      "createdAt": "2026-10-16T10:00:06.873Z",
+      "tradingDate": "2026-10-16"
+    },
+    {
+      "side": "BLOCKED_SELL",
+      "symbol": "2254.TW",
+      "name": "巨鎧精密-創",
+      "price": 94.4,
+      "shares": 0,
+      "amount": 0,
+      "cashAfter": 69265.7999999999,
+      "reason": "禁止當沖：AI 顯示減碼訊號：第一目標 106.00 元 先賣 1/3 到 1/2，第二目標 112.32 元 再分批。。今天買進的股票不可今天賣出，延到下一個交易日再檢查。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1792127900932-1ea9292e4d6ec",
+      "id": "trade-1792144806509-48aac39137019",
+      "createdAt": "2026-10-16T10:00:06.509Z",
+      "tradingDate": "2026-10-16"
+    },
     {
       "side": "BUY",
       "symbol": "3406.TW",
@@ -7001,6 +7031,63 @@
   ],
   "decisions": [
     {
+      "symbol": "CASH",
+      "name": "資金控管",
+      "decision": "暫停買入",
+      "reason": "已持有 4 檔，避免過度分散。",
+      "id": "decision-1792144806874-41f22c6cce75f",
+      "createdAt": "2026-10-16T10:00:06.874Z",
+      "tradingDate": "2026-10-16"
+    },
+    {
+      "symbol": "3406.TW",
+      "name": "玉晶光",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "AI 顯示減碼訊號：第一目標 1242.76 元 先賣 1/3 到 1/2，第二目標 1374.22 元 再分批。",
+      "finalScore": 59,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1792144806874-f9771c2bfcadb",
+      "createdAt": "2026-10-16T10:00:06.874Z",
+      "tradingDate": "2026-10-16"
+    },
+    {
+      "symbol": "2254.TW",
+      "name": "巨鎧精密-創",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "AI 顯示減碼訊號：第一目標 106.00 元 先賣 1/3 到 1/2，第二目標 112.32 元 再分批。",
+      "finalScore": 57,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1792144806509-626b0dde2f8da",
+      "createdAt": "2026-10-16T10:00:06.509Z",
+      "tradingDate": "2026-10-16"
+    },
+    {
+      "symbol": "5498.TWO",
+      "name": "凱崴",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 56,
+      "tradeStyle": "短進短出",
+      "automationAction": "等待",
+      "id": "decision-1792144806102-c5d64e32953b2",
+      "createdAt": "2026-10-16T10:00:06.102Z",
+      "tradingDate": "2026-10-16"
+    },
+    {
+      "symbol": "2368.TW",
+      "name": "金像電",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 56,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1792144804581-45e74d44ac06c",
+      "createdAt": "2026-10-16T10:00:04.581Z",
+      "tradingDate": "2026-10-16"
+    },
+    {
       "symbol": "3406.TW",
       "name": "玉晶光",
       "decision": "買進",
@@ -12462,63 +12549,18 @@
       "id": "decision-1787630318763-0b92c1f58a3ed",
       "createdAt": "2026-08-25T03:58:38.763Z",
       "tradingDate": "2026-08-25"
-    },
-    {
-      "symbol": "RISK-GATE",
-      "name": "自動交易風控",
-      "decision": "過濾候選",
-      "reason": "2301.TW 光寶科：風險報酬比 1:0.78 低於 0.9 / 6265.TWO 方土昶：今日跌幅 -4.82% 偏弱，避免接刀 / 3532.TW 台勝科：風險報酬比 1:0.88 低於 0.9 / 3706.TW 神達：AI 分數 55 低於 58；3-5 天上漲機率 55% 低於 56% / 2465.TW 麗臺：AI 分數 57 低於 58；3-5 天上漲機率 54% 低於 56%",
-      "id": "decision-1787630318763-e996d879603b",
-      "createdAt": "2026-08-25T03:58:38.763Z",
-      "tradingDate": "2026-08-25"
-    },
-    {
-      "symbol": "2434.TW",
-      "name": "統懋",
-      "decision": "禁止當沖，暫不賣",
-      "reason": "現價跌破停損線 53.29 元",
-      "finalScore": 52,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1787630306476-18c17e740b7db",
-      "createdAt": "2026-08-25T03:58:26.476Z",
-      "tradingDate": "2026-08-25"
-    },
-    {
-      "symbol": "2883.TW",
-      "name": "凱基金",
-      "decision": "續抱",
-      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
-      "finalScore": 57,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787630306125-cde7d118b265d",
-      "createdAt": "2026-08-25T03:58:26.125Z",
-      "tradingDate": "2026-08-25"
-    },
-    {
-      "symbol": "9914.TW",
-      "name": "美利達",
-      "decision": "續抱",
-      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
-      "finalScore": 64,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787630305345-ef2300e303397",
-      "createdAt": "2026-08-25T03:58:25.345Z",
-      "tradingDate": "2026-08-25"
-    },
-    {
-      "symbol": "MARKET",
-      "name": "全市場",
-      "decision": "沒有買入",
-      "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
-      "id": "decision-1787627546422-03c2e6492db36",
-      "createdAt": "2026-08-25T03:12:26.422Z",
-      "tradingDate": "2026-08-25"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1792144806874-db2bc0c75d59a",
+      "createdAt": "2026-10-16T10:00:06.874Z",
+      "tradingDate": "2026-10-16",
+      "cash": 69265.7999999999,
+      "positionValue": 30098.8,
+      "totalEquity": 99364.5999999999,
+      "realizedPnl": -997.9000000000096
+    },
     {
       "id": "equity-1792127900932-08b3c4348485e",
       "createdAt": "2026-10-16T05:18:20.932Z",
@@ -14410,6 +14452,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-10-16T05:17:20.595Z",
+  "lastRunAt": "2026-10-16T09:59:37.284Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
