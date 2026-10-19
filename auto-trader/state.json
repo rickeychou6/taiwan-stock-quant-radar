@@ -22,7 +22,7 @@
       "lastValue": 5978.7,
       "unrealizedPnl": 991.8999999999996,
       "unrealizedPnlPct": 19.890510948905103,
-      "lastAnalysisAt": "2026-10-19T11:05:15.447Z"
+      "lastAnalysisAt": "2026-10-19T12:59:21.631Z"
     },
     {
       "id": "position-1792127900932-1ea9292e4d6ec",
@@ -43,7 +43,7 @@
       "lastValue": 10069.5,
       "unrealizedPnl": 105,
       "unrealizedPnlPct": 1.053740779768177,
-      "lastAnalysisAt": "2026-10-19T11:05:15.844Z"
+      "lastAnalysisAt": "2026-10-19T12:59:22.037Z"
     },
     {
       "id": "position-1792127900932-f27fc6e3f41c7",
@@ -64,7 +64,7 @@
       "lastValue": 5225,
       "unrealizedPnl": -300,
       "unrealizedPnlPct": -5.429864253393665,
-      "lastAnalysisAt": "2026-10-19T11:05:16.218Z"
+      "lastAnalysisAt": "2026-10-19T12:59:22.448Z"
     },
     {
       "id": "position-1792407931022-6452874af08a",
@@ -85,10 +85,25 @@
       "lastValue": 9966,
       "unrealizedPnl": 0,
       "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-10-19T11:05:31.022Z"
+      "lastAnalysisAt": "2026-10-19T12:59:22.792Z"
     }
   ],
   "trades": [
+    {
+      "side": "BLOCKED_SELL",
+      "symbol": "1802.TW",
+      "name": "台玻",
+      "price": 66,
+      "shares": 0,
+      "amount": 0,
+      "cashAfter": 68459.7999999999,
+      "reason": "禁止當沖：AI 顯示減碼訊號：第一目標 72.70 元 先賣 1/3 到 1/2，第二目標 78.28 元 再分批。。今天買進的股票不可今天賣出，延到下一個交易日再檢查。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1792407931022-6452874af08a",
+      "id": "trade-1792414762792-1f36ae05a692",
+      "createdAt": "2026-10-19T12:59:22.792Z",
+      "tradingDate": "2026-10-19"
+    },
     {
       "side": "BUY",
       "symbol": "1802.TW",
@@ -7100,6 +7115,63 @@
   ],
   "decisions": [
     {
+      "symbol": "CASH",
+      "name": "資金控管",
+      "decision": "暫停買入",
+      "reason": "已持有 4 檔，避免過度分散。",
+      "id": "decision-1792414762792-1026aefca44f4",
+      "createdAt": "2026-10-19T12:59:22.792Z",
+      "tradingDate": "2026-10-19"
+    },
+    {
+      "symbol": "1802.TW",
+      "name": "台玻",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "AI 顯示減碼訊號：第一目標 72.70 元 先賣 1/3 到 1/2，第二目標 78.28 元 再分批。",
+      "finalScore": 64,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1792414762792-71421078bff4d",
+      "createdAt": "2026-10-19T12:59:22.792Z",
+      "tradingDate": "2026-10-19"
+    },
+    {
+      "symbol": "3406.TW",
+      "name": "玉晶光",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 60,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1792414762448-522b629f4744b",
+      "createdAt": "2026-10-19T12:59:22.448Z",
+      "tradingDate": "2026-10-19"
+    },
+    {
+      "symbol": "2254.TW",
+      "name": "巨鎧精密-創",
+      "decision": "續抱",
+      "reason": "收盤跌破 87.94 元 或跌破 MA20 後無法收回，應降低部位。",
+      "finalScore": 52,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1792414762037-4fce8b7c130c8",
+      "createdAt": "2026-10-19T12:59:22.037Z",
+      "tradingDate": "2026-10-19"
+    },
+    {
+      "symbol": "5498.TWO",
+      "name": "凱崴",
+      "decision": "續抱",
+      "reason": "短線停損要更緊，收盤或盤中跌破 51.73 元 就不戀戰。",
+      "finalScore": 52,
+      "tradeStyle": "短進短出",
+      "automationAction": "等待",
+      "id": "decision-1792414761631-52464569c30bc",
+      "createdAt": "2026-10-19T12:59:21.631Z",
+      "tradingDate": "2026-10-19"
+    },
+    {
       "symbol": "1802.TW",
       "name": "台玻",
       "decision": "買進",
@@ -12576,63 +12648,18 @@
       "id": "decision-1787710773829-5adaa45430dbc",
       "createdAt": "2026-08-26T02:19:33.829Z",
       "tradingDate": "2026-08-26"
-    },
-    {
-      "symbol": "MARKET",
-      "name": "全市場",
-      "decision": "沒有買入",
-      "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
-      "id": "decision-1787641488398-0424251cc457a",
-      "createdAt": "2026-08-25T07:04:48.398Z",
-      "tradingDate": "2026-08-25"
-    },
-    {
-      "symbol": "RISK-GATE",
-      "name": "自動交易風控",
-      "decision": "過濾候選",
-      "reason": "6265.TWO 方土昶：今日跌幅 -4.5% 偏弱，避免接刀 / 2301.TW 光寶科：推薦等級為 等待回檔；AI 動作為 等待；交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.64 低於 0.9 / 3706.TW 神達：AI 分數 54 低於 58；3-5 天上漲機率 54% 低於 56% / 6770.TW 力積電：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；AI 分數 56 低於 58 / 2324.TW 仁寶：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；3-5 天上漲機率 50% 低於 56%",
-      "id": "decision-1787641488397-b0afc0b61edd3",
-      "createdAt": "2026-08-25T07:04:48.397Z",
-      "tradingDate": "2026-08-25"
-    },
-    {
-      "symbol": "2434.TW",
-      "name": "統懋",
-      "decision": "續抱",
-      "reason": "停損線 49.94 元 不可下修。",
-      "finalScore": 46,
-      "tradeStyle": "暫不交易",
-      "automationAction": "等待",
-      "id": "decision-1787641478529-3ae98b72389f3",
-      "createdAt": "2026-08-25T07:04:38.529Z",
-      "tradingDate": "2026-08-25"
-    },
-    {
-      "symbol": "2883.TW",
-      "name": "凱基金",
-      "decision": "續抱",
-      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
-      "finalScore": 56,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787641478055-d14950809436f",
-      "createdAt": "2026-08-25T07:04:38.055Z",
-      "tradingDate": "2026-08-25"
-    },
-    {
-      "symbol": "9914.TW",
-      "name": "美利達",
-      "decision": "續抱",
-      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
-      "finalScore": 58,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787641476508-52bcd5a5fb08",
-      "createdAt": "2026-08-25T07:04:36.508Z",
-      "tradingDate": "2026-08-25"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1792414762792-3b428ab44c09",
+      "createdAt": "2026-10-19T12:59:22.792Z",
+      "tradingDate": "2026-10-19",
+      "cash": 68459.7999999999,
+      "positionValue": 31239.2,
+      "totalEquity": 99698.9999999999,
+      "realizedPnl": -1097.9000000000096
+    },
     {
       "id": "equity-1792407931023-69f07d9ba3aaf",
       "createdAt": "2026-10-19T11:05:31.023Z",
@@ -14560,6 +14587,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-10-19T11:05:07.084Z",
+  "lastRunAt": "2026-10-19T12:59:17.399Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
