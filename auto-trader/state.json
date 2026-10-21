@@ -22,7 +22,7 @@
       "lastValue": 5080.299999999999,
       "unrealizedPnl": 65.64999999999964,
       "unrealizedPnlPct": 1.309164149043296,
-      "lastAnalysisAt": "2026-10-21T10:34:45.461Z"
+      "lastAnalysisAt": "2026-10-21T11:40:05.177Z"
     }
   ],
   "trades": [
@@ -7302,6 +7302,36 @@
       "name": "全市場",
       "decision": "沒有買入",
       "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
+      "id": "decision-1792582891428-bde75902fbea7",
+      "createdAt": "2026-10-21T11:41:31.428Z",
+      "tradingDate": "2026-10-21"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "1709.TW 和益：AI 分數 55 低於 58 / 3026.TW 禾伸堂：AI 分數 56 低於 58 / 6152.TW 百一：AI 分數 57 低於 58 / 3231.TW 緯創：推薦等級為 等待回檔；AI 動作為 續抱 / 3543.TW 州巧：AI 分數 55 低於 58",
+      "id": "decision-1792582891428-6145d0c5d80a",
+      "createdAt": "2026-10-21T11:41:31.428Z",
+      "tradingDate": "2026-10-21"
+    },
+    {
+      "symbol": "2851.TW",
+      "name": "中再保",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 61,
+      "tradeStyle": "中線常抱",
+      "automationAction": "續抱",
+      "id": "decision-1792582805177-5ddf62aab4897",
+      "createdAt": "2026-10-21T11:40:05.177Z",
+      "tradingDate": "2026-10-21"
+    },
+    {
+      "symbol": "MARKET",
+      "name": "全市場",
+      "decision": "沒有買入",
+      "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
       "id": "decision-1792578900431-61f6decb47544",
       "createdAt": "2026-10-21T10:35:00.431Z",
       "tradingDate": "2026-10-21"
@@ -12810,42 +12840,18 @@
       "id": "decision-1787827574751-cfefbfdae097a",
       "createdAt": "2026-08-27T10:46:14.751Z",
       "tradingDate": "2026-08-27"
-    },
-    {
-      "symbol": "3324.TWO",
-      "name": "雙鴻",
-      "decision": "續抱",
-      "reason": "停損線 976.11 元 不可下修。",
-      "finalScore": 54,
-      "tradeStyle": "暫不交易",
-      "automationAction": "等待",
-      "id": "decision-1787827560551-990f494804aa7",
-      "createdAt": "2026-08-27T10:46:00.551Z",
-      "tradingDate": "2026-08-27"
-    },
-    {
-      "symbol": "6187.TWO",
-      "name": "萬潤",
-      "decision": "部分賣出",
-      "reason": "AI 顯示減碼訊號：短線目標先看 1637.64 元；若隔日開高無量，先減碼。",
-      "finalScore": 56,
-      "tradeStyle": "短進短出",
-      "automationAction": "等待",
-      "id": "decision-1787827559688-bb90ac2c67696",
-      "createdAt": "2026-08-27T10:45:59.688Z",
-      "tradingDate": "2026-08-27"
-    },
-    {
-      "symbol": "RISK-GATE",
-      "name": "每日買進上限",
-      "decision": "暫停買入",
-      "reason": "今日已買進 2 檔，避免同一天行情誤判時一起套住。",
-      "id": "decision-1787727971611-cd5e0adc0e993",
-      "createdAt": "2026-08-26T07:06:11.611Z",
-      "tradingDate": "2026-08-26"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1792582891428-a82492e90ceaa",
+      "createdAt": "2026-10-21T11:41:31.428Z",
+      "tradingDate": "2026-10-21",
+      "cash": 94787.94999999992,
+      "positionValue": 5080.299999999999,
+      "totalEquity": 99868.24999999993,
+      "realizedPnl": -197.40000000000964
+    },
     {
       "id": "equity-1792578900431-6afc196a33457",
       "createdAt": "2026-10-21T10:35:00.431Z",
@@ -14827,6 +14833,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-10-21T10:34:30.747Z",
+  "lastRunAt": "2026-10-21T11:39:55.341Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
