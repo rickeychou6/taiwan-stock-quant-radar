@@ -1,9 +1,46 @@
 {
   "initialCapital": 100000,
-  "cash": 99888.44999999992,
+  "cash": 89969.94999999992,
   "realizedPnl": -111.55000000000973,
-  "positions": [],
+  "positions": [
+    {
+      "id": "position-1792755065788-78459c4306289",
+      "symbol": "2615.TW",
+      "name": "萬海",
+      "shares": 83,
+      "entryPrice": 119.5,
+      "entryAmount": 9918.5,
+      "stopLossPrice": 112.9,
+      "takeProfit1": 129.5,
+      "takeProfit2": 137.43,
+      "openedAt": "2026-10-23T11:31:05.788Z",
+      "openedTradingDate": "2026-10-23",
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "positionSizePct": 20,
+      "lastPrice": 119.5,
+      "lastValue": 9918.5,
+      "unrealizedPnl": 0,
+      "unrealizedPnlPct": 0,
+      "lastAnalysisAt": "2026-10-23T11:31:05.788Z"
+    }
+  ],
   "trades": [
+    {
+      "side": "BUY",
+      "symbol": "2615.TW",
+      "name": "萬海",
+      "price": 119.5,
+      "shares": 83,
+      "amount": 9918.5,
+      "cashAfter": 89969.94999999992,
+      "reason": "可小量試單，波段持有/支撐低接，AI 動作 小量試單，3-5 天上漲機率 57%，風控版 risk-guard-v2-2026-08-13。",
+      "source": "TWSE/TPEX 官方全市場日行情，先全市場初選，再完整分析前 48 檔",
+      "positionId": "position-1792755065788-78459c4306289",
+      "id": "trade-1792755065788-350e562523c1c",
+      "createdAt": "2026-10-23T11:31:05.788Z",
+      "tradingDate": "2026-10-23"
+    },
     {
       "side": "SELL",
       "symbol": "2851.TW",
@@ -7312,6 +7349,27 @@
   ],
   "decisions": [
     {
+      "symbol": "2615.TW",
+      "name": "萬海",
+      "decision": "買進",
+      "reason": "靠近支撐 118.76 元 可分批，不追高。",
+      "finalScore": 58,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1792755065788-cc16a102ba9b9",
+      "createdAt": "2026-10-23T11:31:05.788Z",
+      "tradingDate": "2026-10-23"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "2885.TW 元大金：AI 動作為 續抱 / 9933.TW 中鼎：AI 動作為 續抱 / 1101.TW 台泥：推薦等級為 等待回檔；AI 動作為 續抱；風險報酬比 1:0.58 低於 0.9 / 2254.TW 巨鎧精密-創：近 3 天已賣出或禁止賣出過，先冷卻 / 2027.TW 大成鋼：推薦等級為 等待回檔；AI 動作為 續抱；風險報酬比 1:0.76 低於 0.9",
+      "id": "decision-1792755065788-5fda3957b2ecf",
+      "createdAt": "2026-10-23T11:31:05.788Z",
+      "tradingDate": "2026-10-23"
+    },
+    {
       "symbol": "MARKET",
       "name": "全市場",
       "decision": "沒有買入",
@@ -12809,30 +12867,18 @@
       "id": "decision-1787942165320-b8502936815",
       "createdAt": "2026-08-28T18:36:05.320Z",
       "tradingDate": "2026-08-29"
-    },
-    {
-      "symbol": "2637.TW",
-      "name": "慧洋-KY",
-      "decision": "買進",
-      "reason": "靠近支撐 89.73 元 可分批，不追高。",
-      "finalScore": 62,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1787919805098-2c8b7b387640d",
-      "createdAt": "2026-08-28T12:23:25.098Z",
-      "tradingDate": "2026-08-28"
-    },
-    {
-      "symbol": "RISK-GATE",
-      "name": "自動交易風控",
-      "decision": "過濾候選",
-      "reason": "1301.TW 台塑：推薦等級為 接近買點；AI 動作為 續抱；風險報酬比 1:0.7 低於 0.9 / 2606.TW 裕民：推薦等級為 接近買點；AI 動作為 續抱；3-5 天上漲機率 55% 低於 56% / 4958.TW 臻鼎-KY：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；AI 分數 57 低於 58 / 2354.TW 鴻準：風險報酬比 1:0.82 低於 0.9 / 4540.TW 全球傳動：3-5 天上漲機率 52% 低於 56%",
-      "id": "decision-1787919805098-801bde573ea6a",
-      "createdAt": "2026-08-28T12:23:25.098Z",
-      "tradingDate": "2026-08-28"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1792755065788-a84394a2b63e7",
+      "createdAt": "2026-10-23T11:31:05.788Z",
+      "tradingDate": "2026-10-23",
+      "cash": 89969.94999999992,
+      "positionValue": 9918.5,
+      "totalEquity": 99888.44999999992,
+      "realizedPnl": -111.55000000000973
+    },
     {
       "id": "equity-1792751427423-a7122bb404538",
       "createdAt": "2026-10-23T10:30:27.423Z",
@@ -14868,6 +14914,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-10-23T10:29:54.332Z",
+  "lastRunAt": "2026-10-23T11:30:23.408Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
