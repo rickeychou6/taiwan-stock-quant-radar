@@ -1,50 +1,8 @@
 {
   "initialCapital": 100000,
-  "cash": 79976.24999999993,
-  "realizedPnl": -181.3500000000099,
+  "cash": 85128.64999999992,
+  "realizedPnl": -108.35000000000991,
   "positions": [
-    {
-      "id": "position-1792993008817-09ea40727e6aa",
-      "symbol": "2885.TW",
-      "name": "元大金",
-      "shares": 35,
-      "entryPrice": 72.4,
-      "entryAmount": 2534,
-      "stopLossPrice": 69.48,
-      "takeProfit1": 76.1,
-      "takeProfit2": 78.68,
-      "openedAt": "2026-10-26T05:36:48.817Z",
-      "openedTradingDate": "2026-10-26",
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "positionSizePct": 20,
-      "lastPrice": 73,
-      "lastValue": 2555,
-      "unrealizedPnl": 20.9999999999998,
-      "unrealizedPnlPct": 0.8287292817679479,
-      "lastAnalysisAt": "2026-10-28T06:26:59.691Z"
-    },
-    {
-      "id": "position-1792993008817-cdc0660dd3d3f",
-      "symbol": "2254.TW",
-      "name": "巨鎧精密-創",
-      "shares": 26,
-      "entryPrice": 97.9,
-      "entryAmount": 2545.4,
-      "stopLossPrice": 92.56,
-      "takeProfit1": 107.81,
-      "takeProfit2": 114.4,
-      "openedAt": "2026-10-26T05:36:48.817Z",
-      "openedTradingDate": "2026-10-26",
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "positionSizePct": 20,
-      "lastPrice": 99.9,
-      "lastValue": 2597.4,
-      "unrealizedPnl": 52,
-      "unrealizedPnlPct": 2.0429009193054135,
-      "lastAnalysisAt": "2026-10-28T06:27:00.133Z"
-    },
     {
       "id": "position-1793080140966-5b28a3e44ca3f",
       "symbol": "6148.TWO",
@@ -62,9 +20,9 @@
       "positionSizePct": 0,
       "lastPrice": 41.6,
       "lastValue": 4825.6,
-      "unrealizedPnl": -162.39999999999984,
-      "unrealizedPnlPct": -3.2558139534883686,
-      "lastAnalysisAt": "2026-10-28T06:27:00.579Z"
+      "unrealizedPnl": -162.39999999999964,
+      "unrealizedPnlPct": -3.255813953488365,
+      "lastAnalysisAt": "2026-10-28T12:42:16.182Z"
     },
     {
       "id": "position-1793168827529-7afbf0e4ba1da",
@@ -85,10 +43,61 @@
       "lastValue": 9775,
       "unrealizedPnl": 0,
       "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-10-28T06:27:07.529Z"
+      "lastAnalysisAt": "2026-10-28T12:42:16.621Z"
     }
   ],
   "trades": [
+    {
+      "side": "BLOCKED_SELL",
+      "symbol": "3533.TW",
+      "name": "嘉澤",
+      "price": 1955,
+      "shares": 0,
+      "amount": 0,
+      "cashAfter": 85128.64999999992,
+      "reason": "禁止當沖：AI 顯示減碼訊號：第一目標 2108.00 元 先賣 1/3 到 1/2，第二目標 2235.50 元 再分批。。今天買進的股票不可今天賣出，延到下一個交易日再檢查。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1793168827529-7afbf0e4ba1da",
+      "id": "trade-1793191336621-f71860177f68f",
+      "createdAt": "2026-10-28T12:42:16.621Z",
+      "tradingDate": "2026-10-28"
+    },
+    {
+      "side": "SELL",
+      "symbol": "2254.TW",
+      "name": "巨鎧精密-創",
+      "price": 99.9,
+      "shares": 26,
+      "amount": 2597.4,
+      "costBasis": 2545.4,
+      "realizedPnl": 52,
+      "realizedPnlPct": 2.0429009193054135,
+      "cashAfter": 85128.64999999992,
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1792993008817-cdc0660dd3d3f",
+      "id": "trade-1793191335699-f8ca32879456d",
+      "createdAt": "2026-10-28T12:42:15.699Z",
+      "tradingDate": "2026-10-28"
+    },
+    {
+      "side": "SELL",
+      "symbol": "2885.TW",
+      "name": "元大金",
+      "price": 73,
+      "shares": 35,
+      "amount": 2555,
+      "costBasis": 2534,
+      "realizedPnl": 21,
+      "realizedPnlPct": 0.8287292817679558,
+      "cashAfter": 82531.24999999993,
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1792993008817-09ea40727e6aa",
+      "id": "trade-1793191335168-c9ecaa99d766",
+      "createdAt": "2026-10-28T12:42:15.168Z",
+      "tradingDate": "2026-10-28"
+    },
     {
       "side": "BUY",
       "symbol": "3533.TW",
@@ -7661,6 +7670,72 @@
   ],
   "decisions": [
     {
+      "symbol": "MARKET",
+      "name": "全市場",
+      "decision": "沒有買入",
+      "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
+      "id": "decision-1793191344259-ae3271dc3166a",
+      "createdAt": "2026-10-28T12:42:24.259Z",
+      "tradingDate": "2026-10-28"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "9933.TW 中鼎：推薦等級為 等待回檔；AI 動作為 續抱；風險報酬比 1:0.51 低於 0.9 / 2504.TW 國產：3-5 天上漲機率 52% 低於 56%；今日跌幅 -4.89% 偏弱，避免接刀 / 2347.TW 聯強：風險報酬比 1:0.88 低於 0.9 / 2344.TW 華邦電：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；AI 分數 56 低於 58 / 6770.TW 力積電：AI 分數 52 低於 58",
+      "id": "decision-1793191344259-2b11df6e65991",
+      "createdAt": "2026-10-28T12:42:24.259Z",
+      "tradingDate": "2026-10-28"
+    },
+    {
+      "symbol": "3533.TW",
+      "name": "嘉澤",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "AI 顯示減碼訊號：第一目標 2108.00 元 先賣 1/3 到 1/2，第二目標 2235.50 元 再分批。",
+      "finalScore": 62,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1793191336621-6b3b3dfdb64e5",
+      "createdAt": "2026-10-28T12:42:16.621Z",
+      "tradingDate": "2026-10-28"
+    },
+    {
+      "symbol": "6148.TWO",
+      "name": "驊宏資",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 56,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1793191336182-62f83008db579",
+      "createdAt": "2026-10-28T12:42:16.182Z",
+      "tradingDate": "2026-10-28"
+    },
+    {
+      "symbol": "2254.TW",
+      "name": "巨鎧精密-創",
+      "decision": "賣出",
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "finalScore": 57,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1793191335699-9e5f9a28f206d",
+      "createdAt": "2026-10-28T12:42:15.699Z",
+      "tradingDate": "2026-10-28"
+    },
+    {
+      "symbol": "2885.TW",
+      "name": "元大金",
+      "decision": "賣出",
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "finalScore": 61,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1793191335168-72eceeeabc7c8",
+      "createdAt": "2026-10-28T12:42:15.168Z",
+      "tradingDate": "2026-10-28"
+    },
+    {
       "symbol": "3533.TW",
       "name": "嘉澤",
       "decision": "買進",
@@ -13110,78 +13185,18 @@
       "id": "decision-1788347481078-4087252e03cbb",
       "createdAt": "2026-09-02T11:11:21.078Z",
       "tradingDate": "2026-09-02"
-    },
-    {
-      "symbol": "6770.TW",
-      "name": "力積電",
-      "decision": "續抱",
-      "reason": "收盤跌破 67.79 元 或跌破 MA20 後無法收回，應降低部位。",
-      "finalScore": 54,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1788347480758-a697748584953",
-      "createdAt": "2026-09-02T11:11:20.758Z",
-      "tradingDate": "2026-09-02"
-    },
-    {
-      "symbol": "3324.TWO",
-      "name": "雙鴻",
-      "decision": "續抱",
-      "reason": "短線停損要更緊，收盤或盤中跌破 1038.71 元 就不戀戰。",
-      "finalScore": 52,
-      "tradeStyle": "短進短出",
-      "automationAction": "等待",
-      "id": "decision-1788347480349-7111df9f427ba",
-      "createdAt": "2026-09-02T11:11:20.349Z",
-      "tradingDate": "2026-09-02"
-    },
-    {
-      "symbol": "CASH",
-      "name": "資金控管",
-      "decision": "暫停買入",
-      "reason": "已持有 4 檔，避免過度分散。",
-      "id": "decision-1788342402753-d9b6f0b96a08a",
-      "createdAt": "2026-09-02T09:46:42.753Z",
-      "tradingDate": "2026-09-02"
-    },
-    {
-      "symbol": "6257.TW",
-      "name": "矽格",
-      "decision": "禁止當沖，暫不賣",
-      "reason": "AI 顯示減碼訊號：短線目標先看 233.10 元；若隔日開高無量，先減碼。",
-      "finalScore": 63,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1788342402753-fbc595ee0a575",
-      "createdAt": "2026-09-02T09:46:42.753Z",
-      "tradingDate": "2026-09-02"
-    },
-    {
-      "symbol": "2377.TW",
-      "name": "微星",
-      "decision": "續抱",
-      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
-      "finalScore": 57,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1788342402381-72069b8609b14",
-      "createdAt": "2026-09-02T09:46:42.381Z",
-      "tradingDate": "2026-09-02"
-    },
-    {
-      "symbol": "6770.TW",
-      "name": "力積電",
-      "decision": "續抱",
-      "reason": "收盤跌破 67.79 元 或跌破 MA20 後無法收回，應降低部位。",
-      "finalScore": 54,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1788342402039-d2ca8e479b063",
-      "createdAt": "2026-09-02T09:46:42.039Z",
-      "tradingDate": "2026-09-02"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1793191344259-76ed1fe79de7d",
+      "createdAt": "2026-10-28T12:42:24.259Z",
+      "tradingDate": "2026-10-28",
+      "cash": 85128.64999999992,
+      "positionValue": 14600.6,
+      "totalEquity": 99729.24999999993,
+      "realizedPnl": -108.35000000000991
+    },
     {
       "id": "equity-1793168827529-78722569730b",
       "createdAt": "2026-10-28T06:27:07.529Z",
@@ -15280,6 +15295,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-10-28T06:26:53.760Z",
+  "lastRunAt": "2026-10-28T12:42:08.581Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
