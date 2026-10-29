@@ -1,29 +1,8 @@
 {
   "initialCapital": 100000,
-  "cash": 85128.64999999992,
-  "realizedPnl": -108.35000000000991,
+  "cash": 79668.04999999992,
+  "realizedPnl": -572.3500000000099,
   "positions": [
-    {
-      "id": "position-1793080140966-5b28a3e44ca3f",
-      "symbol": "6148.TWO",
-      "name": "驊宏資",
-      "shares": 116,
-      "entryPrice": 43,
-      "entryAmount": 4988,
-      "stopLossPrice": 37.63,
-      "takeProfit1": 46.85,
-      "takeProfit2": 51.22,
-      "openedAt": "2026-10-27T05:49:00.966Z",
-      "openedTradingDate": "2026-10-27",
-      "tradeStyle": "暫不交易",
-      "automationAction": "等待",
-      "positionSizePct": 0,
-      "lastPrice": 41.6,
-      "lastValue": 4825.6,
-      "unrealizedPnl": -162.39999999999964,
-      "unrealizedPnlPct": -3.255813953488365,
-      "lastAnalysisAt": "2026-10-28T12:42:16.182Z"
-    },
     {
       "id": "position-1793168827529-7afbf0e4ba1da",
       "symbol": "3533.TW",
@@ -31,22 +10,76 @@
       "shares": 5,
       "entryPrice": 1955,
       "entryAmount": 9775,
-      "stopLossPrice": 1792.75,
-      "takeProfit1": 2108,
-      "takeProfit2": 2235.5,
+      "stopLossPrice": 1799.25,
+      "takeProfit1": 2062,
+      "takeProfit2": 2197,
       "openedAt": "2026-10-28T06:27:07.529Z",
       "openedTradingDate": "2026-10-28",
       "tradeStyle": "波段持有",
       "automationAction": "小量試單",
       "positionSizePct": 20,
-      "lastPrice": 1955,
-      "lastValue": 9775,
+      "lastPrice": 1900,
+      "lastValue": 9500,
+      "unrealizedPnl": -275,
+      "unrealizedPnlPct": -2.813299232736573,
+      "lastAnalysisAt": "2026-10-29T06:38:12.924Z"
+    },
+    {
+      "id": "position-1793255911303-50edc6229d1ce",
+      "symbol": "1528.TW",
+      "name": "恩德",
+      "shares": 387,
+      "entryPrice": 25.8,
+      "entryAmount": 9984.6,
+      "stopLossPrice": 23.78,
+      "takeProfit1": 28.6,
+      "takeProfit2": 30.93,
+      "openedAt": "2026-10-29T06:38:31.303Z",
+      "openedTradingDate": "2026-10-29",
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "positionSizePct": 20,
+      "lastPrice": 25.8,
+      "lastValue": 9984.6,
       "unrealizedPnl": 0,
       "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-10-28T12:42:16.621Z"
+      "lastAnalysisAt": "2026-10-29T06:38:31.303Z"
     }
   ],
   "trades": [
+    {
+      "side": "BUY",
+      "symbol": "1528.TW",
+      "name": "恩德",
+      "price": 25.8,
+      "shares": 387,
+      "amount": 9984.6,
+      "cashAfter": 79668.04999999992,
+      "reason": "可小量試單，波段持有/支撐低接，AI 動作 小量試單，3-5 天上漲機率 57%，風控版 risk-guard-v2-2026-08-13。",
+      "source": "TWSE/TPEX 官方全市場日行情，先全市場初選，再完整分析前 48 檔",
+      "positionId": "position-1793255911303-50edc6229d1ce",
+      "id": "trade-1793255911303-da1ad66318337",
+      "createdAt": "2026-10-29T06:38:31.303Z",
+      "tradingDate": "2026-10-29"
+    },
+    {
+      "side": "SELL",
+      "symbol": "6148.TWO",
+      "name": "驊宏資",
+      "price": 39,
+      "shares": 116,
+      "amount": 4524,
+      "costBasis": 4988,
+      "realizedPnl": -464,
+      "realizedPnlPct": -9.30232558139535,
+      "cashAfter": 89652.64999999992,
+      "reason": "現價跌破停損線 40.21 元",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1793080140966-5b28a3e44ca3f",
+      "id": "trade-1793255892459-ef4c42f189505",
+      "createdAt": "2026-10-29T06:38:12.459Z",
+      "tradingDate": "2026-10-29"
+    },
     {
       "side": "BLOCKED_SELL",
       "symbol": "3533.TW",
@@ -7670,6 +7703,51 @@
   ],
   "decisions": [
     {
+      "symbol": "1528.TW",
+      "name": "恩德",
+      "decision": "買進",
+      "reason": "靠近支撐 25.10 元 可分批，不追高。",
+      "finalScore": 58,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1793255911303-18f25b240a1c5",
+      "createdAt": "2026-10-29T06:38:31.303Z",
+      "tradingDate": "2026-10-29"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "1303.TW 南亞：AI 分數 56 低於 58 / 2355.TW 敬鵬：AI 分數 56 低於 58 / 2426.TW 鼎元：AI 分數 50 低於 58 / 2344.TW 華邦電：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；AI 分數 53 低於 58 / 1809.TW 中釉：AI 分數 53 低於 58；3-5 天上漲機率 55% 低於 56%；今日跌幅 -4.48% 偏弱，避免接刀",
+      "id": "decision-1793255911303-bb7b7c25d7321",
+      "createdAt": "2026-10-29T06:38:31.303Z",
+      "tradingDate": "2026-10-29"
+    },
+    {
+      "symbol": "3533.TW",
+      "name": "嘉澤",
+      "decision": "續抱",
+      "reason": "收盤跌破 1799.25 元 或跌破 MA20 後無法收回，應降低部位。",
+      "finalScore": 54,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1793255892924-fad8148db95a7",
+      "createdAt": "2026-10-29T06:38:12.924Z",
+      "tradingDate": "2026-10-29"
+    },
+    {
+      "symbol": "6148.TWO",
+      "name": "驊宏資",
+      "decision": "賣出",
+      "reason": "現價跌破停損線 40.21 元",
+      "finalScore": 51,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1793255892459-5348a551d2f81",
+      "createdAt": "2026-10-29T06:38:12.459Z",
+      "tradingDate": "2026-10-29"
+    },
+    {
       "symbol": "MARKET",
       "name": "全市場",
       "decision": "沒有買入",
@@ -13140,54 +13218,18 @@
       "id": "decision-1788412903776-3ae30f6f3fd4c",
       "createdAt": "2026-09-03T05:21:43.776Z",
       "tradingDate": "2026-09-03"
-    },
-    {
-      "symbol": "3324.TWO",
-      "name": "雙鴻",
-      "decision": "部分賣出",
-      "reason": "AI 顯示減碼訊號：短線目標先看 1465.00 元；若隔日開高無量，先減碼。",
-      "finalScore": 59,
-      "tradeStyle": "短進短出",
-      "automationAction": "等待",
-      "id": "decision-1788412903234-8afe8a0c1d90a",
-      "createdAt": "2026-09-03T05:21:43.234Z",
-      "tradingDate": "2026-09-03"
-    },
-    {
-      "symbol": "CASH",
-      "name": "資金控管",
-      "decision": "暫停買入",
-      "reason": "已持有 4 檔，避免過度分散。",
-      "id": "decision-1788347481415-d8a0fb47ed4ce",
-      "createdAt": "2026-09-02T11:11:21.415Z",
-      "tradingDate": "2026-09-02"
-    },
-    {
-      "symbol": "6257.TW",
-      "name": "矽格",
-      "decision": "禁止當沖，暫不賣",
-      "reason": "AI 顯示減碼訊號：短線目標先看 233.10 元；若隔日開高無量，先減碼。",
-      "finalScore": 63,
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "id": "decision-1788347481415-3bd145bb82ce1",
-      "createdAt": "2026-09-02T11:11:21.415Z",
-      "tradingDate": "2026-09-02"
-    },
-    {
-      "symbol": "2377.TW",
-      "name": "微星",
-      "decision": "續抱",
-      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
-      "finalScore": 57,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1788347481078-4087252e03cbb",
-      "createdAt": "2026-09-02T11:11:21.078Z",
-      "tradingDate": "2026-09-02"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1793255911303-08c6bd945ca34",
+      "createdAt": "2026-10-29T06:38:31.303Z",
+      "tradingDate": "2026-10-29",
+      "cash": 79668.04999999992,
+      "positionValue": 19484.6,
+      "totalEquity": 99152.6499999999,
+      "realizedPnl": -572.3500000000099
+    },
     {
       "id": "equity-1793191344259-76ed1fe79de7d",
       "createdAt": "2026-10-28T12:42:24.259Z",
@@ -15295,6 +15337,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-10-28T12:42:08.581Z",
+  "lastRunAt": "2026-10-29T06:38:04.262Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
