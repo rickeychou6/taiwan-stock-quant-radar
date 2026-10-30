@@ -22,7 +22,7 @@
       "lastValue": 5580,
       "unrealizedPnl": -285,
       "unrealizedPnlPct": -4.859335038363171,
-      "lastAnalysisAt": "2026-10-30T06:38:12.777Z"
+      "lastAnalysisAt": "2026-10-30T12:43:42.439Z"
     },
     {
       "id": "position-1793255911303-50edc6229d1ce",
@@ -43,7 +43,7 @@
       "lastValue": 9655.65,
       "unrealizedPnl": -328.9500000000007,
       "unrealizedPnlPct": -3.29457364341086,
-      "lastAnalysisAt": "2026-10-30T06:38:13.296Z"
+      "lastAnalysisAt": "2026-10-30T12:43:42.955Z"
     }
   ],
   "trades": [
@@ -7740,6 +7740,48 @@
       "name": "全市場",
       "decision": "沒有買入",
       "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
+      "id": "decision-1793364237762-fbf44dd835da7",
+      "createdAt": "2026-10-30T12:43:57.762Z",
+      "tradingDate": "2026-10-30"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "2890.TW 永豐金：推薦等級為 接近買點；AI 動作為 續抱 / 9904.TW 寶成：AI 分數 54 低於 58；3-5 天上漲機率 52% 低於 56% / 2891.TW 中信金：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.73 低於 0.9 / 2884.TW 玉山金：AI 分數 57 低於 58；3-5 天上漲機率 55% 低於 56% / 6234.TWO 高僑：AI 分數 54 低於 58",
+      "id": "decision-1793364237761-c8dea0c36cc7a",
+      "createdAt": "2026-10-30T12:43:57.762Z",
+      "tradingDate": "2026-10-30"
+    },
+    {
+      "symbol": "1528.TW",
+      "name": "恩德",
+      "decision": "續抱",
+      "reason": "收盤跌破 23.70 元 或跌破 MA20 後無法收回，應降低部位。",
+      "finalScore": 54,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1793364222955-df300be57c445",
+      "createdAt": "2026-10-30T12:43:42.955Z",
+      "tradingDate": "2026-10-30"
+    },
+    {
+      "symbol": "3533.TW",
+      "name": "嘉澤",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 57,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1793364222439-76589c70658a5",
+      "createdAt": "2026-10-30T12:43:42.439Z",
+      "tradingDate": "2026-10-30"
+    },
+    {
+      "symbol": "MARKET",
+      "name": "全市場",
+      "decision": "沒有買入",
+      "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
       "id": "decision-1793342309366-60ca0b65ed66a",
       "createdAt": "2026-10-30T06:38:29.366Z",
       "tradingDate": "2026-10-30"
@@ -13197,54 +13239,18 @@
       "id": "decision-1788433641685-daa1cf11605ef",
       "createdAt": "2026-09-03T11:07:21.685Z",
       "tradingDate": "2026-09-03"
-    },
-    {
-      "symbol": "2377.TW",
-      "name": "微星",
-      "decision": "續抱",
-      "reason": "停損線 142.50 元 不可下修。",
-      "finalScore": 52,
-      "tradeStyle": "暫不交易",
-      "automationAction": "等待",
-      "id": "decision-1788433641322-0572829e4ac8d",
-      "createdAt": "2026-09-03T11:07:21.322Z",
-      "tradingDate": "2026-09-03"
-    },
-    {
-      "symbol": "6770.TW",
-      "name": "力積電",
-      "decision": "續抱",
-      "reason": "停損線 64.57 元 不下修，跌破代表交易假設失效。",
-      "finalScore": 44,
-      "tradeStyle": "暫不交易",
-      "automationAction": "等待",
-      "id": "decision-1788433640897-57634bfd2683e",
-      "createdAt": "2026-09-03T11:07:20.897Z",
-      "tradingDate": "2026-09-03"
-    },
-    {
-      "symbol": "6505.TW",
-      "name": "台塑化",
-      "decision": "買進",
-      "reason": "突破量能需維持 1.2 倍以上；若無量，等回測 72.41 元。",
-      "finalScore": 63,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1788429545718-188d7ba0e4011",
-      "createdAt": "2026-09-03T09:59:05.718Z",
-      "tradingDate": "2026-09-03"
-    },
-    {
-      "symbol": "RISK-GATE",
-      "name": "自動交易風控",
-      "decision": "過濾候選",
-      "reason": "2885.TW 元大金：推薦等級為 等待回檔；AI 動作為 續抱；風險報酬比 1:0.65 低於 0.9 / 2890.TW 永豐金：推薦等級為 接近買點；AI 動作為 續抱；風險報酬比 1:0.54 低於 0.9 / 2886.TW 兆豐金：推薦等級為 等待回檔；AI 動作為 續抱；風險報酬比 1:0.66 低於 0.9 / 2887.TW 台新新光金：推薦等級為 等待回檔；AI 動作為 等待；交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.43 低於 0.9 / 2301.TW 光寶科：今日跌幅 -5.08% 偏弱，避免接刀",
-      "id": "decision-1788429545718-8f5e95b96e777",
-      "createdAt": "2026-09-03T09:59:05.718Z",
-      "tradingDate": "2026-09-03"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1793364237762-da415fd2d756c",
+      "createdAt": "2026-10-30T12:43:57.762Z",
+      "tradingDate": "2026-10-30",
+      "cash": 83388.04999999992,
+      "positionValue": 15235.65,
+      "totalEquity": 98623.69999999991,
+      "realizedPnl": -762.3500000000099
+    },
     {
       "id": "equity-1793342309366-78a16e904b016",
       "createdAt": "2026-10-30T06:38:29.366Z",
@@ -15379,6 +15385,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-10-30T06:37:58.251Z",
+  "lastRunAt": "2026-10-30T12:43:34.689Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
