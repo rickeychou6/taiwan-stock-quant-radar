@@ -1,29 +1,8 @@
 {
   "initialCapital": 100000,
-  "cash": 66844.59999999992,
-  "realizedPnl": -775.6000000000108,
+  "cash": 69526.64999999992,
+  "realizedPnl": -596.150000000011,
   "positions": [
-    {
-      "id": "position-1793255911303-50edc6229d1ce",
-      "symbol": "1528.TW",
-      "name": "恩德",
-      "shares": 97,
-      "entryPrice": 25.8,
-      "entryAmount": 2502.6,
-      "stopLossPrice": 23.83,
-      "takeProfit1": 31.04,
-      "takeProfit2": 33.87,
-      "openedAt": "2026-10-29T06:38:31.303Z",
-      "openedTradingDate": "2026-10-29",
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "positionSizePct": 20,
-      "lastPrice": 27.65,
-      "lastValue": 2682.0499999999997,
-      "unrealizedPnl": 179.4499999999998,
-      "unrealizedPnlPct": 7.170542635658907,
-      "lastAnalysisAt": "2026-11-04T07:05:50.927Z"
-    },
     {
       "id": "position-1793602788605-936f14ec0a546",
       "symbol": "2885.TW",
@@ -43,7 +22,7 @@
       "lastValue": 9591,
       "unrealizedPnl": -347.5,
       "unrealizedPnlPct": -3.4965034965034967,
-      "lastAnalysisAt": "2026-11-04T07:05:51.708Z"
+      "lastAnalysisAt": "2026-11-04T14:22:34.999Z"
     },
     {
       "id": "position-1793602788605-8e46a8750c724",
@@ -64,7 +43,7 @@
       "lastValue": 9758,
       "unrealizedPnl": -225.5,
       "unrealizedPnlPct": -2.2587268993839835,
-      "lastAnalysisAt": "2026-11-04T07:05:52.112Z"
+      "lastAnalysisAt": "2026-11-04T14:22:35.498Z"
     },
     {
       "id": "position-1793776016558-91e0784aba244",
@@ -85,10 +64,43 @@
       "lastValue": 9955.2,
       "unrealizedPnl": 0,
       "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-11-04T07:06:56.558Z"
+      "lastAnalysisAt": "2026-11-04T14:22:36.019Z"
     }
   ],
   "trades": [
+    {
+      "side": "BLOCKED_SELL",
+      "symbol": "2891.TW",
+      "name": "中信金",
+      "price": 73.2,
+      "shares": 0,
+      "amount": 0,
+      "cashAfter": 69526.64999999992,
+      "reason": "禁止當沖：AI 顯示減碼訊號：第一目標 77.76 元 先賣 1/3 到 1/2，第二目標 80.95 元 再分批。。今天買進的股票不可今天賣出，延到下一個交易日再檢查。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1793776016558-91e0784aba244",
+      "id": "trade-1793802156020-6e7e94a743317",
+      "createdAt": "2026-11-04T14:22:36.020Z",
+      "tradingDate": "2026-11-04"
+    },
+    {
+      "side": "SELL",
+      "symbol": "1528.TW",
+      "name": "恩德",
+      "price": 27.65,
+      "shares": 97,
+      "amount": 2682.0499999999997,
+      "costBasis": 2502.6,
+      "realizedPnl": 179.44999999999982,
+      "realizedPnlPct": 7.170542635658908,
+      "cashAfter": 69526.64999999992,
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1793255911303-50edc6229d1ce",
+      "id": "trade-1793802154289-9d007e46fa7d6",
+      "createdAt": "2026-11-04T14:22:34.289Z",
+      "tradingDate": "2026-11-04"
+    },
     {
       "side": "BUY",
       "symbol": "2891.TW",
@@ -7907,6 +7919,72 @@
   ],
   "decisions": [
     {
+      "symbol": "MARKET",
+      "name": "全市場",
+      "decision": "沒有買入",
+      "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
+      "id": "decision-1793802164730-58ce81b598c11",
+      "createdAt": "2026-11-04T14:22:44.730Z",
+      "tradingDate": "2026-11-04"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "1216.TW 統一：推薦等級為 等待回檔；AI 動作為 續抱 / 2603.TW 長榮：推薦等級為 等待回檔；AI 動作為 續抱；3-5 天上漲機率 55% 低於 56% / 2618.TW 長榮航：推薦等級為 等待回檔；AI 動作為 等待；交易模式仍是區間等待，機器人不主動買入等待型訊號 / 2357.TW 華碩：推薦等級為 等待回檔；AI 動作為 等待；交易模式仍是區間等待，機器人不主動買入等待型訊號；AI 分數 47 低於 58；3-5 天上漲機率 50% 低於 56% / 3034.TW 聯詠：推薦等級為 等待回檔；AI 動作為 等待；交易模式仍是區間等待，機器人不主動買入等待型訊號；AI 分數 48 低於 58；3-5 天上漲機率 46% 低於 56%",
+      "id": "decision-1793802164730-f9a103d8f87ca",
+      "createdAt": "2026-11-04T14:22:44.730Z",
+      "tradingDate": "2026-11-04"
+    },
+    {
+      "symbol": "2891.TW",
+      "name": "中信金",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "AI 顯示減碼訊號：第一目標 77.76 元 先賣 1/3 到 1/2，第二目標 80.95 元 再分批。",
+      "finalScore": 58,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1793802156020-7ba3a3dffae14",
+      "createdAt": "2026-11-04T14:22:36.020Z",
+      "tradingDate": "2026-11-04"
+    },
+    {
+      "symbol": "2884.TW",
+      "name": "玉山金",
+      "decision": "續抱",
+      "reason": "停損線 45.93 元 不可下修。",
+      "finalScore": 53,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1793802155498-fa200dec75caf",
+      "createdAt": "2026-11-04T14:22:35.498Z",
+      "tradingDate": "2026-11-04"
+    },
+    {
+      "symbol": "2885.TW",
+      "name": "元大金",
+      "decision": "續抱",
+      "reason": "停損線 67.61 元 不可下修。",
+      "finalScore": 46,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1793802154999-c7ff1f2235775",
+      "createdAt": "2026-11-04T14:22:34.999Z",
+      "tradingDate": "2026-11-04"
+    },
+    {
+      "symbol": "1528.TW",
+      "name": "恩德",
+      "decision": "賣出",
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "finalScore": 61,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1793802154289-cbe5f18e2cb22",
+      "createdAt": "2026-11-04T14:22:34.289Z",
+      "tradingDate": "2026-11-04"
+    },
+    {
       "symbol": "2891.TW",
       "name": "中信金",
       "decision": "買進",
@@ -13338,78 +13416,18 @@
       "id": "decision-1788783683249-7452c85be0569",
       "createdAt": "2026-09-07T12:21:23.249Z",
       "tradingDate": "2026-09-07"
-    },
-    {
-      "symbol": "2317.TW",
-      "name": "鴻海",
-      "decision": "買進",
-      "reason": "靠近支撐 254.10 元 可分批，不追高。",
-      "finalScore": 58,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1788777336336-7301d71b8c28e",
-      "createdAt": "2026-09-07T10:35:36.336Z",
-      "tradingDate": "2026-09-07"
-    },
-    {
-      "symbol": "RISK-GATE",
-      "name": "自動交易風控",
-      "decision": "過濾候選",
-      "reason": "4938.TW 和碩：推薦等級為 接近買點；AI 動作為 續抱 / 6834.TW 天二科技：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確 / 2357.TW 華碩：推薦等級為 等待回檔；AI 動作為 續抱 / 2408.TW 南亞科：AI 分數 56 低於 58 / 1727.TW 中華化：AI 分數 56 低於 58",
-      "id": "decision-1788777336336-be9505ef8d4cd",
-      "createdAt": "2026-09-07T10:35:36.336Z",
-      "tradingDate": "2026-09-07"
-    },
-    {
-      "symbol": "3491.TWO",
-      "name": "昇達科",
-      "decision": "禁止當沖，暫不賣",
-      "reason": "AI 顯示減碼訊號：第一目標 1692.57 元 先賣 1/3 到 1/2，第二目標 1844.71 元 再分批。",
-      "finalScore": 59,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1788777323961-7774b4d02a8b3",
-      "createdAt": "2026-09-07T10:35:23.961Z",
-      "tradingDate": "2026-09-07"
-    },
-    {
-      "symbol": "2637.TW",
-      "name": "慧洋-KY",
-      "decision": "續抱",
-      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
-      "finalScore": 62,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1788777323552-2146cd1189487",
-      "createdAt": "2026-09-07T10:35:23.552Z",
-      "tradingDate": "2026-09-07"
-    },
-    {
-      "symbol": "6505.TW",
-      "name": "台塑化",
-      "decision": "賣出",
-      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
-      "finalScore": 65,
-      "tradeStyle": "中線常抱",
-      "automationAction": "續抱",
-      "id": "decision-1788777323066-ed4c8d88fe1bc",
-      "createdAt": "2026-09-07T10:35:23.066Z",
-      "tradingDate": "2026-09-07"
-    },
-    {
-      "symbol": "6770.TW",
-      "name": "力積電",
-      "decision": "賣出",
-      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
-      "finalScore": 59,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1788777322586-6dfd24bc29642",
-      "createdAt": "2026-09-07T10:35:22.586Z",
-      "tradingDate": "2026-09-07"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1793802164730-25feaf0922fb8",
+      "createdAt": "2026-11-04T14:22:44.730Z",
+      "tradingDate": "2026-11-04",
+      "cash": 69526.64999999992,
+      "positionValue": 29304.2,
+      "totalEquity": 98830.84999999992,
+      "realizedPnl": -596.150000000011
+    },
     {
       "id": "equity-1793776016559-e116dbbae6253",
       "createdAt": "2026-11-04T07:06:56.559Z",
@@ -15598,6 +15616,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-11-04T07:05:41.638Z",
+  "lastRunAt": "2026-11-04T14:22:28.080Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
