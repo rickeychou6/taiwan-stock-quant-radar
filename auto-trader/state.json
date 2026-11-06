@@ -1,7 +1,7 @@
 {
   "initialCapital": 100000,
-  "cash": 86414.54999999993,
-  "realizedPnl": -1113.15000000001,
+  "cash": 78920.14999999994,
+  "realizedPnl": -1106.35000000001,
   "positions": [
     {
       "id": "position-1793602788605-8e46a8750c724",
@@ -22,31 +22,64 @@
       "lastValue": 9635,
       "unrealizedPnl": -348.5,
       "unrealizedPnlPct": -3.4907597535934287,
-      "lastAnalysisAt": "2026-11-06T07:29:59.986Z"
+      "lastAnalysisAt": "2026-11-06T14:09:45.853Z"
     },
     {
-      "id": "position-1793776016558-91e0784aba244",
-      "symbol": "2891.TW",
-      "name": "中信金",
-      "shares": 34,
-      "entryPrice": 73.2,
-      "entryAmount": 2488.8,
-      "stopLossPrice": 71.92,
-      "takeProfit1": 77.71,
-      "takeProfit2": 81.3,
-      "openedAt": "2026-11-04T07:06:56.558Z",
-      "openedTradingDate": "2026-11-04",
-      "tradeStyle": "中線常抱",
-      "automationAction": "可開倉",
-      "positionSizePct": 55,
-      "lastPrice": 73.4,
-      "lastValue": 2495.6000000000004,
-      "unrealizedPnl": 6.800000000000097,
-      "unrealizedPnlPct": 0.27322404371585085,
-      "lastAnalysisAt": "2026-11-06T07:30:00.377Z"
+      "id": "position-1793974201511-8f6ebdc9ed86",
+      "symbol": "5904.TWO",
+      "name": "寶雅*",
+      "shares": 135,
+      "entryPrice": 74,
+      "entryAmount": 9990,
+      "stopLossPrice": 71.66,
+      "takeProfit1": 77.36,
+      "takeProfit2": 80.15,
+      "openedAt": "2026-11-06T14:10:01.511Z",
+      "openedTradingDate": "2026-11-06",
+      "tradeStyle": "短進短出",
+      "automationAction": "小量試單",
+      "positionSizePct": 12,
+      "lastPrice": 74,
+      "lastValue": 9990,
+      "unrealizedPnl": 0,
+      "unrealizedPnlPct": 0,
+      "lastAnalysisAt": "2026-11-06T14:10:01.512Z"
     }
   ],
   "trades": [
+    {
+      "side": "BUY",
+      "symbol": "5904.TWO",
+      "name": "寶雅*",
+      "price": 74,
+      "shares": 135,
+      "amount": 9990,
+      "cashAfter": 78920.14999999994,
+      "reason": "可小量試單，短進短出/強勢動能，AI 動作 小量試單，3-5 天上漲機率 66%，風控版 risk-guard-v2-2026-08-13。",
+      "source": "TWSE/TPEX 官方全市場日行情，先全市場初選，再完整分析前 48 檔",
+      "positionId": "position-1793974201511-8f6ebdc9ed86",
+      "id": "trade-1793974201512-5988a6b99fe1f",
+      "createdAt": "2026-11-06T14:10:01.512Z",
+      "tradingDate": "2026-11-06"
+    },
+    {
+      "side": "SELL",
+      "symbol": "2891.TW",
+      "name": "中信金",
+      "price": 73.4,
+      "shares": 34,
+      "amount": 2495.6000000000004,
+      "costBasis": 2488.8,
+      "realizedPnl": 6.800000000000182,
+      "realizedPnlPct": 0.2732240437158543,
+      "cashAfter": 88910.14999999994,
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1793776016558-91e0784aba244",
+      "id": "trade-1793974186835-ed9c7829b5e6",
+      "createdAt": "2026-11-06T14:09:46.835Z",
+      "tradingDate": "2026-11-06"
+    },
     {
       "side": "PARTIAL_SELL",
       "symbol": "2891.TW",
@@ -7952,6 +7985,51 @@
   ],
   "decisions": [
     {
+      "symbol": "5904.TWO",
+      "name": "寶雅*",
+      "decision": "買進",
+      "reason": "只適合小部位短打，買點要靠近支撐或突破當下，不適合追高長抱。",
+      "finalScore": 70,
+      "tradeStyle": "短進短出",
+      "automationAction": "小量試單",
+      "id": "decision-1793974201512-ed17d277e344c",
+      "createdAt": "2026-11-06T14:10:01.512Z",
+      "tradingDate": "2026-11-06"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "5013.TWO 強新：風險報酬比 1:0.84 低於 0.9 / 2516.TW 新建：風險報酬比 1:0.83 低於 0.9 / 4741.TWO 泓瀚：風險報酬比 1:0.81 低於 0.9；今日漲幅 9.98% 過熱，避免追高 / 3576.TW 聯合再生：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；AI 分數 54 低於 58；今日漲幅 8.54% 過熱，避免追高 / 6751.TWO 智聯服務：AI 分數 55 低於 58；今日漲幅 9.86% 過熱，避免追高",
+      "id": "decision-1793974201511-8a29e90c086a4",
+      "createdAt": "2026-11-06T14:10:01.511Z",
+      "tradingDate": "2026-11-06"
+    },
+    {
+      "symbol": "2891.TW",
+      "name": "中信金",
+      "decision": "賣出",
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "finalScore": 57,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1793974186835-e1b1a228b3f3",
+      "createdAt": "2026-11-06T14:09:46.835Z",
+      "tradingDate": "2026-11-06"
+    },
+    {
+      "symbol": "2884.TW",
+      "name": "玉山金",
+      "decision": "續抱",
+      "reason": "停損線 44.97 元 不可下修。",
+      "finalScore": 48,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1793974185853-1874594c035e7",
+      "createdAt": "2026-11-06T14:09:45.853Z",
+      "tradingDate": "2026-11-06"
+    },
+    {
       "symbol": "MARKET",
       "name": "全市場",
       "decision": "推薦雷達失敗",
@@ -13398,54 +13476,18 @@
       "id": "decision-1788865860072-03c09ff4216d8",
       "createdAt": "2026-09-08T11:11:00.072Z",
       "tradingDate": "2026-09-08"
-    },
-    {
-      "symbol": "2317.TW",
-      "name": "鴻海",
-      "decision": "續抱",
-      "reason": "停損線 246.97 元 不可下修。",
-      "finalScore": 52,
-      "tradeStyle": "暫不交易",
-      "automationAction": "等待",
-      "id": "decision-1788865859753-b91dbd90a40f4",
-      "createdAt": "2026-09-08T11:10:59.753Z",
-      "tradingDate": "2026-09-08"
-    },
-    {
-      "symbol": "3491.TWO",
-      "name": "昇達科",
-      "decision": "續抱",
-      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
-      "finalScore": 58,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1788865857293-40cde8618e161",
-      "createdAt": "2026-09-08T11:10:57.293Z",
-      "tradingDate": "2026-09-08"
-    },
-    {
-      "symbol": "2408.TW",
-      "name": "南亞科",
-      "decision": "買進",
-      "reason": "靠近支撐 514.15 元 可分批，不追高。",
-      "finalScore": 59,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1788861376092-dd6d70c268995",
-      "createdAt": "2026-09-08T09:56:16.092Z",
-      "tradingDate": "2026-09-08"
-    },
-    {
-      "symbol": "RISK-GATE",
-      "name": "自動交易風控",
-      "decision": "過濾候選",
-      "reason": "6770.TW 力積電：近 3 天已賣出或禁止賣出過，先冷卻 / 1560.TW 中砂：AI 動作為 續抱 / 7795.TW 長廣：AI 分數 56 低於 58 / 3711.TW 日月光投控：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確 / 4958.TW 臻鼎-KY：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；AI 分數 57 低於 58",
-      "id": "decision-1788861376092-595c8d4fc4018",
-      "createdAt": "2026-09-08T09:56:16.092Z",
-      "tradingDate": "2026-09-08"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1793974201512-d41768c1108cf",
+      "createdAt": "2026-11-06T14:10:01.512Z",
+      "tradingDate": "2026-11-06",
+      "cash": 78920.14999999994,
+      "positionValue": 19625,
+      "totalEquity": 98545.14999999994,
+      "realizedPnl": -1106.35000000001
+    },
     {
       "id": "equity-1793950380377-48f97055cc897",
       "createdAt": "2026-11-06T07:33:00.377Z",
@@ -15670,6 +15712,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-11-06T07:29:52.419Z",
+  "lastRunAt": "2026-11-06T14:09:35.623Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
