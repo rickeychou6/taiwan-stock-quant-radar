@@ -1,7 +1,7 @@
 {
   "initialCapital": 100000,
-  "cash": 78920.14999999994,
-  "realizedPnl": -1106.35000000001,
+  "cash": 83958.54999999993,
+  "realizedPnl": -1025.9500000000094,
   "positions": [
     {
       "id": "position-1793602788605-8e46a8750c724",
@@ -10,43 +10,61 @@
       "shares": 205,
       "entryPrice": 48.7,
       "entryAmount": 9983.5,
-      "stopLossPrice": 44.97,
-      "takeProfit1": 50.75,
-      "takeProfit2": 52.7,
+      "stopLossPrice": 45.44,
+      "takeProfit1": 50.45,
+      "takeProfit2": 52.55,
       "openedAt": "2026-11-02T06:59:48.605Z",
       "openedTradingDate": "2026-11-02",
       "tradeStyle": "暫不交易",
       "automationAction": "等待",
       "positionSizePct": 0,
-      "lastPrice": 47,
-      "lastValue": 9635,
-      "unrealizedPnl": -348.5,
-      "unrealizedPnlPct": -3.4907597535934287,
-      "lastAnalysisAt": "2026-11-06T14:09:45.853Z"
+      "lastPrice": 47.3,
+      "lastValue": 9696.5,
+      "unrealizedPnl": -287,
+      "unrealizedPnlPct": -2.8747433264887063,
+      "lastAnalysisAt": "2026-11-09T07:28:31.480Z"
     },
     {
       "id": "position-1793974201511-8f6ebdc9ed86",
       "symbol": "5904.TWO",
       "name": "寶雅*",
-      "shares": 135,
+      "shares": 68,
       "entryPrice": 74,
-      "entryAmount": 9990,
-      "stopLossPrice": 71.66,
-      "takeProfit1": 77.36,
-      "takeProfit2": 80.15,
+      "entryAmount": 5032,
+      "stopLossPrice": 71.97,
+      "takeProfit1": 78.48,
+      "takeProfit2": 81.21,
       "openedAt": "2026-11-06T14:10:01.511Z",
       "openedTradingDate": "2026-11-06",
-      "tradeStyle": "短進短出",
-      "automationAction": "小量試單",
-      "positionSizePct": 12,
-      "lastPrice": 74,
-      "lastValue": 9990,
-      "unrealizedPnl": 0,
-      "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-11-06T14:10:01.512Z"
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "positionSizePct": 0,
+      "lastPrice": 75.2,
+      "lastValue": 5113.6,
+      "unrealizedPnl": 81.6000000000002,
+      "unrealizedPnlPct": 1.6216216216216255,
+      "lastAnalysisAt": "2026-11-09T07:28:32.564Z"
     }
   ],
   "trades": [
+    {
+      "side": "PARTIAL_SELL",
+      "symbol": "5904.TWO",
+      "name": "寶雅*",
+      "price": 75.2,
+      "shares": 67,
+      "amount": 5038.400000000001,
+      "costBasis": 4958,
+      "realizedPnl": 80.40000000000055,
+      "realizedPnlPct": 1.6216216216216324,
+      "cashAfter": 83958.54999999993,
+      "reason": "AI 顯示減碼訊號：若已持有，第一壓力 78.48 元 附近先檢查是否減碼。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1793974201511-8f6ebdc9ed86",
+      "id": "trade-1794209312564-16561cb7d049f",
+      "createdAt": "2026-11-09T07:28:32.564Z",
+      "tradingDate": "2026-11-09"
+    },
     {
       "side": "BUY",
       "symbol": "5904.TWO",
@@ -7985,6 +8003,48 @@
   ],
   "decisions": [
     {
+      "symbol": "MARKET",
+      "name": "全市場",
+      "decision": "沒有買入",
+      "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
+      "id": "decision-1794209363852-28b9ee53564f4",
+      "createdAt": "2026-11-09T07:29:23.852Z",
+      "tradingDate": "2026-11-09"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "1558.TW 伸興：AI 分數 57 低於 58；3-5 天上漲機率 54% 低於 56% / 3576.TW 聯合再生：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確 / 2891.TW 中信金：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；近 3 天已賣出或禁止賣出過，先冷卻 / 5013.TWO 強新：推薦等級為 等待回檔；AI 動作為 等待；交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.62 低於 0.9；今日漲幅 10% 過熱，避免追高 / 6443.TW 元晶：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確",
+      "id": "decision-1794209363852-13b79c2e89af6",
+      "createdAt": "2026-11-09T07:29:23.852Z",
+      "tradingDate": "2026-11-09"
+    },
+    {
+      "symbol": "5904.TWO",
+      "name": "寶雅*",
+      "decision": "部分賣出",
+      "reason": "AI 顯示減碼訊號：若已持有，第一壓力 78.48 元 附近先檢查是否減碼。",
+      "finalScore": 66,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1794209312564-12a55553e8ff5",
+      "createdAt": "2026-11-09T07:28:32.564Z",
+      "tradingDate": "2026-11-09"
+    },
+    {
+      "symbol": "2884.TW",
+      "name": "玉山金",
+      "decision": "續抱",
+      "reason": "停損線 45.44 元 不可下修。",
+      "finalScore": 53,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1794209311480-ad076be2f94d9",
+      "createdAt": "2026-11-09T07:28:31.480Z",
+      "tradingDate": "2026-11-09"
+    },
+    {
       "symbol": "5904.TWO",
       "name": "寶雅*",
       "decision": "買進",
@@ -13431,54 +13491,18 @@
       "id": "decision-1788932059494-ae5c87c1db8d5",
       "createdAt": "2026-09-09T05:34:19.494Z",
       "tradingDate": "2026-09-09"
-    },
-    {
-      "symbol": "3491.TWO",
-      "name": "昇達科",
-      "decision": "部分賣出",
-      "reason": "AI 顯示減碼訊號：第一目標 1645.93 元 先賣 1/3 到 1/2，第二目標 1805.04 元 再分批。",
-      "finalScore": 55,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1788932058328-bb205854b9a68",
-      "createdAt": "2026-09-09T05:34:18.328Z",
-      "tradingDate": "2026-09-09"
-    },
-    {
-      "symbol": "CASH",
-      "name": "資金控管",
-      "decision": "暫停買入",
-      "reason": "已持有 4 檔，避免過度分散。",
-      "id": "decision-1788865860895-74092696d258f",
-      "createdAt": "2026-09-08T11:11:00.895Z",
-      "tradingDate": "2026-09-08"
-    },
-    {
-      "symbol": "2408.TW",
-      "name": "南亞科",
-      "decision": "禁止當沖，暫不賣",
-      "reason": "AI 顯示減碼訊號：第一目標 588.79 元 先賣 1/3 到 1/2，第二目標 636.95 元 再分批。",
-      "finalScore": 59,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1788865860895-16054a79413fe",
-      "createdAt": "2026-09-08T11:11:00.895Z",
-      "tradingDate": "2026-09-08"
-    },
-    {
-      "symbol": "6531.TW",
-      "name": "愛普*",
-      "decision": "禁止當沖，暫不賣",
-      "reason": "AI 顯示減碼訊號：第一目標 1033.99 元 先賣 1/3 到 1/2，第二目標 1119.81 元 再分批。",
-      "finalScore": 58,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1788865860072-03c09ff4216d8",
-      "createdAt": "2026-09-08T11:11:00.072Z",
-      "tradingDate": "2026-09-08"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1794209363852-34959e1f37e3d",
+      "createdAt": "2026-11-09T07:29:23.852Z",
+      "tradingDate": "2026-11-09",
+      "cash": 83958.54999999993,
+      "positionValue": 14810.1,
+      "totalEquity": 98768.64999999994,
+      "realizedPnl": -1025.9500000000094
+    },
     {
       "id": "equity-1793974201512-d41768c1108cf",
       "createdAt": "2026-11-06T14:10:01.512Z",
@@ -15712,6 +15736,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-11-06T14:09:35.623Z",
+  "lastRunAt": "2026-11-09T07:27:20.308Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
