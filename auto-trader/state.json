@@ -1,7 +1,7 @@
 {
   "initialCapital": 100000,
-  "cash": 69344.5499999999,
-  "realizedPnl": 1806.449999999989,
+  "cash": 71779.0499999999,
+  "realizedPnl": 1720.949999999989,
   "positions": [
     {
       "id": "position-1793602788605-8e46a8750c724",
@@ -22,28 +22,7 @@
       "lastValue": 9901.5,
       "unrealizedPnl": -82,
       "unrealizedPnlPct": -0.8213552361396305,
-      "lastAnalysisAt": "2026-11-16T07:28:17.017Z"
-    },
-    {
-      "id": "position-1794495875605-64e508bb2dc24",
-      "symbol": "1528.TW",
-      "name": "恩德",
-      "shares": 90,
-      "entryPrice": 28,
-      "entryAmount": 2520,
-      "stopLossPrice": 24.67,
-      "takeProfit1": 31.11,
-      "takeProfit2": 34.49,
-      "openedAt": "2026-11-12T15:04:35.605Z",
-      "openedTradingDate": "2026-11-12",
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "positionSizePct": 20,
-      "lastPrice": 27.05,
-      "lastValue": 2434.5,
-      "unrealizedPnl": -85.49999999999994,
-      "unrealizedPnlPct": -3.3928571428571406,
-      "lastAnalysisAt": "2026-11-16T07:28:18.357Z"
+      "lastAnalysisAt": "2026-11-16T15:34:32.513Z"
     },
     {
       "id": "position-1794814116209-7ae5eead57d2c",
@@ -64,7 +43,7 @@
       "lastValue": 9975.3,
       "unrealizedPnl": 0,
       "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-11-16T07:28:36.209Z"
+      "lastAnalysisAt": "2026-11-16T15:34:34.200Z"
     },
     {
       "id": "position-1794814116210-f8586715eb203",
@@ -78,17 +57,50 @@
       "takeProfit2": 40.28,
       "openedAt": "2026-11-16T07:28:36.210Z",
       "openedTradingDate": "2026-11-16",
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "positionSizePct": 20,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "positionSizePct": 0,
       "lastPrice": 32.1,
       "lastValue": 9983.1,
       "unrealizedPnl": 0,
       "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-11-16T07:28:36.210Z"
+      "lastAnalysisAt": "2026-11-16T15:34:34.719Z"
     }
   ],
   "trades": [
+    {
+      "side": "BLOCKED_SELL",
+      "symbol": "6689.TW",
+      "name": "伊雲谷",
+      "price": 81.1,
+      "shares": 0,
+      "amount": 0,
+      "cashAfter": 71779.0499999999,
+      "reason": "禁止當沖：AI 顯示減碼訊號：第一目標 92.66 元 先賣 1/3 到 1/2，第二目標 102.29 元 再分批。。今天買進的股票不可今天賣出，延到下一個交易日再檢查。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1794814116209-7ae5eead57d2c",
+      "id": "trade-1794843274200-4ce3f0f79a00a",
+      "createdAt": "2026-11-16T15:34:34.200Z",
+      "tradingDate": "2026-11-16"
+    },
+    {
+      "side": "SELL",
+      "symbol": "1528.TW",
+      "name": "恩德",
+      "price": 27.05,
+      "shares": 90,
+      "amount": 2434.5,
+      "costBasis": 2520,
+      "realizedPnl": -85.5,
+      "realizedPnlPct": -3.392857142857143,
+      "cashAfter": 71779.0499999999,
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1794495875605-64e508bb2dc24",
+      "id": "trade-1794843273631-0c875a1e1f65e",
+      "createdAt": "2026-11-16T15:34:33.631Z",
+      "tradingDate": "2026-11-16"
+    },
     {
       "side": "BUY",
       "symbol": "4533.TWO",
@@ -8176,39 +8188,75 @@
       "id": "trade-1784882365778-c5eedc956c829",
       "createdAt": "2026-07-24T08:39:25.778Z",
       "tradingDate": "2026-07-24"
-    },
-    {
-      "side": "PARTIAL_SELL",
-      "symbol": "3702.TW",
-      "name": "大聯大",
-      "price": 117.5,
-      "shares": 6,
-      "amount": 705,
-      "cashAfter": 96407.5,
-      "reason": "AI 顯示減碼訊號：短線目標先看 127.14 元；若隔日開高無量，先減碼。",
-      "source": "github-actions-real-time-analysis",
-      "positionId": "position-1784869641307-f1e8d85d7591c",
-      "id": "trade-1784882365382-d50ccb5fe2f58",
-      "createdAt": "2026-07-24T08:39:25.382Z",
-      "tradingDate": "2026-07-24"
-    },
-    {
-      "side": "PARTIAL_SELL",
-      "symbol": "3665.TW",
-      "name": "貿聯-KY",
-      "price": 2205,
-      "shares": 1,
-      "amount": 2205,
-      "cashAfter": 95702.5,
-      "reason": "AI 顯示減碼訊號：短線目標先看 2469.86 元；若隔日開高無量，先減碼。",
-      "source": "github-actions-real-time-analysis",
-      "positionId": "position-1784869641307-77b8419e56339",
-      "id": "trade-1784882364922-6bf7fb7c57872",
-      "createdAt": "2026-07-24T08:39:24.922Z",
-      "tradingDate": "2026-07-24"
     }
   ],
   "decisions": [
+    {
+      "symbol": "RISK-GATE",
+      "name": "每日買進上限",
+      "decision": "暫停買入",
+      "reason": "今日已買進 2 檔，避免同一天行情誤判時一起套住。",
+      "id": "decision-1794843307865-a164d34ee6de3",
+      "createdAt": "2026-11-16T15:35:07.865Z",
+      "tradingDate": "2026-11-16"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "2880.TW 華南金：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確 / 2891.TW 中信金：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確 / 2033.TW 佳大：風險報酬比 1:0.85 低於 0.9；近 3 天已賣出或禁止賣出過，先冷卻 / 9933.TW 中鼎：推薦等級為 接近買點；AI 動作為 續抱；風險報酬比 1:0.7 低於 0.9 / 2610.TW 華航：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.74 低於 0.9",
+      "id": "decision-1794843307864-fe5a81ce2d05a",
+      "createdAt": "2026-11-16T15:35:07.864Z",
+      "tradingDate": "2026-11-16"
+    },
+    {
+      "symbol": "4533.TWO",
+      "name": "協易機",
+      "decision": "續抱",
+      "reason": "停損線 27.81 元 不可下修。",
+      "finalScore": 55,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1794843274719-f84d3eab5f537",
+      "createdAt": "2026-11-16T15:34:34.720Z",
+      "tradingDate": "2026-11-16"
+    },
+    {
+      "symbol": "6689.TW",
+      "name": "伊雲谷",
+      "decision": "禁止當沖，暫不賣",
+      "reason": "AI 顯示減碼訊號：第一目標 92.66 元 先賣 1/3 到 1/2，第二目標 102.29 元 再分批。",
+      "finalScore": 61,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1794843274200-e101312c96969",
+      "createdAt": "2026-11-16T15:34:34.200Z",
+      "tradingDate": "2026-11-16"
+    },
+    {
+      "symbol": "1528.TW",
+      "name": "恩德",
+      "decision": "賣出",
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "finalScore": 57,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1794843273631-3ba9b1260dd9c",
+      "createdAt": "2026-11-16T15:34:33.631Z",
+      "tradingDate": "2026-11-16"
+    },
+    {
+      "symbol": "2884.TW",
+      "name": "玉山金",
+      "decision": "續抱",
+      "reason": "停損線 47.41 元 不可下修。",
+      "finalScore": 53,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1794843272513-a428538bf50a1",
+      "createdAt": "2026-11-16T15:34:32.513Z",
+      "tradingDate": "2026-11-16"
+    },
     {
       "symbol": "4533.TWO",
       "name": "協易機",
@@ -13626,75 +13674,18 @@
       "id": "decision-1789389417688-921e36bf1eaa1",
       "createdAt": "2026-09-14T12:36:57.688Z",
       "tradingDate": "2026-09-14"
-    },
-    {
-      "symbol": "3532.TW",
-      "name": "台勝科",
-      "decision": "禁止當沖，暫不賣",
-      "reason": "AI 顯示減碼訊號：第一目標 461.39 元 先賣 1/3 到 1/2，第二目標 499.21 元 再分批。",
-      "finalScore": 62,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1789389406184-c298e271cf072",
-      "createdAt": "2026-09-14T12:36:46.184Z",
-      "tradingDate": "2026-09-14"
-    },
-    {
-      "symbol": "1303.TW",
-      "name": "南亞",
-      "decision": "續抱",
-      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
-      "finalScore": 60,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1789389405806-0f09e73f1ecec",
-      "createdAt": "2026-09-14T12:36:45.806Z",
-      "tradingDate": "2026-09-14"
-    },
-    {
-      "symbol": "6224.TW",
-      "name": "聚鼎",
-      "decision": "續抱",
-      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
-      "finalScore": 59,
-      "tradeStyle": "波段持有",
-      "automationAction": "等待",
-      "id": "decision-1789389405396-f576fbe340403",
-      "createdAt": "2026-09-14T12:36:45.396Z",
-      "tradingDate": "2026-09-14"
-    },
-    {
-      "symbol": "MARKET",
-      "name": "全市場",
-      "decision": "沒有買入",
-      "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
-      "id": "decision-1789383484643-125b74b5c32cc",
-      "createdAt": "2026-09-14T10:58:04.643Z",
-      "tradingDate": "2026-09-14"
-    },
-    {
-      "symbol": "RISK-GATE",
-      "name": "自動交易風控",
-      "decision": "過濾候選",
-      "reason": "1560.TW 中砂：推薦等級為 接近買點；AI 動作為 續抱；今日跌幅 -4.68% 偏弱，避免接刀 / 2881.TW 富邦金：推薦等級為 等待回檔；AI 動作為 等待；交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.56 低於 0.9 / 2444.TW 兆勁：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；3-5 天上漲機率 54% 低於 56%；今日跌幅 -4.1% 偏弱，避免接刀 / 2354.TW 鴻準：AI 分數 56 低於 58；3-5 天上漲機率 53% 低於 56% / 2851.TW 中再保：風險報酬比 1:0.89 低於 0.9",
-      "id": "decision-1789383484643-6ff4ba56efd64",
-      "createdAt": "2026-09-14T10:58:04.643Z",
-      "tradingDate": "2026-09-14"
-    },
-    {
-      "symbol": "3532.TW",
-      "name": "台勝科",
-      "decision": "禁止當沖，暫不賣",
-      "reason": "AI 顯示減碼訊號：第一目標 461.39 元 先賣 1/3 到 1/2，第二目標 499.21 元 再分批。",
-      "finalScore": 62,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1789383479023-274e7cc737bfb",
-      "createdAt": "2026-09-14T10:57:59.023Z",
-      "tradingDate": "2026-09-14"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1794843307865-e29d877b47f49",
+      "createdAt": "2026-11-16T15:35:07.865Z",
+      "tradingDate": "2026-11-16",
+      "cash": 71779.0499999999,
+      "positionValue": 29859.9,
+      "totalEquity": 101638.9499999999,
+      "realizedPnl": 1720.949999999989
+    },
     {
       "id": "equity-1794814116210-5f7392bb00755",
       "createdAt": "2026-11-16T07:28:36.210Z",
@@ -16027,6 +16018,6 @@
       "realizedPnl": 0
     }
   ],
-  "lastRunAt": "2026-11-16T07:28:07.876Z",
+  "lastRunAt": "2026-11-16T15:34:22.603Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
