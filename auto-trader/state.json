@@ -1,31 +1,27 @@
 {
   "initialCapital": 100000,
-  "cash": 90120.2999999999,
-  "realizedPnl": 103.79999999999109,
-  "positions": [
+  "cash": 98761.0499999999,
+  "realizedPnl": -1238.950000000009,
+  "positions": [],
+  "trades": [
     {
-      "id": "position-1793602788605-8e46a8750c724",
+      "side": "SELL",
       "symbol": "2884.TW",
       "name": "玉山金",
+      "price": 42.15,
       "shares": 205,
-      "entryPrice": 48.7,
-      "entryAmount": 9983.5,
-      "stopLossPrice": 45.52,
-      "takeProfit1": 50.1,
-      "takeProfit2": 52.48,
-      "openedAt": "2026-11-02T06:59:48.605Z",
-      "openedTradingDate": "2026-11-02",
-      "tradeStyle": "暫不交易",
-      "automationAction": "等待",
-      "positionSizePct": 0,
-      "lastPrice": 46.65,
-      "lastValue": 9563.25,
-      "unrealizedPnl": -420.25,
-      "unrealizedPnlPct": -4.209445585215605,
-      "lastAnalysisAt": "2026-11-17T15:53:35.512Z"
-    }
-  ],
-  "trades": [
+      "amount": 8640.75,
+      "costBasis": 9983.5,
+      "realizedPnl": -1342.75,
+      "realizedPnlPct": -13.449691991786446,
+      "cashAfter": 98761.0499999999,
+      "reason": "現價跌破停損線 45.53 元",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1793602788605-8e46a8750c724",
+      "id": "trade-1794989083282-7e4d9b30cbe4c",
+      "createdAt": "2026-11-18T08:04:43.282Z",
+      "tradingDate": "2026-11-18"
+    },
     {
       "side": "SELL",
       "symbol": "4533.TWO",
@@ -8137,24 +8133,39 @@
       "id": "trade-1784882384944-62d314b848cca",
       "createdAt": "2026-07-24T08:39:44.944Z",
       "tradingDate": "2026-07-24"
-    },
-    {
-      "side": "BUY",
-      "symbol": "4541.TWO",
-      "name": "晟田",
-      "price": 71.4,
-      "shares": 210,
-      "amount": 14994.000000000002,
-      "cashAfter": 68802.5,
-      "reason": "可小量試單，波段持有/趨勢續抱，AI 動作 小量試單，3-5 天上漲機率 61%。",
-      "source": "TWSE/TPEX 官方全市場日行情，先全市場初選，再完整分析前 32 檔，隔日與 3-5 天上漲候選",
-      "positionId": "position-1784882384944-048c8bef0ec22",
-      "id": "trade-1784882384944-debeb1d6475b5",
-      "createdAt": "2026-07-24T08:39:44.944Z",
-      "tradingDate": "2026-07-24"
     }
   ],
   "decisions": [
+    {
+      "symbol": "MARKET",
+      "name": "全市場",
+      "decision": "沒有買入",
+      "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
+      "id": "decision-1794989188830-673baad7c1e94",
+      "createdAt": "2026-11-18T08:06:28.830Z",
+      "tradingDate": "2026-11-18"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "8089.TWO 康全電訊：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.71 低於 0.9；今日漲幅 9.95% 過熱，避免追高 / 2887.TW 台新新光金：AI 分數 52 低於 58；3-5 天上漲機率 53% 低於 56%；今日跌幅 -5.6% 偏弱，避免接刀 / 2618.TW 長榮航：推薦等級為 接近買點；AI 動作為 續抱 / 2610.TW 華航：風險報酬比 1:0.84 低於 0.9 / 3491.TWO 昇達科：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確",
+      "id": "decision-1794989188830-908e62e52d644",
+      "createdAt": "2026-11-18T08:06:28.830Z",
+      "tradingDate": "2026-11-18"
+    },
+    {
+      "symbol": "2884.TW",
+      "name": "玉山金",
+      "decision": "賣出",
+      "reason": "現價跌破停損線 45.53 元",
+      "finalScore": 44,
+      "tradeStyle": "暫不交易",
+      "automationAction": "等待",
+      "id": "decision-1794989083282-9c553ad8b8afb",
+      "createdAt": "2026-11-18T08:04:43.282Z",
+      "tradingDate": "2026-11-18"
+    },
     {
       "symbol": "MARKET",
       "name": "全市場",
@@ -13599,45 +13610,18 @@
       "id": "decision-1789468124346-de93072cb9b69",
       "createdAt": "2026-09-15T10:28:44.346Z",
       "tradingDate": "2026-09-15"
-    },
-    {
-      "symbol": "2885.TW",
-      "name": "元大金",
-      "decision": "禁止當沖，暫不賣",
-      "reason": "AI 顯示減碼訊號：第一目標 72.93 元 先賣 1/3 到 1/2，第二目標 75.49 元 再分批。",
-      "finalScore": 58,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1789468111817-8d7adc71dfdaf",
-      "createdAt": "2026-09-15T10:28:31.817Z",
-      "tradingDate": "2026-09-15"
-    },
-    {
-      "symbol": "3532.TW",
-      "name": "台勝科",
-      "decision": "續抱",
-      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
-      "finalScore": 59,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1789468111322-70204fa4a2fd8",
-      "createdAt": "2026-09-15T10:28:31.322Z",
-      "tradingDate": "2026-09-15"
-    },
-    {
-      "symbol": "1303.TW",
-      "name": "南亞",
-      "decision": "賣出",
-      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
-      "finalScore": 57,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1789468110897-9ffa69d454c52",
-      "createdAt": "2026-09-15T10:28:30.897Z",
-      "tradingDate": "2026-09-15"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1794989188830-dfba7c501f9f4",
+      "createdAt": "2026-11-18T08:06:28.830Z",
+      "tradingDate": "2026-11-18",
+      "cash": 98761.0499999999,
+      "positionValue": 0,
+      "totalEquity": 98761.0499999999,
+      "realizedPnl": -1238.950000000009
+    },
     {
       "id": "equity-1794930830596-33dfa6745bc6c",
       "createdAt": "2026-11-17T15:53:50.596Z",
@@ -15968,17 +15952,8 @@
       "positionValue": 7872.5,
       "totalEquity": 99610,
       "realizedPnl": -284
-    },
-    {
-      "id": "equity-1784871494225-4dba5964463f5",
-      "createdAt": "2026-07-24T05:38:14.225Z",
-      "tradingDate": "2026-07-24",
-      "cash": 83982.5,
-      "positionValue": 15627.5,
-      "totalEquity": 99610,
-      "realizedPnl": -180
     }
   ],
-  "lastRunAt": "2026-11-17T15:53:26.191Z",
+  "lastRunAt": "2026-11-18T08:04:04.977Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
