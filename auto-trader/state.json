@@ -8139,6 +8139,15 @@
     {
       "symbol": "MARKET",
       "name": "全市場",
+      "decision": "推薦雷達失敗",
+      "reason": "This operation was aborted",
+      "id": "decision-1795075998416-c907fa4112302",
+      "createdAt": "2026-11-19T08:13:18.416Z",
+      "tradingDate": "2026-11-19"
+    },
+    {
+      "symbol": "MARKET",
+      "name": "全市場",
       "decision": "沒有買入",
       "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
       "id": "decision-1795015928657-43be4a5fdd4ef",
@@ -13595,21 +13604,18 @@
       "id": "decision-1789472267740-8289832ab9f81",
       "createdAt": "2026-09-15T11:37:47.740Z",
       "tradingDate": "2026-09-15"
-    },
-    {
-      "symbol": "3532.TW",
-      "name": "台勝科",
-      "decision": "續抱",
-      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
-      "finalScore": 59,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1789472266890-b5ef5a6999d57",
-      "createdAt": "2026-09-15T11:37:46.890Z",
-      "tradingDate": "2026-09-15"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1795075998416-af33a2b1f0633",
+      "createdAt": "2026-11-19T08:13:18.416Z",
+      "tradingDate": "2026-11-19",
+      "cash": 98761.0499999999,
+      "positionValue": 0,
+      "totalEquity": 98761.0499999999,
+      "realizedPnl": -1238.950000000009
+    },
     {
       "id": "equity-1795015928657-5ee37ac3aaf54",
       "createdAt": "2026-11-18T15:32:08.657Z",
@@ -15940,17 +15946,8 @@
       "positionValue": 28714,
       "totalEquity": 99596.5,
       "realizedPnl": -200.0000000000009
-    },
-    {
-      "id": "equity-1784882384944-60eec27c33c94",
-      "createdAt": "2026-07-24T08:39:44.944Z",
-      "tradingDate": "2026-07-24",
-      "cash": 56902.5,
-      "positionValue": 42707.5,
-      "totalEquity": 99610,
-      "realizedPnl": -376
     }
   ],
-  "lastRunAt": "2026-11-18T15:31:34.360Z",
+  "lastRunAt": "2026-11-19T08:10:18.414Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
