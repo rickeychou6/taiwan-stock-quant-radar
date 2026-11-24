@@ -1,31 +1,49 @@
 {
   "initialCapital": 100000,
-  "cash": 93746.8499999999,
-  "realizedPnl": -1238.950000000009,
+  "cash": 96314.94999999991,
+  "realizedPnl": -1177.950000000009,
   "positions": [
     {
       "id": "position-1795422402232-ff05573c3ad54",
       "symbol": "8415.TWO",
       "name": "大國鋼",
-      "shares": 122,
+      "shares": 61,
       "entryPrice": 41.1,
-      "entryAmount": 5014.2,
-      "stopLossPrice": 36.78,
-      "takeProfit1": 46.45,
-      "takeProfit2": 50.07,
+      "entryAmount": 2507.1,
+      "stopLossPrice": 36.66,
+      "takeProfit1": 46.79,
+      "takeProfit2": 50.7,
       "openedAt": "2026-11-23T08:26:42.232Z",
       "openedTradingDate": "2026-11-23",
       "tradeStyle": "波段持有",
       "automationAction": "小量試單",
       "positionSizePct": 20,
       "lastPrice": 42.1,
-      "lastValue": 5136.2,
-      "unrealizedPnl": 122,
-      "unrealizedPnlPct": 2.4330900243309004,
-      "lastAnalysisAt": "2026-11-24T10:33:40.536Z"
+      "lastValue": 2568.1,
+      "unrealizedPnl": 61,
+      "unrealizedPnlPct": 2.4330900243309,
+      "lastAnalysisAt": "2026-11-24T17:32:54.629Z"
     }
   ],
   "trades": [
+    {
+      "side": "PARTIAL_SELL",
+      "symbol": "8415.TWO",
+      "name": "大國鋼",
+      "price": 42.1,
+      "shares": 61,
+      "amount": 2568.1,
+      "costBasis": 2507.1,
+      "realizedPnl": 61,
+      "realizedPnlPct": 2.4330900243309004,
+      "cashAfter": 96314.94999999991,
+      "reason": "AI 顯示減碼訊號：第一目標 46.79 元 先賣 1/3 到 1/2，第二目標 50.70 元 再分批。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1795422402232-ff05573c3ad54",
+      "id": "trade-1795541574630-16451f69f394f",
+      "createdAt": "2026-11-24T17:32:54.630Z",
+      "tradingDate": "2026-11-25"
+    },
     {
       "side": "PARTIAL_SELL",
       "symbol": "8415.TWO",
@@ -8143,24 +8161,39 @@
       "id": "trade-1785115307990-2b2cc5811fb9e",
       "createdAt": "2026-07-27T01:21:47.990Z",
       "tradingDate": "2026-07-27"
-    },
-    {
-      "side": "PARTIAL_SELL",
-      "symbol": "4127.TWO",
-      "name": "天良",
-      "price": 80.8,
-      "shares": 95,
-      "amount": 7676,
-      "cashAfter": 64932.5,
-      "reason": "AI 顯示減碼訊號：第一目標 91.38 元 先賣 1/3 到 1/2，第二目標 100.20 元 再分批。",
-      "source": "github-actions-real-time-analysis",
-      "positionId": "position-1784882384944-5c1a1e232ec4f",
-      "id": "trade-1785115307331-6d976e1d257e7",
-      "createdAt": "2026-07-27T01:21:47.331Z",
-      "tradingDate": "2026-07-27"
     }
   ],
   "decisions": [
+    {
+      "symbol": "MARKET",
+      "name": "全市場",
+      "decision": "沒有買入",
+      "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
+      "id": "decision-1795541589816-0798aabf882a",
+      "createdAt": "2026-11-24T17:33:09.816Z",
+      "tradingDate": "2026-11-25"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "2355.TW 敬鵬：今日漲幅 9.89% 過熱，避免追高 / 2027.TW 大成鋼：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；AI 分數 56 低於 58；3-5 天上漲機率 54% 低於 56%；今日漲幅 7.6% 過熱，避免追高 / 2323.TW 中環：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；3-5 天上漲機率 54% 低於 56% / 3715.TW 定穎投控：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；AI 分數 49 低於 58；3-5 天上漲機率 55% 低於 56%；今日漲幅 9.64% 過熱，避免追高 / 2385.TW 群光：推薦等級為 暫不買入；AI 動作為 減碼；AI 分數 57 低於 58；3-5 天上漲機率 48% 低於 56%；第 5 天預估 -2.02% 不足",
+      "id": "decision-1795541589816-b9ea869c33ee2",
+      "createdAt": "2026-11-24T17:33:09.816Z",
+      "tradingDate": "2026-11-25"
+    },
+    {
+      "symbol": "8415.TWO",
+      "name": "大國鋼",
+      "decision": "部分賣出",
+      "reason": "AI 顯示減碼訊號：第一目標 46.79 元 先賣 1/3 到 1/2，第二目標 50.70 元 再分批。",
+      "finalScore": 61,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1795541574630-e1b6152048bba",
+      "createdAt": "2026-11-24T17:32:54.630Z",
+      "tradingDate": "2026-11-25"
+    },
     {
       "symbol": "MARKET",
       "name": "全市場",
@@ -13575,42 +13608,18 @@
       "id": "decision-1789557891671-daaade72ff2f3",
       "createdAt": "2026-09-16T11:24:51.671Z",
       "tradingDate": "2026-09-16"
-    },
-    {
-      "symbol": "6147.TWO",
-      "name": "頎邦",
-      "decision": "續抱",
-      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
-      "finalScore": 61,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1789557891225-cb39f71f12ea2",
-      "createdAt": "2026-09-16T11:24:51.225Z",
-      "tradingDate": "2026-09-16"
-    },
-    {
-      "symbol": "2885.TW",
-      "name": "元大金",
-      "decision": "續抱",
-      "reason": "收盤跌破 65.81 元 或跌破 MA20 後無法收回，應降低部位。",
-      "finalScore": 54,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1789557890135-28eccf2908cfe",
-      "createdAt": "2026-09-16T11:24:50.135Z",
-      "tradingDate": "2026-09-16"
-    },
-    {
-      "symbol": "MARKET",
-      "name": "全市場",
-      "decision": "沒有買入",
-      "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
-      "id": "decision-1789553566037-6337b4f965342",
-      "createdAt": "2026-09-16T10:12:46.037Z",
-      "tradingDate": "2026-09-16"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1795541589816-ff71428206633",
+      "createdAt": "2026-11-24T17:33:09.816Z",
+      "tradingDate": "2026-11-25",
+      "cash": 96314.94999999991,
+      "positionValue": 2568.1,
+      "totalEquity": 98883.04999999992,
+      "realizedPnl": -1177.950000000009
+    },
     {
       "id": "equity-1795516437737-a48fb944133c4",
       "createdAt": "2026-11-24T10:33:57.737Z",
@@ -15941,17 +15950,8 @@
       "positionValue": 40546.200000000004,
       "totalEquity": 96899.79999999999,
       "realizedPnl": -397.00000000000136
-    },
-    {
-      "id": "equity-1785219568981-6fce65a504051",
-      "createdAt": "2026-07-28T06:19:28.981Z",
-      "tradingDate": "2026-07-28",
-      "cash": 56353.59999999999,
-      "positionValue": 40546.200000000004,
-      "totalEquity": 96899.79999999999,
-      "realizedPnl": -397.00000000000136
     }
   ],
-  "lastRunAt": "2026-11-24T10:33:34.654Z",
+  "lastRunAt": "2026-11-24T17:32:45.713Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
