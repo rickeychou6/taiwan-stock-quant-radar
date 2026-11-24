@@ -10,19 +10,19 @@
       "shares": 122,
       "entryPrice": 41.1,
       "entryAmount": 5014.2,
-      "stopLossPrice": 36.57,
-      "takeProfit1": 45.24,
-      "takeProfit2": 48.69,
+      "stopLossPrice": 36.78,
+      "takeProfit1": 46.45,
+      "takeProfit2": 50.07,
       "openedAt": "2026-11-23T08:26:42.232Z",
       "openedTradingDate": "2026-11-23",
       "tradeStyle": "波段持有",
       "automationAction": "小量試單",
       "positionSizePct": 20,
-      "lastPrice": 41.1,
-      "lastValue": 5014.2,
-      "unrealizedPnl": 0,
-      "unrealizedPnlPct": 0,
-      "lastAnalysisAt": "2026-11-23T17:57:00.987Z"
+      "lastPrice": 42.1,
+      "lastValue": 5136.2,
+      "unrealizedPnl": 122,
+      "unrealizedPnlPct": 2.4330900243309004,
+      "lastAnalysisAt": "2026-11-24T10:33:40.536Z"
     }
   ],
   "trades": [
@@ -8166,6 +8166,36 @@
       "name": "全市場",
       "decision": "沒有買入",
       "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
+      "id": "decision-1795516437737-a180af19fd922",
+      "createdAt": "2026-11-24T10:33:57.737Z",
+      "tradingDate": "2026-11-24"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "2355.TW 敬鵬：今日漲幅 9.89% 過熱，避免追高 / 2027.TW 大成鋼：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；AI 分數 57 低於 58；3-5 天上漲機率 54% 低於 56%；今日漲幅 7.6% 過熱，避免追高 / 2323.TW 中環：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；3-5 天上漲機率 55% 低於 56% / 3715.TW 定穎投控：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；AI 分數 50 低於 58；3-5 天上漲機率 55% 低於 56%；今日漲幅 9.64% 過熱，避免追高 / 2385.TW 群光：推薦等級為 暫不買入；AI 動作為 減碼；AI 分數 57 低於 58；3-5 天上漲機率 49% 低於 56%；第 5 天預估 -2.08% 不足",
+      "id": "decision-1795516437737-a7068b1544364",
+      "createdAt": "2026-11-24T10:33:57.737Z",
+      "tradingDate": "2026-11-24"
+    },
+    {
+      "symbol": "8415.TWO",
+      "name": "大國鋼",
+      "decision": "續抱",
+      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
+      "finalScore": 63,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1795516420536-8a78fb8c91013",
+      "createdAt": "2026-11-24T10:33:40.536Z",
+      "tradingDate": "2026-11-24"
+    },
+    {
+      "symbol": "MARKET",
+      "name": "全市場",
+      "decision": "沒有買入",
+      "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
       "id": "decision-1795456637129-367083288db97",
       "createdAt": "2026-11-23T17:57:17.129Z",
       "tradingDate": "2026-11-24"
@@ -13578,42 +13608,18 @@
       "id": "decision-1789553566037-6337b4f965342",
       "createdAt": "2026-09-16T10:12:46.037Z",
       "tradingDate": "2026-09-16"
-    },
-    {
-      "symbol": "RISK-GATE",
-      "name": "自動交易風控",
-      "decision": "過濾候選",
-      "reason": "2891.TW 中信金：推薦等級為 等待回檔；AI 動作為 等待；交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.52 低於 0.9 / 3491.TWO 昇達科：AI 分數 53 低於 58 / 4939.TWO 亞電：AI 分數 53 低於 58；3-5 天上漲機率 52% 低於 56% / 6226.TW 光鼎：推薦等級為 等待回檔；AI 動作為 等待；交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.5 低於 0.9；今日漲幅 9.92% 過熱，避免追高 / 3066.TWO 李洲：AI 分數 57 低於 58；3-5 天上漲機率 51% 低於 56%",
-      "id": "decision-1789553566037-a507942cd0bb9",
-      "createdAt": "2026-09-16T10:12:46.037Z",
-      "tradingDate": "2026-09-16"
-    },
-    {
-      "symbol": "6505.TW",
-      "name": "台塑化",
-      "decision": "禁止當沖，暫不賣",
-      "reason": "AI 顯示減碼訊號：第一目標 90.60 元 先賣 1/3 到 1/2，第二目標 96.96 元 再分批。",
-      "finalScore": 62,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1789553554278-ba82b52f979ef",
-      "createdAt": "2026-09-16T10:12:34.278Z",
-      "tradingDate": "2026-09-16"
-    },
-    {
-      "symbol": "6147.TWO",
-      "name": "頎邦",
-      "decision": "續抱",
-      "reason": "今日已執行過一次減碼，避免 GitHub Actions 盤中重複賣一半。",
-      "finalScore": 61,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1789553553878-24a449a351062",
-      "createdAt": "2026-09-16T10:12:33.878Z",
-      "tradingDate": "2026-09-16"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1795516437737-a48fb944133c4",
+      "createdAt": "2026-11-24T10:33:57.737Z",
+      "tradingDate": "2026-11-24",
+      "cash": 93746.8499999999,
+      "positionValue": 5136.2,
+      "totalEquity": 98883.0499999999,
+      "realizedPnl": -1238.950000000009
+    },
     {
       "id": "equity-1795456637129-202617d06b6ed",
       "createdAt": "2026-11-23T17:57:17.129Z",
@@ -15944,17 +15950,8 @@
       "positionValue": 40546.200000000004,
       "totalEquity": 96899.79999999999,
       "realizedPnl": -397.00000000000136
-    },
-    {
-      "id": "equity-1785210880822-f8693063a2cf1",
-      "createdAt": "2026-07-28T03:54:40.822Z",
-      "tradingDate": "2026-07-28",
-      "cash": 69347,
-      "positionValue": 28519,
-      "totalEquity": 97866,
-      "realizedPnl": -274.3000000000011
     }
   ],
-  "lastRunAt": "2026-11-23T17:56:51.390Z",
+  "lastRunAt": "2026-11-24T10:33:34.654Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
