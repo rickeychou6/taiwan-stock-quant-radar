@@ -1,31 +1,27 @@
 {
   "initialCapital": 100000,
-  "cash": 96314.94999999991,
-  "realizedPnl": -1177.950000000009,
-  "positions": [
+  "cash": 98794.5999999999,
+  "realizedPnl": -1205.4000000000087,
+  "positions": [],
+  "trades": [
     {
-      "id": "position-1795422402232-ff05573c3ad54",
+      "side": "SELL",
       "symbol": "8415.TWO",
       "name": "大國鋼",
+      "price": 40.65,
       "shares": 61,
-      "entryPrice": 41.1,
-      "entryAmount": 2507.1,
-      "stopLossPrice": 36.66,
-      "takeProfit1": 46.79,
-      "takeProfit2": 50.7,
-      "openedAt": "2026-11-23T08:26:42.232Z",
-      "openedTradingDate": "2026-11-23",
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "positionSizePct": 20,
-      "lastPrice": 42.1,
-      "lastValue": 2568.1,
-      "unrealizedPnl": 61,
-      "unrealizedPnlPct": 2.4330900243309,
-      "lastAnalysisAt": "2026-11-24T17:32:54.629Z"
-    }
-  ],
-  "trades": [
+      "amount": 2479.65,
+      "costBasis": 2507.1,
+      "realizedPnl": -27.449999999999818,
+      "realizedPnlPct": -1.0948905109488978,
+      "cashAfter": 98794.5999999999,
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "source": "github-actions-real-time-analysis",
+      "positionId": "position-1795422402232-ff05573c3ad54",
+      "id": "trade-1795598638936-1cba33b9d63a7",
+      "createdAt": "2026-11-25T09:23:58.936Z",
+      "tradingDate": "2026-11-25"
+    },
     {
       "side": "PARTIAL_SELL",
       "symbol": "8415.TWO",
@@ -8146,24 +8142,39 @@
       "id": "trade-1785115581551-bb3811dee2266",
       "createdAt": "2026-07-27T01:26:21.552Z",
       "tradingDate": "2026-07-27"
-    },
-    {
-      "side": "PARTIAL_SELL",
-      "symbol": "8271.TW",
-      "name": "宇瞻",
-      "price": 212.5,
-      "shares": 28,
-      "amount": 5950,
-      "cashAfter": 70882.5,
-      "reason": "AI 顯示減碼訊號：短線目標先看 233.14 元；若隔日開高無量，先減碼。",
-      "source": "github-actions-real-time-analysis",
-      "positionId": "position-1784882384944-d5be25c0938d6",
-      "id": "trade-1785115307990-2b2cc5811fb9e",
-      "createdAt": "2026-07-27T01:21:47.990Z",
-      "tradingDate": "2026-07-27"
     }
   ],
   "decisions": [
+    {
+      "symbol": "MARKET",
+      "name": "全市場",
+      "decision": "沒有買入",
+      "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
+      "id": "decision-1795598765478-8aae8d761a57b",
+      "createdAt": "2026-11-25T09:26:05.478Z",
+      "tradingDate": "2026-11-25"
+    },
+    {
+      "symbol": "RISK-GATE",
+      "name": "自動交易風控",
+      "decision": "過濾候選",
+      "reason": "2618.TW 長榮航：今日跌幅 -5.97% 偏弱，避免接刀 / 2474.TW 可成：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；3-5 天上漲機率 50% 低於 56% / 6590.TWO 普鴻：今日漲幅 9.26% 過熱，避免追高 / 2610.TW 華航：交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；AI 分數 52 低於 58；3-5 天上漲機率 50% 低於 56% / 6140.TWO 訊達電腦：AI 分數 55 低於 58；風險報酬比 1:0.78 低於 0.9；今日漲幅 9.92% 過熱，避免追高",
+      "id": "decision-1795598765478-e16c185a33d7e",
+      "createdAt": "2026-11-25T09:26:05.478Z",
+      "tradingDate": "2026-11-25"
+    },
+    {
+      "symbol": "8415.TWO",
+      "name": "大國鋼",
+      "decision": "賣出",
+      "reason": "剩餘部位低於 3,000 元，不再零碎減碼，直接結束交易。",
+      "finalScore": 58,
+      "tradeStyle": "波段持有",
+      "automationAction": "小量試單",
+      "id": "decision-1795598638936-d0cfa61da2514",
+      "createdAt": "2026-11-25T09:23:58.936Z",
+      "tradingDate": "2026-11-25"
+    },
     {
       "symbol": "MARKET",
       "name": "全市場",
@@ -13578,39 +13589,18 @@
       "id": "decision-1789623404024-19f007ddb5085",
       "createdAt": "2026-09-17T05:36:44.024Z",
       "tradingDate": "2026-09-17"
-    },
-    {
-      "symbol": "MARKET",
-      "name": "全市場",
-      "decision": "沒有買入",
-      "reason": "全市場推薦清單沒有同時符合買入候選/可小量試單、AI 可開倉/小量試單與禁當沖限制。",
-      "id": "decision-1789557906366-65dc093c672da",
-      "createdAt": "2026-09-16T11:25:06.366Z",
-      "tradingDate": "2026-09-16"
-    },
-    {
-      "symbol": "RISK-GATE",
-      "name": "自動交易風控",
-      "decision": "過濾候選",
-      "reason": "2891.TW 中信金：推薦等級為 等待回檔；AI 動作為 等待；交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.52 低於 0.9 / 3491.TWO 昇達科：AI 分數 53 低於 58 / 4939.TWO 亞電：AI 分數 53 低於 58；3-5 天上漲機率 52% 低於 56% / 6226.TW 光鼎：推薦等級為 等待回檔；AI 動作為 等待；交易模式仍是區間等待，機器人不主動買入等待型訊號；短線模式 區間等待 不夠明確；風險報酬比 1:0.5 低於 0.9；今日漲幅 9.92% 過熱，避免追高 / 3066.TWO 李洲：AI 分數 57 低於 58；3-5 天上漲機率 51% 低於 56%",
-      "id": "decision-1789557906366-21453c61ac3be",
-      "createdAt": "2026-09-16T11:25:06.366Z",
-      "tradingDate": "2026-09-16"
-    },
-    {
-      "symbol": "6505.TW",
-      "name": "台塑化",
-      "decision": "禁止當沖，暫不賣",
-      "reason": "AI 顯示減碼訊號：第一目標 90.60 元 先賣 1/3 到 1/2，第二目標 96.96 元 再分批。",
-      "finalScore": 62,
-      "tradeStyle": "波段持有",
-      "automationAction": "小量試單",
-      "id": "decision-1789557891671-daaade72ff2f3",
-      "createdAt": "2026-09-16T11:24:51.671Z",
-      "tradingDate": "2026-09-16"
     }
   ],
   "equity": [
+    {
+      "id": "equity-1795598765478-25478a9d0a54e",
+      "createdAt": "2026-11-25T09:26:05.478Z",
+      "tradingDate": "2026-11-25",
+      "cash": 98794.5999999999,
+      "positionValue": 0,
+      "totalEquity": 98794.5999999999,
+      "realizedPnl": -1205.4000000000087
+    },
     {
       "id": "equity-1795541589816-ff71428206633",
       "createdAt": "2026-11-24T17:33:09.816Z",
@@ -15941,17 +15931,8 @@
       "positionValue": 27292.2,
       "totalEquity": 95698.19999999998,
       "realizedPnl": -1008.0000000000014
-    },
-    {
-      "id": "equity-1785228515076-da2621aaf215c",
-      "createdAt": "2026-07-28T08:48:35.076Z",
-      "tradingDate": "2026-07-28",
-      "cash": 56353.59999999999,
-      "positionValue": 40546.200000000004,
-      "totalEquity": 96899.79999999999,
-      "realizedPnl": -397.00000000000136
     }
   ],
-  "lastRunAt": "2026-11-24T17:32:45.713Z",
+  "lastRunAt": "2026-11-25T09:23:29.511Z",
   "strategyVersion": "risk-guard-v2-2026-08-13"
 }
